@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+import main
 
 # Criação do objeto do aplicativo Flask
 app = Flask(__name__)
