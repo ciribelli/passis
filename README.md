@@ -9,6 +9,8 @@ Este repositório contém uma API simples em Python utilizando o framework Flask
 * Flask (instalado via pip install Flask)
 * Melhor opção seria instalar os requirements.txt:
  ```
+python3 -m venv venv (no mac/linux)
+source venv/bin/activate (no mac/linux)
 pip install -r requirements.txt
 ```
 
