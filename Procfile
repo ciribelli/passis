@@ -1,1 +1,1 @@
-web: gunicorn passis:app
+web: gunicorn app:app
