@@ -18,6 +18,7 @@ def get_time(nome_time):
     import main
     jogos = main.get_time(nome_time)
     return jogos
+
 # Executa o aplicativo Flask
 if __name__ == '__main__':
     app.run(debug=True)
