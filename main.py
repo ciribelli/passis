@@ -5,6 +5,7 @@ import datetime
 
 # busca a data do dia do sistema
 hoje = datetime.date.today().strftime('%d-%m-%Y')
+#print(datetime.date.today() + datetime.timedelta(days=1))
 url = 'http://www.uol.com.br/esporte/futebol/central-de-jogos/'
 resposta = requests.get(url)
 print(resposta.status_code, ' ', url, hoje)

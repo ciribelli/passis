@@ -16,7 +16,6 @@ def get_jogos():
 
 @app.route('/time/<nome_time>', methods=['GET'])
 def get_time(nome_time):
-    import main
     jogos = main.get_time(nome_time)
     return jogos
 
