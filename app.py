@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response, json
 import main
 
 # Criação do objeto do aplicativo Flask
@@ -13,6 +13,11 @@ def index():
 def get_jogos():
     jogos = main.get_jogos()
     return jogos
+
+@app.route('/v1/jogos', methods=['GET'])
+def get_jogos2():
+    jogos = main.get_jogos()
+    return Response(response=json.dumps(jogos), status=200)
 
 @app.route('/time/<nome_time>', methods=['GET'])
 def get_time(nome_time):
