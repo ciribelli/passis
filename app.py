@@ -17,7 +17,7 @@ def get_jogos():
 @app.route('/v1/jogos', methods=['GET'])
 def get_jogos2():
     jogos = main.get_jogos()
-    return Response(response=json.dumps(jogos), status=200)
+    return Response(response=jogos, status=200, mimetype='application/json')
 
 @app.route('/time/<nome_time>', methods=['GET'])
 def get_time(nome_time):
