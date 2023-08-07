@@ -19,6 +19,17 @@ def get_time(nome_time):
     jogos = main.get_time(nome_time)
     return Response(response=jogos, status=200, mimetype='application/json')
 
+def rec_checkin(arg):
+     print()
+     res = {"deu certo": arg}
+     return (json.dumps(res))
+
+@app.route('/v1/checkin/', methods=['POST'])
+def checkin():
+    n_checkin = request.get_json()
+    res = rec_checkin(n_checkin)
+    return Response(response=res, status=200, mimetype='application/json')
+
 # Executa o aplicativo Flask
 if __name__ == '__main__':
     app.run(debug=True)
