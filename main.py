@@ -119,7 +119,7 @@ print(filtro_jogao())
 ################### funcao location_logger ################
 
 def location_logger(arg):
-    res = {"msg recebida"}
+    # res = {"msg recebida": arg}
     if "checkin" in arg:
         # Nome do arquivo CSV
         nome_arquivo_csv = "dados_checkin.csv"
@@ -140,6 +140,7 @@ def location_logger(arg):
             escritor_csv.writerow(arg)
             res = {"Dados foram gravados conforme: ": arg}
     else:
-        res = {"Olá, tudo bem?", arg}
-     
+        res = {"Esta nao e uma mensagem de checkin": arg}
+        ###### em futuras implementacoes, aqui poderao ser encaminhados outros tratamentos #####
+        
     return json.dumps(res)
