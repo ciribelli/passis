@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request, Response, json
-import main
+import main, location_logger
 
 # Criação do objeto do aplicativo Flask
 app = Flask(__name__)
@@ -19,15 +19,10 @@ def get_time(nome_time):
     jogos = main.get_time(nome_time)
     return Response(response=jogos, status=200, mimetype='application/json')
 
-def rec_checkin(arg):
-     print()
-     res = {"deu certo": arg}
-     return (json.dumps(res))
-
 @app.route('/v1/checkin/', methods=['POST'])
 def checkin():
     n_checkin = request.get_json()
-    res = rec_checkin(n_checkin)
+    res = main.location_logger(n_checkin)
     return Response(response=res, status=200, mimetype='application/json')
 
 # Executa o aplicativo Flask
