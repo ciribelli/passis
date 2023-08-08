@@ -3,7 +3,7 @@ import json
 
 # Dados em formato JSON
 json_data = {"checkin": "academia", "direction": "in", "data": "08-08-2023 13:53:30"}
-
+#json_data = "opa"
 url = 'http://127.0.0.1:5000/v1/checkin/'
 
 headers = {'Content-type': 'application/json'}

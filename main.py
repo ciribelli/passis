@@ -119,23 +119,27 @@ print(filtro_jogao())
 ################### funcao location_logger ################
 
 def location_logger(arg):
-     # Nome do arquivo CSV
-     nome_arquivo_csv = "dados_checkin.csv"
+    res = {"msg recebida"}
+    if "checkin" in arg:
+        # Nome do arquivo CSV
+        nome_arquivo_csv = "dados_checkin.csv"
 
-     # Verificar se o arquivo já existe ou precisa ser criado
-     arquivo_existe = os.path.exists(nome_arquivo_csv)
+        # Verificar se o arquivo já existe ou precisa ser criado
+        arquivo_existe = os.path.exists(nome_arquivo_csv)
 
-     # Abrir o arquivo CSV para adição ou criação
-     modo_abertura = "a" if arquivo_existe else "w"
-     with open(nome_arquivo_csv, modo_abertura, newline="") as arquivo_csv:
-          escritor_csv = csv.DictWriter(arquivo_csv, fieldnames=arg.keys())
-          
-          # Se o arquivo não existir, escrever o cabeçalho
-          if not arquivo_existe:
-               escritor_csv.writeheader()
+        # Abrir o arquivo CSV para adição ou criação
+        modo_abertura = "a" if arquivo_existe else "w"
+        with open(nome_arquivo_csv, modo_abertura, newline="") as arquivo_csv:
+            escritor_csv = csv.DictWriter(arquivo_csv, fieldnames=arg.keys())
+            
+            # Se o arquivo não existir, escrever o cabeçalho
+            if not arquivo_existe:
+                escritor_csv.writeheader()
+        
+            # Escrever o novo registro
+            escritor_csv.writerow(arg)
+            res = {"Dados foram gravados conforme: ": arg}
+    else:
+        res = {"Olá, tudo bem?", arg}
      
-          # Escrever o novo registro
-          escritor_csv.writerow(arg)
-
-     res = {"deu certo": arg}
-     return json.dumps(res)
+    return json.dumps(res)

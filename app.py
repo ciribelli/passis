@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request, Response, json
-import main, location_logger
+import main
 
 # Criação do objeto do aplicativo Flask
 app = Flask(__name__)
