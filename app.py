@@ -21,7 +21,14 @@ def get_time(nome_time):
 
 @app.route('/v1/checkin/', methods=['POST'])
 def checkin():
-    n_checkin = request.get_json()
+    try:
+        n_checkin = request.get_json()  # Tenta obter o JSON da solicitação
+        if n_checkin is None:
+            raise json.JSONDecodeError("Invalid JSON", "", 0)
+    except json.JSONDecodeError:
+        res = {"erro": "Mensagem não tem formato JSON"}
+        return Response(response=json.dumps(res), status=400, mimetype='application/json')
+
     res = main.location_logger(n_checkin)
     return Response(response=res, status=200, mimetype='application/json')
 
