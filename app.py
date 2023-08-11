@@ -3,9 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from datetime import datetime
 import urllib.parse as up
-from dotenv import load_dotenv
 import os
-#import main
+import main
  
 
 app = Flask(__name__)
