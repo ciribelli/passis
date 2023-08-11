@@ -3,19 +3,15 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from datetime import datetime
 import urllib.parse as up
+from dotenv import load_dotenv
 import os
 import main
- 
+
+load_dotenv()
 
 app = Flask(__name__)
-# Configuração para a base de dados local
-# app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgres@localhost:5432/passisdb"
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://rckfivyc:SHw-Rtdu9QKDO3TjU7sQ-UKcUvS-1-QV@silly.db.elephantsql.com/rckfivyc"
-
-# Configuração para a base de dados externa
-# app.config['SQLALCHEMY_BINDS'] = {
-#     'externa': "postgres://rckfivyc:SHw-Rtdu9QKDO3TjU7sQ-UKcUvS-1-QV@silly.db.elephantsql.com/rckfivyc"
-# }
+# configuracao do url db postgres externo ou local (arquivo .env deve estar na raiz do projeto)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL_EXTERNA')
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 

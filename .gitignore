@@ -9,6 +9,7 @@ __pycache__/
 .Python
 env/
 venv/
+migrations/
 build/
 develop-eggs/
 dist/
@@ -40,6 +41,7 @@ htmlcov/
 .coverage
 .coverage.*
 .cache
+.env
 nosetests.xml
 coverage.xml
 *,cover
