@@ -2,10 +2,21 @@ from flask import Flask, request, Response, json
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from datetime import datetime
-import main
+import urllib.parse as up
+from dotenv import load_dotenv
+import os
+#import main
  
+
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgres@localhost:5432/passisdb"
+# Configuração para a base de dados local
+# app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgres@localhost:5432/passisdb"
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://rckfivyc:SHw-Rtdu9QKDO3TjU7sQ-UKcUvS-1-QV@silly.db.elephantsql.com/rckfivyc"
+
+# Configuração para a base de dados externa
+# app.config['SQLALCHEMY_BINDS'] = {
+#     'externa': "postgres://rckfivyc:SHw-Rtdu9QKDO3TjU7sQ-UKcUvS-1-QV@silly.db.elephantsql.com/rckfivyc"
+# }
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -45,7 +56,6 @@ if __name__ == '__main__':
 
 class Checkin(db.Model):
     __tablename__ = 'checkins'
-
     id = db.Column(db.Integer, primary_key=True)
     data = db.Column(db.DateTime, default=datetime.utcnow)
     direction = db.Column(db.String(10))
@@ -108,3 +118,4 @@ def handle_car(checkin_id):
         db.session.delete(checkin)
         db.session.commit()
         return {"message": f"Checkin {checkin.checkin} successfully deleted."}
+    
