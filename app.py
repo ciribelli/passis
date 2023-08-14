@@ -4,6 +4,7 @@ from flask_migrate import Migrate
 from datetime import datetime
 import urllib.parse as up
 from dotenv import load_dotenv
+import jsonify
 import os
 import main
 
@@ -114,3 +115,65 @@ def handle_car(checkin_id):
         db.session.commit()
         return {"message": f"Checkin {checkin.checkin} successfully deleted."}
     
+# ______________________
+
+
+class Clima(db.Model):
+    __tablename__ = 'climas'
+    id = db.Column(db.Integer, primary_key=True)
+    data = db.Column(db.String)  # Manter o formato ISO 8601
+    umidade = db.Column(db.Float)
+    temperatura = db.Column(db.String)
+    probabilidade = db.Column(db.Float)
+    velvento = db.Column(db.String)
+    condicao = db.Column(db.String)
+
+    def __init__(self, data, umidade, temperatura, probabilidade, velvento, condicao):
+        self.data = data
+        self.umidade = umidade
+        self.temperatura = temperatura
+        self.probabilidade = probabilidade
+        self.velvento = velvento
+        self.condicao = condicao
+
+@app.route('/adicionar_clima', methods=['POST'])
+def adicionar_clima():
+    dados = request.json
+
+    data = dados['data']
+    umidade = dados['umidade']
+    temperatura = dados['temperatura']
+    probabilidade = dados['probabilidade']
+    velvento = dados['velvento']
+    condicao = dados['condicao']
+
+    novo_clima = Clima(data=data, umidade=umidade, temperatura=temperatura, probabilidade=probabilidade, velvento=velvento, condicao=condicao)
+    db.session.add(novo_clima)
+    db.session.commit()
+
+    return jsonify({"mensagem": "Dados de clima adicionados com sucesso!"})
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+@app.route('/obter_climas', methods=['GET'])
+def obter_climas():
+    climas = Clima.query.all()
+    clima_lista = []
+
+    for clima in climas:
+        clima_dict = {
+            'id': clima.id,
+            'data': clima.data,
+            'umidade': clima.umidade,
+            'temperatura': clima.temperatura,
+            'probabilidade': clima.probabilidade,
+            'velvento': clima.velvento,
+            'condicao': clima.condicao
+        }
+        clima_lista.append(clima_dict)
+
+    return jsonify(clima_lista)
+
+if __name__ == '__main__':
+    app.run(debug=True)
