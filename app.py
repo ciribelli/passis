@@ -127,14 +127,16 @@ class Clima(db.Model):
     probabilidade = db.Column(db.Float)
     velvento = db.Column(db.String)
     condicao = db.Column(db.String)
+    cidade = db.Column(db.String)
 
-    def __init__(self, data, umidade, temperatura, probabilidade, velvento, condicao):
+    def __init__(self, data, umidade, temperatura, probabilidade, velvento, condicao, cidade):
         self.data = data
         self.umidade = umidade
         self.temperatura = temperatura
         self.probabilidade = probabilidade
         self.velvento = velvento
         self.condicao = condicao
+        self.cidade = cidade
 
 @app.route('/adicionar_clima', methods=['POST'])
 def adicionar_clima():
@@ -146,8 +148,9 @@ def adicionar_clima():
     probabilidade = dados['probabilidade']
     velvento = dados['velvento']
     condicao = dados['condicao']
+    cidade = dados['cidade']
 
-    novo_clima = Clima(data=data, umidade=umidade, temperatura=temperatura, probabilidade=probabilidade, velvento=velvento, condicao=condicao)
+    novo_clima = Clima(data=data, umidade=umidade, temperatura=temperatura, probabilidade=probabilidade, velvento=velvento, condicao=condicao, cidade=cidade)
     db.session.add(novo_clima)
     db.session.commit()
 
@@ -169,7 +172,8 @@ def obter_climas():
             'temperatura': clima.temperatura,
             'probabilidade': clima.probabilidade,
             'velvento': clima.velvento,
-            'condicao': clima.condicao
+            'condicao': clima.condicao,
+            'cidade': clima.cidade
         }
         clima_lista.append(clima_dict)
 
