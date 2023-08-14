@@ -151,7 +151,7 @@ def adicionar_clima():
     db.session.add(novo_clima)
     db.session.commit()
 
-    return jsonify({"mensagem": "Dados de clima adicionados com sucesso!"})
+    return {"message": "Dados de clima adicionados com sucesso!"}
 
 if __name__ == '__main__':
     app.run(debug=True)
@@ -173,7 +173,20 @@ def obter_climas():
         }
         clima_lista.append(clima_dict)
 
-    return jsonify(clima_lista)
+    return {"message": "success", "climas": clima_lista}
+
+@app.route('/deletar_clima/<int:clima_id>', methods=['DELETE'])
+def deletar_clima(clima_id):
+    clima = Clima.query.get(clima_id)
+    
+    if clima:
+        db.session.delete(clima)
+        db.session.commit()
+        return {"message": f"Registro de clima {clima_id} deletado com sucesso."}
+    else:
+        return {"message": f"Registro de clima {clima_id} não encontrado."}, 404
+    
+
 
 if __name__ == '__main__':
     app.run(debug=True)
