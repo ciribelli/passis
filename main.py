@@ -114,33 +114,35 @@ def filtro_jogao():
     return (n_jogoes)
 print(filtro_jogao())
 
+################### funcao twitter ################
+from serpapi import GoogleSearch
 
+def busca_X(perfil):
+    params = {
+    "api_key": "f46fff1bc98b541a967b4a855b97d55a31fc1f803150d868b233c0d8206908bd",
+    "engine": "google",
+    "q": "Twitter " + perfil,
+    "location": "Brazil",
+    "google_domain": "google.com.br",
+    "gl": "br",
+    "hl": "pt"
+    }
 
-################### funcao location_logger ################
+    search = GoogleSearch(params)
+    results = search.get_dict()
 
-def location_logger(arg):
-    # res = {"msg recebida": arg}
-    if "checkin" in arg:
-        # Nome do arquivo CSV
-        nome_arquivo_csv = "dados_checkin.csv"
+    # # Create an empty dictionary to store the Twitter results
+    twitter_results_dict = {}
 
-        # Verificar se o arquivo já existe ou precisa ser criado
-        arquivo_existe = os.path.exists(nome_arquivo_csv)
+    # Extract information from each tweet and store it in the dictionary
+    for tweet in results['twitter_results']['tweets']:
+        tweet_info = {
+            'link': tweet['link'],
+            'snippet': tweet['snippet'],
+            'published_date': tweet['published_date']
+        }
+        twitter_results_dict[tweet['link']] = tweet_info
 
-        # Abrir o arquivo CSV para adição ou criação
-        modo_abertura = "a" if arquivo_existe else "w"
-        with open(nome_arquivo_csv, modo_abertura, newline="") as arquivo_csv:
-            escritor_csv = csv.DictWriter(arquivo_csv, fieldnames=arg.keys())
-            
-            # Se o arquivo não existir, escrever o cabeçalho
-            if not arquivo_existe:
-                escritor_csv.writeheader()
-        
-            # Escrever o novo registro
-            escritor_csv.writerow(arg)
-            res = {"Dados foram gravados conforme: ": arg}
-    else:
-        res = {"Esta nao e uma mensagem de checkin": arg}
-        ###### em futuras implementacoes, aqui poderao ser encaminhados outros tratamentos #####
-        
-    return json.dumps(res)
+    # Print the dictionary with extracted Twitter information
+    saida = json.dumps(twitter_results_dict, indent = 2) 
+    return(saida)

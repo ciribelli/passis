@@ -31,18 +31,10 @@ def get_time(nome_time):
     jogos = main.get_time(nome_time)
     return Response(response=jogos, status=200, mimetype='application/json')
 
-@app.route('/v1/checkin/', methods=['POST'])
-def checkin():
-    try:
-        n_checkin = request.get_json()  # Tenta obter o JSON da solicitação
-        if n_checkin is None:
-            raise json.JSONDecodeError("Invalid JSON", "", 0)
-    except json.JSONDecodeError:
-        res = {"erro": "Mensagem não tem formato JSON"}
-        return Response(response=json.dumps(res), status=400, mimetype='application/json')
-
-    res = main.location_logger(n_checkin)
-    return Response(response=res, status=200, mimetype='application/json')
+@app.route('/v1/x/<perfil>', methods=['GET'])
+def get_X(perfil):
+    info_from_X = main.busca_X(perfil)
+    return Response(response=info_from_X, status=200, mimetype='application/json')
 
 # Executa o aplicativo Flask
 if __name__ == '__main__':
@@ -90,7 +82,7 @@ def handle_checkin():
         return {"count": len(results), "checkins": results}
 
 @app.route('/checkin/<checkin_id>', methods=['GET', 'PUT', 'DELETE'])
-def handle_car(checkin_id):
+def handle_checkin_id(checkin_id):
     checkin = Checkin.query.get_or_404(checkin_id)
 
     if request.method == 'GET':
@@ -189,8 +181,3 @@ def deletar_clima(clima_id):
         return {"message": f"Registro de clima {clima_id} deletado com sucesso."}
     else:
         return {"message": f"Registro de clima {clima_id} não encontrado."}, 404
-    
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
