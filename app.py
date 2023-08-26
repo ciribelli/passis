@@ -21,6 +21,12 @@ migrate = Migrate(app, db)
 def index():
     return "Servidor ativo"
 
+@app.route('/v1/hub/<content>', methods=['GET'])
+def hub(content):
+    coletor = content
+    return Response(response=coletor, status=200, mimetype='application/json')
+
+
 @app.route('/v1/jogos', methods=['GET'])
 def get_jogos():
     jogos = main.get_jogos()
