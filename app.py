@@ -28,16 +28,15 @@ def hub(content):
         data = main.get_jogos()
             
         dataString = ""
-        numMatches = len(data['time1'])
             
-        for i in range(numMatches):
-            time1 = data['time1'][i]
-            time2 = data['time2'][i]
-            hora = data['hora'][i]
-            transmissao = data['transmissao'][i]
+        for idx, time1_key in data['time1'].items():
+            time2 = data['time2'][idx]
+            hora = data['hora'][idx]
+            transmissao = data['transmissao'][idx]
                 
-            dataString += f"⚽️ {time1} vs. {time2} ⏰ {hora}, Transmissão: {transmissao}\n"
-            coletor = dataString
+            dataString += f"⚽️ {time1_key} vs. {time2} ⏰ {hora}, Transmissão: {transmissao}\n"
+            
+        coletor = dataString
 
     elif content.lower() == "cidade" or content.lower() == "cidades" or content.lower() == "transito":
         coletor = main.busca_X("operacoesrio")
