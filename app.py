@@ -25,7 +25,7 @@ def index():
 def hub(content):
     # desenvolver o hub aqui #
     if content.lower() == "jogos" or content.lower() == "jogo":
-        data = main.get_jogos().json()
+        data = main.get_jogos()
             
         dataString = ""
         numMatches = len(data['time1'])
