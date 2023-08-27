@@ -23,10 +23,22 @@ def index():
 
 @app.route('/v1/hub/<content>', methods=['GET'])
 def hub(content):
-    coletor = content
     # desenvolver o hub aqui #
     if content.lower() == "jogos" or content.lower() == "jogo":
-        coletor = main.get_jogos()
+        data = main.get_jogos().json()
+            
+        dataString = ""
+        numMatches = len(data['time1'])
+            
+        for i in range(numMatches):
+            time1 = data['time1'][i]
+            time2 = data['time2'][i]
+            hora = data['hora'][i]
+            transmissao = data['transmissao'][i]
+                
+            dataString += f"⚽️ {time1} vs. {time2} ⏰ {hora}, Transmissão: {transmissao}\n"
+            coletor = dataString
+
     elif content.lower() == "cidade" or content.lower() == "cidades" or content.lower() == "transito":
         coletor = main.busca_X("operacoesrio")
     else:
