@@ -26,8 +26,11 @@ def hub(content):
     coletor = content
     # desenvolver o hub aqui #
     if content.lower() == "jogos" or content.lower() == "jogo":
-        print("You are too old to party, granny.")
-        coletor = "entrei no if"
+        coletor = "jogo"
+    elif content.lower() == "cidade" or content.lower() == "cidades" or content.lower() == "transito":
+        coletor = "twitter"
+    else:
+        coletor = "checkin"
     return Response(response=coletor, status=200, mimetype='application/json')
 
 @app.route('/v1/jogos', methods=['GET'])
