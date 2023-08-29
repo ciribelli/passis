@@ -93,6 +93,11 @@ def get_jogos():
     print(df_resultante)
     return df_resultante.to_json()
 
+def get_jogos_df(): # funcao teste para funcao hub
+    df_resultante = df_f.loc[:,['isBigGame','time1', 'time2', 'hora', 'competicao', 'transmissao']].sort_values(by=['hora'])
+    print(df_resultante)
+    return df_resultante
+
 # filtro 1 para jogos em estádio específico utilizando o dataframe completo
 def get_estadio(elem):
     df_n = df_f.loc[(df.estadio == elem)]

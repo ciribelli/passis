@@ -25,21 +25,17 @@ def index():
 def hub(content):
     # desenvolver o hub aqui #
     if content.lower() == "jogos" or content.lower() == "jogo":
-        data = main.get_jogos()
-            
-        dataString = ""
-            
-        for idx, time1_key in data['time1'].items():
-            time2 = data['time2'][idx]
-            hora = data['hora'][idx]
-            transmissao = data['transmissao'][idx]
-                
-            dataString += f"⚽️ {time1_key} vs. {time2} ⏰ {hora}, Transmissão: {transmissao}\n"
-            
-        coletor = dataString
-
+        data = main.get_jogos_df()
+        saida = ''
+        for index, row in data.iterrows():
+            if (row['isBigGame']):
+                saida = saida + '🥇 ' + row['time1'] + ' ✖️ ' + row['time2'] + ' ⏰ ' + row['hora'] + ' 📺 ' + row['transmissao'] + '\n'
+            else:
+                saida = saida + '⚽️ ' + row['time1'] + ' ✖️ ' + row['time2'] + ' ⏰ ' + row['hora'] + ' 📺 ' + row['transmissao'] + '\n'
+        coletor = saida
     elif content.lower() == "cidade" or content.lower() == "cidades" or content.lower() == "transito":
-        coletor = main.busca_X("operacoesrio")
+        # coletor = main.busca_X("operacoesrio")
+        coletor = "twwwitter!"
     else:
         coletor = "checkin"
     return Response(response=coletor, status=200, mimetype='application/json')
