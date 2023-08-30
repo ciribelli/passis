@@ -138,7 +138,7 @@ def busca_X(perfil):
 
     # # Create an empty dictionary to store the Twitter results
     twitter_results_dict = {}
-
+    saida = ""
     # Extract information from each tweet and store it in the dictionary
     for tweet in results['twitter_results']['tweets']:
         tweet_info = {
@@ -146,8 +146,9 @@ def busca_X(perfil):
             'snippet': tweet['snippet'],
             'published_date': tweet['published_date']
         }
+        saida = saida + "✖️ " + tweet["snippet"] + ' ⏰ ' +  tweet["published_date"] + '\n'
         twitter_results_dict[tweet['link']] = tweet_info
 
-    # Print the dictionary with extracted Twitter information
-    saida = json.dumps(twitter_results_dict, indent = 2) 
+    # fazer o dump da variavel abaixo para colocar na API fora do HUB (caso se deseje gravar em db)
+    twitter_results_dict 
     return(saida)

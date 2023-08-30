@@ -34,8 +34,7 @@ def hub(content):
                 saida = saida + '⚽️ ' + row['time1'] + ' ✖️ ' + row['time2'] + ' ⏰ ' + row['hora'] + ' 📺 ' + row['transmissao'] + '\n'
         coletor = saida
     elif content.lower() == "cidade" or content.lower() == "cidades" or content.lower() == "transito":
-        # coletor = main.busca_X("operacoesrio")
-        coletor = "twwwitter!"
+        coletor = main.busca_X("operacoesrio")
     else:
         coletor = "checkin"
     return Response(response=coletor, status=200, mimetype='application/json')
