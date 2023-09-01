@@ -2,9 +2,12 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import datetime
+import os
+import csv
 
 # busca a data do dia do sistema
 hoje = datetime.date.today().strftime('%d-%m-%Y')
+#print(datetime.date.today() + datetime.timedelta(days=1))
 url = 'http://www.uol.com.br/esporte/futebol/central-de-jogos/'
 resposta = requests.get(url)
 print(resposta.status_code, ' ', url, hoje)
@@ -90,6 +93,11 @@ def get_jogos():
     print(df_resultante)
     return df_resultante.to_json()
 
+def get_jogos_df(): # funcao teste para funcao hub
+    df_resultante = df_f.loc[:,['isBigGame','time1', 'time2', 'hora', 'competicao', 'transmissao']].sort_values(by=['hora'])
+    print(df_resultante)
+    return df_resultante
+
 # filtro 1 para jogos em estádio específico utilizando o dataframe completo
 def get_estadio(elem):
     df_n = df_f.loc[(df.estadio == elem)]
@@ -110,3 +118,37 @@ def filtro_jogao():
         n_jogoes = 0
     return (n_jogoes)
 print(filtro_jogao())
+
+################### funcao twitter ################
+from serpapi import GoogleSearch
+
+def busca_X(perfil):
+    params = {
+    "api_key": "f46fff1bc98b541a967b4a855b97d55a31fc1f803150d868b233c0d8206908bd",
+    "engine": "google",
+    "q": "Twitter " + perfil,
+    "location": "Brazil",
+    "google_domain": "google.com.br",
+    "gl": "br",
+    "hl": "pt"
+    }
+
+    search = GoogleSearch(params)
+    results = search.get_dict()
+
+    # # Create an empty dictionary to store the Twitter results
+    twitter_results_dict = {}
+    saida = ""
+    # Extract information from each tweet and store it in the dictionary
+    for tweet in results['twitter_results']['tweets']:
+        tweet_info = {
+            'link': tweet['link'],
+            'snippet': tweet['snippet'],
+            'published_date': tweet['published_date']
+        }
+        saida = saida + "✖️ " + tweet["snippet"] + ' ⏰ ' +  tweet["published_date"] + '\n'
+        twitter_results_dict[tweet['link']] = tweet_info
+
+    # fazer o dump da variavel abaixo para colocar na API fora do HUB (caso se deseje gravar em db)
+    twitter_results_dict 
+    return(saida)

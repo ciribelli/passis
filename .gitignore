@@ -7,8 +7,10 @@ __pycache__/
 
 # Distribution / packaging
 .Python
+.env
 env/
 venv/
+migrations/
 build/
 develop-eggs/
 dist/

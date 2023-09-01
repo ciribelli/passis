@@ -17,7 +17,7 @@ pip install -r requirements.txt
 ## Como usar a API
 * Inicie o servidor Flask:
  ```
-python app.py
+flask run
 ```
 A API será executada localmente em http://127.0.0.1:5000/.
 
@@ -30,13 +30,13 @@ Esta rota retorna uma mensagem indicando que o servidor está ativo.
 
 ### Consultar Jogos
  ```
-GET /jogos
+GET /v1/jogos
 ```
 Esta rota retorna uma lista de jogos disponíveis no dia. Os jogos são obtidos através da função main.get_jogos().
 
 ### Consultar Time
  ```
-GET /time/<nome_time>
+GET /v1/time/<nome_time>
 ```
 
 ## Exemplo de uso
