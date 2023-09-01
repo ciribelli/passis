@@ -170,8 +170,8 @@ def busca_Clima():
     humidity = data["data"]["humidity"]
     sensation = data["data"]["sensation"]
 
-    output = f"Clima em \"{name}\" em \"{date}\"\n"
-    output += f"\"{condition}\"\n\n"
+    output = f"Clima em {name} - {date}\n"
+    output += f"{condition}\n\n"
     output += f"Temperatura: {temperature}°C\n"
     output += f"Vento: {wind_velocity} km/h de {wind_direction}\n"
     output += f"Umidade: {humidity}%\n"
