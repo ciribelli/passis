@@ -153,9 +153,9 @@ def busca_X(perfil):
     twitter_results_dict 
     return(saida)
 
-def busca_Clima():
+def busca_Clima(token):
     # utiliza a API do Clima Tempo para fazer consultas para o Rio de Janeiro
-    url = "http://apiadvisor.climatempo.com.br/api/v1/weather/locale/5959/current?token=b25afe811f932ed6f6374299098abe65"
+    url = "http://apiadvisor.climatempo.com.br/api/v1/weather/locale/5959/current?token=" + token
     payload = {}
     headers = {}
     response = requests.request("GET", url, headers=headers, data=payload)

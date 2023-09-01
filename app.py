@@ -39,7 +39,8 @@ def hub(content):
         coletor = main.busca_X("operacoesrio")
     # para CLIMA
     elif content.lower() == "Clima" or content.lower() == "Climas" or content.lower() == "clima" or content.lower() == "climas":
-        coletor = main.busca_Clima()
+        token = os.getenv('token_clima')
+        coletor = main.busca_Clima(token)
     else:
         coletor = content + " ainda não é um comando conhecido 😊"
     return Response(response=coletor, status=200, mimetype='application/json')
