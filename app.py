@@ -26,21 +26,14 @@ def hub(content):
 
     # para JOGOS
     if content.lower() == "jogos" or content.lower() == "jogo":
-        data = main.get_jogos_df()
-        saida = ''
-        for index, row in data.iterrows():
-            if (row['isBigGame']):
-                saida = saida + '🥇 ' + row['time1'] + ' ✖️ ' + row['time2'] + ' ⏰ ' + row['hora'] + ' 📺 ' + row['transmissao'] + '\n'
-            else:
-                saida = saida + '⚽️ ' + row['time1'] + ' ✖️ ' + row['time2'] + ' ⏰ ' + row['hora'] + ' 📺 ' + row['transmissao'] + '\n'
-        coletor = saida
+        coletor, datajson = main.get_jogos_df()
     # para CIDADE e TRANSITO
     elif content.lower() == "cidade" or content.lower() == "cidades" or content.lower() == "transito":
-        coletor = main.busca_X("operacoesrio")
+        coletor, datajson = main.busca_X("operacoesrio")
     # para CLIMA
     elif content.lower() == "Clima" or content.lower() == "Climas" or content.lower() == "clima" or content.lower() == "climas":
         token = os.getenv('token_clima')
-        coletor = main.busca_Clima(token)
+        coletor, datajson = main.busca_Clima(token)
     else:
         coletor = content + " ainda não é um comando conhecido 😊"
     return Response(response=coletor, status=200, mimetype='application/json')
@@ -57,8 +50,15 @@ def get_time(nome_time):
 
 @app.route('/v1/x/<perfil>', methods=['GET'])
 def get_X(perfil):
-    info_from_X = main.busca_X(perfil)
+    token = os.getenv('token_X')
+    info_from_X = main.busca_X(perfil, token)
     return Response(response=info_from_X, status=200, mimetype='application/json')
+
+@app.route('/v1/clima', methods=['GET'])
+def get_clima():
+    token = os.getenv('token_clima')
+    coletor, resposta = main.busca_Clima(token)
+    return Response(response=resposta, status=200, mimetype='application/json')
 
 # Executa o aplicativo Flask
 if __name__ == '__main__':

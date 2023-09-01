@@ -95,8 +95,15 @@ def get_jogos():
 
 def get_jogos_df(): # funcao teste para funcao hub
     df_resultante = df_f.loc[:,['isBigGame','time1', 'time2', 'hora', 'competicao', 'transmissao']].sort_values(by=['hora'])
-    print(df_resultante)
-    return df_resultante
+    saida = ''
+    for index, row in df_resultante.iterrows():
+        if (row['isBigGame']):
+            saida = saida + '🥇 ' + row['time1'] + ' ✖️ ' + row['time2'] + ' ⏰ ' + row['hora'] + ' 📺 ' + row[
+                'transmissao'] + '\n'
+        else:
+            saida = saida + '⚽️ ' + row['time1'] + ' ✖️ ' + row['time2'] + ' ⏰ ' + row['hora'] + ' 📺 ' + row[
+                'transmissao'] + '\n'
+    return saida, df_resultante # [formato texto], [formato json]
 
 # filtro 1 para jogos em estádio específico utilizando o dataframe completo
 def get_estadio(elem):
@@ -122,9 +129,9 @@ print(filtro_jogao())
 ################### funcao twitter ################
 from serpapi import GoogleSearch
 
-def busca_X(perfil):
+def busca_X(perfil, token):
     params = {
-    "api_key": "f46fff1bc98b541a967b4a855b97d55a31fc1f803150d868b233c0d8206908bd",
+    "api_key": token,
     "engine": "google",
     "q": "Twitter " + perfil,
     "location": "Brazil",
@@ -151,7 +158,7 @@ def busca_X(perfil):
 
     # fazer o dump da variavel abaixo para colocar na API fora do HUB (caso se deseje gravar em db)
     twitter_results_dict 
-    return(saida)
+    return saida, twitter_results_dict
 
 def busca_Clima(token):
     # utiliza a API do Clima Tempo para fazer consultas para o Rio de Janeiro
@@ -177,7 +184,7 @@ def busca_Clima(token):
     output += f"Umidade: {humidity}%\n"
     output += f"Sensação térmica: {sensation}°C"
     print(output)
-    return output
+    return output, response
 
 
 
