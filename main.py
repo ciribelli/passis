@@ -152,3 +152,32 @@ def busca_X(perfil):
     # fazer o dump da variavel abaixo para colocar na API fora do HUB (caso se deseje gravar em db)
     twitter_results_dict 
     return(saida)
+
+def busca_Clima():
+    # utiliza a API do Clima Tempo para fazer consultas para o Rio de Janeiro
+    url = "http://apiadvisor.climatempo.com.br/api/v1/weather/locale/5959/current?token=b25afe811f932ed6f6374299098abe65"
+    payload = {}
+    headers = {}
+    response = requests.request("GET", url, headers=headers, data=payload)
+
+    data = json.loads(response.text)
+    name = data["name"]
+    date = data["data"]["date"]
+    condition = data["data"]["condition"]
+    temperature = data["data"]["temperature"]
+    wind_velocity = data["data"]["wind_velocity"]
+    wind_direction = data["data"]["wind_direction"]
+    humidity = data["data"]["humidity"]
+    sensation = data["data"]["sensation"]
+
+    output = f"Clima em \"{name}\" em \"{date}\"\n"
+    output += f"\"{condition}\"\n\n"
+    output += f"Temperatura: {temperature}°C\n"
+    output += f"Vento: {wind_velocity} km/h de {wind_direction}\n"
+    output += f"Umidade: {humidity}%\n"
+    output += f"Sensação térmica: {sensation}°C"
+    print(output)
+    return output
+
+
+

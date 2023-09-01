@@ -23,7 +23,8 @@ def index():
 
 @app.route('/v1/hub/<content>', methods=['GET'])
 def hub(content):
-    # desenvolver o hub aqui #
+
+    # para JOGOS
     if content.lower() == "jogos" or content.lower() == "jogo":
         data = main.get_jogos_df()
         saida = ''
@@ -33,10 +34,14 @@ def hub(content):
             else:
                 saida = saida + '⚽️ ' + row['time1'] + ' ✖️ ' + row['time2'] + ' ⏰ ' + row['hora'] + ' 📺 ' + row['transmissao'] + '\n'
         coletor = saida
+    # para CIDADE e TRANSITO
     elif content.lower() == "cidade" or content.lower() == "cidades" or content.lower() == "transito":
         coletor = main.busca_X("operacoesrio")
+    # para CLIMA
+    elif content.lower() == "Clima" or content.lower() == "Climas" or content.lower() == "clima" or content.lower() == "climas":
+        coletor = main.busca_Clima()
     else:
-        coletor = "checkin"
+        coletor = content + " ainda não é um comando conhecido 😊"
     return Response(response=coletor, status=200, mimetype='application/json')
 
 @app.route('/v1/jogos', methods=['GET'])
