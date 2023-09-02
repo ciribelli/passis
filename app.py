@@ -98,12 +98,13 @@ def webhook():
                 url = f"https://passis-bfd9b877f7d0.herokuapp.com/v1/hub/{msg_body}"
 
                 try:
-                    response = requests.get(url)
+                    response = request.get(url)
                     data_string = response.json()
-                    print("JSON recebido:", data_string)
+                    print("JSON recebido:", data_string, "telefone: ", from_number)
 
                     # Faz o envio da mensagem de volta
                     fb_url = f"https://graph.facebook.com/v17.0/{phone_number_id}/messages?access_token={token}"
+                    print('url para testes: ', fb_url)
                     payload = {
                         "messaging_product": "whatsapp",
                         "to": from_number,
@@ -112,7 +113,8 @@ def webhook():
 
                     headers = {"Content-Type": "application/json"}
 
-                    response = requests.post(fb_url, json=payload, headers=headers)
+                    response = request.post(fb_url, json=payload, headers=headers)
+                    print(response.text)
 
                 except requests.exceptions.RequestException as e:
                     # Tratamento de erros se a solicitação falhar
