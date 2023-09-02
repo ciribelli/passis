@@ -83,8 +83,7 @@ def webhook():
             from_number = message['from']
 
             # Verifica se há um ID de botão de resposta
-            button_reply_id = message['interactive']['button_reply'][
-                'id'] if 'interactive' in message and 'button_reply' in message['interactive'] else None
+            button_reply_id = message['interactive']['button_reply']['id'] if 'interactive' in message and 'button_reply' in message['interactive'] else None
 
             # Verifica se há um corpo de mensagem de texto
             msg_body = message['text']['body'] if 'text' in message else None
@@ -95,8 +94,8 @@ def webhook():
 
             elif msg_body:
                 print("msg_body:", msg_body)
+                content = msg_body
 
-                content = ""
                 # para JOGOS
                 if content.lower() == "jogos" or content.lower() == "jogo":
                     coletor, datajson = main.get_jogos_df()
@@ -123,9 +122,9 @@ def webhook():
                     }
                     headers = {"Content-Type": "application/json"}
                     response = requests.post(fb_url, json=payload, headers=headers)
-                    print(response.text, response.content)
-                    print(phone_number_id, wapp_token)
-                    send_msg.send_wapp_msg("teste arquivo externo!", wapp_token)
+                    # print(response.text, response.content)
+                    # print(phone_number_id, wapp_token)
+                    # send_msg.send_wapp_msg("teste arquivo externo!", wapp_token)
 
                 except requests.exceptions.RequestException as e:
                     # Tratamento de erros se a solicitação falhar
