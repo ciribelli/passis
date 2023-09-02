@@ -94,27 +94,31 @@ def webhook():
             elif msg_body:
                 print("msg_body:", msg_body)
 
-                # Faz a requisição para a URL com base no msg_body
-                url = f"https://passis-bfd9b877f7d0.herokuapp.com/v1/hub/{msg_body}"
+                content = ""
+                # para JOGOS
+                if content.lower() == "jogos" or content.lower() == "jogo":
+                    coletor, datajson = main.get_jogos_df()
+                # para CIDADE e TRANSITO
+                elif content.lower() == "cidade" or content.lower() == "cidades" or content.lower() == "transito":
+                    token = os.getenv('token_X')
+                    coletor, datajson = main.busca_X("operacoesrio", token)
+                # para CLIMA
+                elif content.lower() == "Clima" or content.lower() == "Climas" or content.lower() == "clima" or content.lower() == "climas":
+                    token = os.getenv('token_clima')
+                    coletor, datajson = main.busca_Clima(token)
+                else:
+                    coletor = content + " ainda não é um comando conhecido 😊"
 
                 try:
-                    response = requests.get(url)
-                    data_string = response.json()
-                    print("JSON recebido:", data_string, "telefone: ", from_number)
-
                     # Faz o envio da mensagem de volta
                     fb_url = f"https://graph.facebook.com/v17.0/{phone_number_id}/messages?access_token={token}"
-                    print('url para testes: ', fb_url)
                     payload = {
                         "messaging_product": "whatsapp",
                         "to": from_number,
-                        "text": {"body": data_string}
+                        "text": {"body": coletor}
                     }
-
                     headers = {"Content-Type": "application/json"}
-
-                    response = requests.post(fb_url, json=payload, headers=headers)
-                    print(response.text)
+                    response = requests.request("POST", fb_url, headers=headers, data=payload)
 
                 except requests.exceptions.RequestException as e:
                     # Tratamento de erros se a solicitação falhar
