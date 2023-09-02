@@ -111,6 +111,7 @@ def webhook():
 
                 try:
                     # Faz o envio da mensagem de volta
+                    token = os.getenv('WHATSAPP_TOKEN')
                     fb_url = f"https://graph.facebook.com/v17.0/{phone_number_id}/messages?access_token={token}"
                     payload = {
                         "messaging_product": "whatsapp",
