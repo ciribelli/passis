@@ -117,8 +117,12 @@ def webhook():
                         "to": from_number,
                         "text": {"body": coletor}
                     }
+
+                    # Converte o payload em uma representação JSON válida
+                    payload_json = json.dumps(payload)
+
                     headers = {"Content-Type": "application/json"}
-                    response = requests.request("POST", fb_url, headers=headers, data=payload)
+                    response = requests.request("POST", fb_url, headers=headers, data=payload_json)
 
                 except requests.exceptions.RequestException as e:
                     # Tratamento de erros se a solicitação falhar
