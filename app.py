@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import requests
 import jsonify
 import os
-import main
+import main, send_msg
 
 load_dotenv()
 
@@ -109,10 +109,11 @@ def webhook():
                 else:
                     coletor = content + " ainda não é um comando conhecido 😊"
 
-
+                wapp_token = os.getenv('WHATSAPP_TOKEN')
                 try:
                     # Faz o envio da mensagem de volta
-                    fb_url = f"https://graph.facebook.com/v17.0/{phone_number_id}/messages?access_token={token}"
+                    fb_url = f"https://graph.facebook.com/v17.0/{phone_number_id}/messages?access_token={wapp_token}"
+                    print (fb_url)
                     payload = {
                         "messaging_product": "whatsapp",
                         "to": from_number,
@@ -122,6 +123,8 @@ def webhook():
                     response = requests.post(fb_url, json=payload, headers=headers)
                     print(response.text, response.content)
                     print(phone_number_id, token)
+                    send_msg.send_wapp_msg("teste arquivo externo!", wapp_token)
+
                 except requests.exceptions.RequestException as e:
                     # Tratamento de erros se a solicitação falhar
                     print("Erro ao consultar a URL:", str(e))
