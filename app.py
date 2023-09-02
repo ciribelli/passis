@@ -4,6 +4,7 @@ from flask_migrate import Migrate
 from datetime import datetime
 import urllib.parse as up
 from dotenv import load_dotenv
+import requests
 import jsonify
 import os
 import main
@@ -15,6 +16,10 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL_EXTERNA')
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
+# Whatsapp webhook token:
+token = os.environ.get('WHATSAPP_TOKEN')
+verify_token = os.environ.get('VERIFY_TOKEN')
 
 # Rota principal (página inicial)
 @app.route('/')
@@ -61,9 +66,90 @@ def get_clima():
     coletor, resposta = main.busca_Clima(token)
     return Response(response=resposta, status=200, mimetype='application/json')
 
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    data = request.json
+
+    # Verifica se o objeto 'object' está presente no corpo da solicitação
+    if 'object' in data:
+        entry = data.get('entry', [])[0]
+
+        # Verifica se há mensagens na solicitação
+        if 'changes' in entry and entry['changes'][0]['value'].get('messages'):
+            message = entry['changes'][0]['value']['messages'][0]
+            phone_number_id = message['metadata']['phone_number_id']
+            from_number = message['from']
+
+            # Verifica se há um ID de botão de resposta
+            button_reply_id = message['interactive']['button_reply'][
+                'id'] if 'interactive' in message and 'button_reply' in message['interactive'] else None
+
+            # Verifica se há um corpo de mensagem de texto
+            msg_body = message['text']['body'] if 'text' in message else None
+
+            if button_reply_id:
+                print("button_reply.id:", button_reply_id)
+                # Faça algo com o button_reply.id
+
+            elif msg_body:
+                print("msg_body:", msg_body)
+
+                # Faz a requisição para a URL com base no msg_body
+                url = f"https://passis-bfd9b877f7d0.herokuapp.com/v1/hub/{msg_body}"
+
+                try:
+                    response = requests.get(url)
+                    data_string = response.json()
+                    print("JSON recebido:", data_string)
+
+                    # Faz o envio da mensagem de volta
+                    fb_url = f"https://graph.facebook.com/v17.0/{phone_number_id}/messages?access_token={token}"
+                    payload = {
+                        "messaging_product": "whatsapp",
+                        "to": from_number,
+                        "text": {"body": data_string}
+                    }
+
+                    headers = {"Content-Type": "application/json"}
+
+                    response = requests.post(fb_url, json=payload, headers=headers)
+
+                except requests.exceptions.RequestException as e:
+                    # Tratamento de erros se a solicitação falhar
+                    print("Erro ao consultar a URL:", str(e))
+
+            else:
+                print("Nem button_reply.id nem msg_body presentes.")
+
+    return '', 200
+
+
+@app.route('/webhook', methods=['GET'])
+def verify_webhook():
+
+    # Analise os parâmetros da solicitação de verificação do webhook
+    mode = request.args.get("hub.mode")
+    token = request.args.get("hub.verify_token")
+    challenge = request.args.get("hub.challenge")
+
+    # Verifique se um token e modo foram enviados
+    if mode and token:
+        # Verifique se o modo e o token enviados estão corretos
+        if mode == "subscribe" and token == verify_token:
+            # Responda com 200 OK e o token de desafio da solicitação
+            print("WEBHOOK_VERIFIED")
+            return challenge, 200
+        else:
+            # Responda com '403 Forbidden' se os tokens de verificação não coincidirem
+            return "Forbidden", 403
+
+    return "Bad Request", 400
+
 # Executa o aplicativo Flask
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(port=int(os.environ.get('PORT', 1337)))
+
+
 
 # Modelos
 
