@@ -78,7 +78,7 @@ def webhook():
         if 'changes' in entry and entry['changes'][0]['value'].get('messages'):
             message = entry['changes'][0]['value']['messages'][0]
             phone_number_id = entry['changes'][0]['value']['metadata']['phone_number_id']
-
+            from_number = message['from']
             print('phone_number_id')
             #phone_number_id = '116447921532317'
 
@@ -269,9 +269,6 @@ def adicionar_clima():
     db.session.commit()
 
     return {"message": "Dados de clima adicionados com sucesso!"}
-
-if __name__ == '__main__':
-    app.run(debug=True)
 
 @app.route('/obter_climas', methods=['GET'])
 def obter_climas():
