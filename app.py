@@ -98,7 +98,7 @@ def webhook():
                 url = f"https://passis-bfd9b877f7d0.herokuapp.com/v1/hub/{msg_body}"
 
                 try:
-                    response = request.get(url)
+                    response = requests.get(url)
                     data_string = response.json()
                     print("JSON recebido:", data_string, "telefone: ", from_number)
 
@@ -113,7 +113,7 @@ def webhook():
 
                     headers = {"Content-Type": "application/json"}
 
-                    response = request.post(fb_url, json=payload, headers=headers)
+                    response = requests.post(fb_url, json=payload, headers=headers)
                     print(response.text)
 
                 except requests.exceptions.RequestException as e:
