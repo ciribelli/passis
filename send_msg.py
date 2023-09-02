@@ -1,29 +1,19 @@
 
 import requests
 import json
+import os
 
-url = "https://graph.facebook.com/v17.0/116447921532317/messages"
-
-def send_wapp_msg(content, token):
-    payload = json.dumps({
+def send_wapp_msg(phone_number_id, from_number, coletor):
+    # Faz o envio da mensagem de volta
+    wapp_token = os.getenv('WHATSAPP_TOKEN')
+    fb_url = f"https://graph.facebook.com/v17.0/{phone_number_id}/messages?access_token={wapp_token}"
+    payload = {
         "messaging_product": "whatsapp",
-        "recipient_type": "individual",
-        "to": "5521983163900",
-        "type": "text",
-        "text": {
-            "preview_url": "false",
-            "body": content
-        },
-
-    })
-    headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + token
+        "to": from_number,
+        "text": {"body": coletor}
     }
-
-
-    response = requests.request("POST", url, headers=headers, data=payload)
-    print(response.text)
+    headers = {"Content-Type": "application/json"}
+    response = requests.post(fb_url, json=payload, headers=headers)
 
 
 

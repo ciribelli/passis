@@ -26,24 +26,6 @@ verify_token = os.environ.get('VERIFY_TOKEN')
 def index():
     return "Servidor ativo"
 
-@app.route('/v1/hub/<content>', methods=['GET'])
-def hub(content):
-
-    # para JOGOS
-    if content.lower() == "jogos" or content.lower() == "jogo":
-        coletor, datajson = main.get_jogos_df()
-    # para CIDADE e TRANSITO
-    elif content.lower() == "cidade" or content.lower() == "cidades" or content.lower() == "transito":
-        token = os.getenv('token_X')
-        coletor, datajson = main.busca_X("operacoesrio", token)
-    # para CLIMA
-    elif content.lower() == "Clima" or content.lower() == "Climas" or content.lower() == "clima" or content.lower() == "climas":
-        token = os.getenv('token_clima')
-        coletor, datajson = main.busca_Clima(token)
-    else:
-        coletor = content + " ainda não é um comando conhecido 😊"
-    return Response(response=coletor, status=200, mimetype='application/json')
-
 @app.route('/v1/jogos', methods=['GET'])
 def get_jogos():
     jogos = main.get_jogos()
@@ -79,9 +61,6 @@ def webhook():
             message = entry['changes'][0]['value']['messages'][0]
             phone_number_id = entry['changes'][0]['value']['metadata']['phone_number_id']
             from_number = message['from']
-            print('phone_number_id')
-            #phone_number_id = '116447921532317'
-
 
             # Verifica se há um ID de botão de resposta
             button_reply_id = message['interactive']['button_reply']['id'] if 'interactive' in message and 'button_reply' in message['interactive'] else None
@@ -111,24 +90,11 @@ def webhook():
                 else:
                     coletor = content + " ainda não é um comando conhecido 😊"
 
-                wapp_token = os.getenv('WHATSAPP_TOKEN')
+                # envia a mensagem de retorno para o whatsapp
                 try:
-                    # Faz o envio da mensagem de volta
-                    fb_url = f"https://graph.facebook.com/v17.0/{phone_number_id}/messages?access_token={wapp_token}"
-                    payload = {
-                        "messaging_product": "whatsapp",
-                        "to": from_number,
-                        "text": {"body": coletor}
-                    }
-                    headers = {"Content-Type": "application/json"}
-                    response = requests.post(fb_url, json=payload, headers=headers)
-                    # print(response.text, response.content)
-                    # print(phone_number_id, wapp_token)
-                    # send_msg.send_wapp_msg("teste arquivo externo!", wapp_token)
-
+                    send_msg.send_wapp_msg(phone_number_id, from_number, coletor)
                 except requests.exceptions.RequestException as e:
-                    # Tratamento de erros se a solicitação falhar
-                    print("Erro ao consultar a URL:", str(e))
+                    print("Erro ao enviar mensagem:", str(e))
 
             else:
                 print("Nem button_reply.id nem msg_body presentes.")
