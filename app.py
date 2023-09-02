@@ -77,8 +77,8 @@ def webhook():
         # Verifica se há mensagens na solicitação
         if 'changes' in entry and entry['changes'][0]['value'].get('messages'):
             message = entry['changes'][0]['value']['messages'][0]
-            phone_number_id = message['metadata']['phone_number_id']
-            print('phone_number_id')
+            #phone_number_id = message['metadata']['phone_number_id']
+            #print('phone_number_id')
             phone_number_id = '116447921532317'
             from_number = message['from']
 
@@ -124,7 +124,7 @@ def webhook():
                     headers = {"Content-Type": "application/json"}
                     response = requests.post(fb_url, json=payload, headers=headers)
                     print(response.text, response.content)
-                    print(phone_number_id, token)
+                    print(phone_number_id, wapp_token)
                     send_msg.send_wapp_msg("teste arquivo externo!", wapp_token)
 
                 except requests.exceptions.RequestException as e:
