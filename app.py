@@ -115,7 +115,6 @@ def webhook():
                 try:
                     # Faz o envio da mensagem de volta
                     fb_url = f"https://graph.facebook.com/v17.0/{phone_number_id}/messages?access_token={wapp_token}"
-                    print (fb_url)
                     payload = {
                         "messaging_product": "whatsapp",
                         "to": from_number,
@@ -150,7 +149,6 @@ def verify_webhook():
         # Verifique se o modo e o token enviados estão corretos
         if mode == "subscribe" and token == verify_token:
             # Responda com 200 OK e o token de desafio da solicitação
-            print("WEBHOOK_VERIFIED")
             return challenge, 200
         else:
             # Responda com '403 Forbidden' se os tokens de verificação não coincidirem
