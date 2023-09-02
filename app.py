@@ -109,22 +109,19 @@ def webhook():
                 else:
                     coletor = content + " ainda não é um comando conhecido 😊"
 
+
                 try:
                     # Faz o envio da mensagem de volta
-                    token = os.getenv('WHATSAPP_TOKEN')
                     fb_url = f"https://graph.facebook.com/v17.0/{phone_number_id}/messages?access_token={token}"
                     payload = {
                         "messaging_product": "whatsapp",
                         "to": from_number,
                         "text": {"body": coletor}
                     }
-
-                    # Converte o payload em uma representação JSON válida
-                    payload_json = json.dumps(payload)
-
                     headers = {"Content-Type": "application/json"}
-                    response = requests.request("POST", fb_url, headers=headers, data=payload_json)
-
+                    response = requests.post(fb_url, json=payload, headers=headers)
+                    print(response.text, response.content)
+                    print(phone_number_id, token)
                 except requests.exceptions.RequestException as e:
                     # Tratamento de erros se a solicitação falhar
                     print("Erro ao consultar a URL:", str(e))
