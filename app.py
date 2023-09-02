@@ -77,7 +77,7 @@ def webhook():
         # Verifica se há mensagens na solicitação
         if 'changes' in entry and entry['changes'][0]['value'].get('messages'):
             message = entry['changes'][0]['value']['messages'][0]
-            phone_number_id = message['metadata']['phone_number_id']
+            phone_number_id = message.get('metadata', {}).get('phone_number_id')
             from_number = message['from']
 
             # Verifica se há um ID de botão de resposta
