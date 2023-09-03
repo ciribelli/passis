@@ -17,10 +17,10 @@ def send_wapp_msg(phone_number_id, from_number, coletor):
 
 def send_wapp_question(phone_number_id, from_number, coletor):
     url = "https://graph.facebook.com/v17.0/116447921532317/messages"
-
+    wapp_token = os.getenv('WHATSAPP_TOKEN')
     headers = {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer EAASHYwjUYWkBO1vm06nYMEqnNfGARth4eRCveKzu6QCK1MARQIglzZCMSQiaxMQfi1B8NKFOuiX4nHxIlGHreGk8MxuME1aFzDZC4yJM2RLiDZBvQU99qpWfn5FoidnuJ7BMAFaU6HSpZCilBl8d6UQZAr6ucbeMaZBF1c39jvbQzjZCgm0oBBTi2A5IbLPvqXP'
+        'Authorization': 'Bearer ' + wapp_token
     }
     # https://developers.facebook.com/docs/whatsapp/guides/interactive-messages/
     payload = json.dumps({
