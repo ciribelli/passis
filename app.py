@@ -77,8 +77,8 @@ def webhook():
                 print(message)
             elif msg_body:
                 print("msg_body:", msg_body)
+                tipo_pergunta = False
                 content = msg_body
-
                 # para JOGOS
                 if content.lower() == "jogos" or content.lower() == "jogo":
                     coletor, datajson = main.get_jogos_df()
@@ -91,17 +91,18 @@ def webhook():
                     token = os.getenv('token_clima')
                     coletor, datajson = main.busca_Clima(token)
                 elif content.lower() == "responder":
-                    coletor = True
+                    tipo_pergunta = True
                 else:
                     coletor = content + " ainda não é um comando conhecido 😊"
 
                 # envia a mensagem de retorno para o whatsapp
                 try:
-                    print(coletor)
-                    if (coletor):
+                    print(tipo_pergunta)
+                    if (tipo_pergunta):
                         print("entrei no if da pergunta com coletor igual True")
                         send_msg.send_wapp_question(phone_number_id, from_number, "Aqui será o texto da pergunta")
                     else:
+                        print("estou no else do tipo pergunta")
                         send_msg.send_wapp_msg(phone_number_id, from_number, coletor)
                 except requests.exceptions.RequestException as e:
                     print("Erro ao enviar mensagem:", str(e))
