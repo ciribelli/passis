@@ -91,13 +91,15 @@ def webhook():
                     token = os.getenv('token_clima')
                     coletor, datajson = main.busca_Clima(token)
                 elif content.lower() == "responder":
-                    coletor = "pergunta"
+                    coletor = True
                 else:
                     coletor = content + " ainda não é um comando conhecido 😊"
 
                 # envia a mensagem de retorno para o whatsapp
                 try:
-                    if (coletor.lower() == str("pergunta")):
+                    print(coletor)
+                    if (coletor):
+                        print("entrei no if da pergunta com coletor igual True")
                         send_msg.send_wapp_question(phone_number_id, from_number, "Aqui será o texto da pergunta")
                     else:
                         send_msg.send_wapp_msg(phone_number_id, from_number, coletor)
