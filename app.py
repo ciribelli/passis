@@ -99,10 +99,8 @@ def webhook():
                 try:
                     print(tipo_pergunta)
                     if (tipo_pergunta):
-                        print("entrei no if da pergunta com coletor igual True")
                         send_msg.send_wapp_question(phone_number_id, from_number, "Aqui será o texto da pergunta")
                     else:
-                        print("estou no else do tipo pergunta")
                         send_msg.send_wapp_msg(phone_number_id, from_number, coletor)
                 except requests.exceptions.RequestException as e:
                     print("Erro ao enviar mensagem:", str(e))
