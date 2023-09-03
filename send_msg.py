@@ -11,7 +11,7 @@ def send_wapp_msg(phone_number_id, from_number, coletor):
         "to": from_number,
         "text": {"body": coletor}
     }
-
+    headers = {"Content-Type": "application/json"}
     response = requests.post(fb_url, json=payload, headers=headers)
 
     print(response.text)
