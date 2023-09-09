@@ -1,4 +1,5 @@
-from flask import Flask, request, Response, json
+import io
+from flask import Flask, request, Response, json, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from datetime import datetime
@@ -275,3 +276,52 @@ def deletar_clima(clima_id):
         return {"message": f"Registro de clima {clima_id} deletado com sucesso."}
     else:
         return {"message": f"Registro de clima {clima_id} não encontrado."}, 404
+
+# Classe documentos
+class DocumentoBinario(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nome_do_documento = db.Column(db.String(255))
+    descricao = db.Column(db.Text)
+    binario_data = db.Column(db.LargeBinary)
+    data_de_upload = db.Column(db.TIMESTAMP, server_default=db.func.now())
+    versao = db.Column(db.Integer, default=1)
+
+@app.route('/criar_documento', methods=['POST'])
+def criar_documento():
+    try:
+        nome = request.form.get('nome_do_documento')
+        descricao = request.form.get('descricao')
+        arquivo = request.files['arquivo']  # Assumindo que o arquivo binário é enviado como um arquivo
+
+        novo_documento = DocumentoBinario(
+            nome_do_documento=nome,
+            descricao=descricao,
+            binario_data=arquivo.read()
+        )
+
+        db.session.add(novo_documento)
+        db.session.commit()
+
+        # Substitua jsonify por json.dumps para criar uma resposta JSON
+        return json.dumps({'mensagem': 'Documento binário criado com sucesso!'})
+    except Exception as e:
+        # Substitua jsonify por json.dumps para criar uma resposta JSON de erro
+        return json.dumps({'erro': str(e)})
+
+# Rota para recuperar um documento binário pelo ID
+@app.route('/recuperar_documento/<int:documento_id>', methods=['GET'])
+def recuperar_documento(documento_id):
+    try:
+        documento = DocumentoBinario.query.get(documento_id)
+
+        if documento:
+            # Crie uma resposta Flask com o arquivo binário e o tipo MIME adequados (imagem/jpeg para JPG)
+            return send_file(io.BytesIO(documento.binario_data), mimetype='image/jpeg')
+
+        return json.dumps({'erro': 'Documento não encontrado.'}), 404
+    except Exception as e:
+        return json.dumps({'erro': str(e)})
+
+if __name__ == '__main__':
+    db.create_all()
+    app.run(debug=True)
