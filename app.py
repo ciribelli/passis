@@ -322,6 +322,34 @@ def recuperar_documento(documento_id):
     except Exception as e:
         return json.dumps({'erro': str(e)})
 
+# recuperar uma lista com todos os documentos
+@app.route('/recuperar_lista_documentos', methods=['GET'])
+def recuperar_lista_documentos():
+    try:
+        # Consulta o banco de dados para obter todos os documentos
+        documentos = DocumentoBinario.query.all()
+
+        # Crie uma lista para armazenar os dados dos documentos
+        lista_documentos = []
+
+        # Itera pelos documentos e cria um dicionário para cada um
+        for documento in documentos:
+            documento_info = {
+                'id': documento.id,
+                'nome_do_documento': documento.nome_do_documento,
+                'descricao': documento.descricao,
+                'data_de_upload': documento.data_de_upload.strftime('%Y-%m-%d %H:%M:%S'),
+                'versao': documento.versao
+            }
+            lista_documentos.append(documento_info)
+
+        # Converte a lista em JSON e retorna como resposta
+        return json.dumps({'documentos': lista_documentos})
+    except Exception as e:
+        # Em caso de erro, retorna uma resposta de erro JSON
+        return json.dumps({'erro': str(e)})
+
+
 if __name__ == '__main__':
     db.create_all()
     app.run(debug=True)
