@@ -349,6 +349,41 @@ def recuperar_lista_documentos():
         # Em caso de erro, retorna uma resposta de erro JSON
         return json.dumps({'erro': str(e)})
 
+# Rota para excluir um documento pelo ID
+@app.route('/excluir_documento/<int:documento_id>', methods=['DELETE'])
+def excluir_documento(documento_id):
+    try:
+        documento = DocumentoBinario.query.get(documento_id)
+
+        if documento:
+            db.session.delete(documento)
+            db.session.commit()
+            return json.dumps({'mensagem': 'Documento excluído com sucesso!'})
+        else:
+            return json.dumps({'erro': 'Documento não encontrado.'}), 404
+    except Exception as e:
+        return json.dumps({'erro': str(e)}), 500
+
+# Rota para atualizar informações de um documento pelo ID
+@app.route('/atualizar_documento/<int:documento_id>', methods=['PUT'])
+def atualizar_documento(documento_id):
+    try:
+        documento = DocumentoBinario.query.get(documento_id)
+
+        if documento:
+            nome = request.form.get('nome_do_documento')
+            descricao = request.form.get('descricao')
+
+            # Atualiza as informações do documento
+            documento.nome_do_documento = nome
+            documento.descricao = descricao
+
+            db.session.commit()
+            return json.dumps({'mensagem': 'Documento atualizado com sucesso!'})
+        else:
+            return json.dumps({'erro': 'Documento não encontrado.'}), 404
+    except Exception as e:
+        return json.dumps({'erro': str(e)}), 500
 
 if __name__ == '__main__':
     db.create_all()
