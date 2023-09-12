@@ -172,6 +172,7 @@ def handle_checkin():
         checkins = Checkin.query.all()
         results = [
             {
+                "id": checkin.id,
                 "data": checkin.data,
                 "direction": checkin.direction,
                 "checkin": checkin.checkin
