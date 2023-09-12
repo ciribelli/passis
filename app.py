@@ -185,6 +185,7 @@ def handle_checkin_id(checkin_id):
 
     if request.method == 'GET':
         response = {
+            "id": checkin.id,
             "direction": checkin.direction,
             "checkin": checkin.checkin,
             "data": checkin.data
