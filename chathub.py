@@ -74,11 +74,6 @@ def chatflow(entry):
             elif content.lower() == "Clima" or content.lower() == "Climas" or content.lower() == "clima" or content.lower() == "climas":
                 token = os.getenv('token_clima')
                 coletor, datajson = main.busca_Clima(token)
-            # para relatorio do dia
-            # elif content.lower() == "meu dia":
-            #     data_hoje = date.today()
-            #     checkins_hoje = Checkin.query.filter(Checkin.data >= data_hoje).all()
-            #     coletor, datajson = checkins_hoje
             elif content.lower() == "responder":
                 tipo_pergunta = True
             else:
