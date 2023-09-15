@@ -2,8 +2,7 @@ import main
 import send_msg
 import os
 import requests
-from datetime import datetime, date
-from app import Checkin
+
 
 def chatflow(entry):
     # Verifica se há mensagens na solicitação
