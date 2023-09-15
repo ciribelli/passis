@@ -3,7 +3,6 @@ import send_msg
 import os
 import requests
 
-
 def chatflow(entry):
     # Verifica se há mensagens na solicitação
     if 'changes' in entry and entry['changes'][0]['value'].get('messages'):
