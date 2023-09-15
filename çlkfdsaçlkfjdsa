@@ -1,0 +1,534 @@
+[33mcommit a37a2a35554d48262b4faed13861658f46ee40fd[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Sep 15 08:32:04 2023 -0300
+
+    retorno
+
+[33mcommit 73b88ced78cb0b945c3f98b007b29872704ae948[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Sep 15 08:20:57 2023 -0300
+
+    new deply try
+
+[33mcommit f397cf162fe9b8ff465f2a43c744afef3d3a03c0[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Sep 15 08:19:01 2023 -0300
+
+    automatic deplay
+
+[33mcommit 0315d660b960f6ce0e5971ce638787ec9306d77c[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Sep 15 08:15:50 2023 -0300
+
+    datetime version off
+
+[33mcommit d733552837dcc66371efa4603dc5dcbf37b0644b[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Sep 15 08:10:57 2023 -0300
+
+    automatic deplay
+
+[33mcommit 5c7b45dfe64e28b8ed3a9a7f2033ff0c00445407[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Sep 15 08:09:10 2023 -0300
+
+    bluild fail
+
+[33mcommit b245d0b1832ad68e5c63067c2e3fe71d0cae3482[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Sep 15 08:02:44 2023 -0300
+
+    relatorio do dia
+
+[33mcommit 5f1fe3cdcee7b3ca250324dae27020b6dd1f148a[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Wed Sep 13 08:20:20 2023 -0300
+
+    chat flow established
+
+[33mcommit 2c5b99f5c4c923d4deb0fcf69c52a9a48523d9d6[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Wed Sep 13 07:50:54 2023 -0300
+
+    chat flow established
+
+[33mcommit c5f87f32a5479bde9e8a3fa3b08d54ec7615cde6[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Tue Sep 12 19:44:15 2023 -0300
+
+    including id on get_all_checkins
+
+[33mcommit c2912f52e903b9b3482b2cbf8b11d7db19e4ca30[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Tue Sep 12 19:42:05 2023 -0300
+
+    including id on get_all_checkins
+
+[33mcommit b378d3aea29d13aff5503f366d9cd8bb02ef5d35[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Sep 9 21:21:57 2023 -0300
+
+    rota para listar todos os documentos
+
+[33mcommit c653a54e7920e7a80d7eff9f8bb9f04f84a78184[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Sep 9 20:23:06 2023 -0300
+
+    rota para listar todos os documentos
+
+[33mcommit fe10228f5756af7ab7a2c55a243cca07c3d91330[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Sat Sep 9 18:58:39 2023 -0300
+
+    table documentos inserido
+
+[33mcommit cde27020dd2fd8af9940b250c08bb027ac836a10[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sun Sep 3 17:38:25 2023 -0300
+
+    incluindo header na sessao de envio normal de msgs
+
+[33mcommit 76541ab8db3ec849a8034bb5a34c6b3c2445352d[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sun Sep 3 17:35:30 2023 -0300
+
+    alteracao no codigo de envio de msg com interatividade
+
+[33mcommit 8a529c9ab8fd33046d9466349ab1d17a7df3e2cd[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sun Sep 3 17:27:36 2023 -0300
+
+    hidding my bearer
+
+[33mcommit 96501d281bf59b015fd1e34edf70aa271bf2465c[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sun Sep 3 16:39:57 2023 -0300
+
+    novoteste
+
+[33mcommit aa8f9c5df3c6a2f5d42e5f2eac0fef614cc1e763[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sun Sep 3 16:30:47 2023 -0300
+
+    quick reply
+
+[33mcommit 22cd8a3bfd6bbc6e7fabea22ad6bc35a8878ad91[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sun Sep 3 16:23:04 2023 -0300
+
+    1st test with interactive
+
+[33mcommit ed9906c8ee099c15146d3b7e84f308e9cab8a79f[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sun Sep 3 16:12:24 2023 -0300
+
+    1st test with interactive
+
+[33mcommit 85ae309fac9e8764459f5d333a128ef0fed65f67[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sun Sep 3 16:07:24 2023 -0300
+
+    1st test with interactive
+
+[33mcommit f91c9f4cbeca2d90a61a1cdc22e50ea69003b43d[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Sep 2 13:07:14 2023 -0300
+
+    enviando msg por arquivo exclusivo
+
+[33mcommit da5beb336152d60ff52414ba8cc437516d60f1c4[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Sep 2 12:59:32 2023 -0300
+
+    last chance
+
+[33mcommit c4061e97fcbf1d9ec36299d3b66c0f42c48cbc53[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Sep 2 12:55:49 2023 -0300
+
+    usando arquivo externo singelo para envio de mensagem
+
+[33mcommit 222397121101615637386ab4718c1ce60b87dc1b[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Sep 2 12:49:33 2023 -0300
+
+    usando arquivo externo singelo para envio de mensagem
+
+[33mcommit 906fbf4b9b1a5bedbe09010cc980e2e604ac6462[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Sep 2 12:47:45 2023 -0300
+
+    token from whatsapp
+
+[33mcommit 9aa65456c5f7e7ce98107fcf1ae5675ed4fcbcae[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Sep 2 12:44:53 2023 -0300
+
+    finalizando testes
+
+[33mcommit 4d3efc8f06657b84af6d5bc34baf9776a225c17e[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Sep 2 12:42:55 2023 -0300
+
+    finalizando testes
+
+[33mcommit ee3bbbe69c75107178c121ade1ca366e9936ae2d[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Sep 2 12:38:06 2023 -0300
+
+    token from whatsapp
+
+[33mcommit 7343e71b3dbdcf8e5732f9edd1f70686efa3109d[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Sep 2 12:36:37 2023 -0300
+
+    usando arquivo externo singelo para envio de mensagem
+
+[33mcommit e968bf4a4756bb2df1de74f3c2038747ddcd3958[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Sep 2 12:32:30 2023 -0300
+
+    usando arquivo externo singelo para envio de mensagem
+
+[33mcommit d764de443da44351daa37890bbfd84e332334ff2[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Sep 2 12:26:47 2023 -0300
+
+    new try
+
+[33mcommit a81091bcbec690dc6ad36aa16b27099d840542e8[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Sep 2 12:09:59 2023 -0300
+
+    token from whatsapp
+
+[33mcommit 6b02aa5f04987a1399cd0eabf6d234df4c003012[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Sep 2 12:07:46 2023 -0300
+
+    bug fixes
+
+[33mcommit 2f524cdea9ff449859d2f72a4b715584c16f4896[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Sep 2 12:03:37 2023 -0300
+
+    modificacao na chamada aa url hub
+
+[33mcommit 5cb6b308b316628efe57542ef57fdc05647049f9[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Sep 2 11:52:33 2023 -0300
+
+    clima tempo hiding token
+
+[33mcommit b7a12687e628aba15b305ae88f17cbf102b2757b[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Sep 2 11:51:01 2023 -0300
+
+    novo teste webhook
+
+[33mcommit 131548bc8a4a8015143f2e07bae0a8b953182252[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Sep 2 11:39:38 2023 -0300
+
+    clima tempo hiding token
+
+[33mcommit 297344a9af918a358cbe7e046085010b5d7fdde1[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Sep 2 11:26:15 2023 -0300
+
+    webhook test
+
+[33mcommit aa1da5d684347ba43e1fe64d1f39e965117464bd[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Sep 1 15:32:35 2023 -0300
+
+    clima tempo hiding token
+
+[33mcommit a80214cfc9db176c1ec7ef166cbda32718e43374[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Sep 1 15:25:08 2023 -0300
+
+    token Twitter included
+
+[33mcommit f78782205744e3648b3be43409d80d9d51fc5c3a[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Sep 1 12:39:15 2023 -0300
+
+    clima tempo hiding token
+
+[33mcommit f4e5563cd55ae651d6d4994b77407874a400d32d[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Sep 1 12:31:13 2023 -0300
+
+    clima tempo formatacao do texto
+
+[33mcommit 8e91ee0c79a5b41c3a812d8f8696237cd4c47528[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Sep 1 12:27:31 2023 -0300
+
+    clima tempo
+
+[33mcommit 2636e7abd321933831f784f4e2b030e59e0fc266[m
+Merge: edeee2d 1bafcba
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Sep 1 12:05:40 2023 -0300
+
+    Merge branch 'master' of https://github.com/ciribelli/passis
+
+[33mcommit 1bafcbaa1085003178220863946517352964ec0d[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Wed Aug 30 21:06:29 2023 -0300
+
+    .gitignore refreshed
+
+[33mcommit 57b97374b434d010b735537b665ca3810ed23021[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Wed Aug 30 21:05:11 2023 -0300
+
+    .gitignore refreshed
+
+[33mcommit ff1f292a163392850960e49811a95400892328a9[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Wed Aug 30 20:12:43 2023 -0300
+
+    twitter files
+
+[33mcommit 470f4b94b2d0392cb9bed38173653277db67cc10[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Wed Aug 30 20:12:15 2023 -0300
+
+    twitter files
+
+[33mcommit 27e3ffb2b89db356ebcb7a2379f22ca7868e3296[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Tue Aug 29 18:52:10 2023 -0300
+
+    hub
+
+[33mcommit 44e0875f08394e78d4a7ff59488fa01c9c5638f5[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Sat Aug 26 22:44:38 2023 -0300
+
+    hub
+
+[33mcommit fad3c4d1eea6c2165646468c8498cd17ef659364[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Sat Aug 26 22:39:24 2023 -0300
+
+    hub
+
+[33mcommit 482c3d3d606ead869eb7b10723254056fa439482[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Sat Aug 26 22:35:26 2023 -0300
+
+    hub
+
+[33mcommit c2cfcc34ef1ea87ee0a0e0b5e39ae3784effa3b1[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Sat Aug 26 22:28:49 2023 -0300
+
+    hub
+
+[33mcommit f8dbf5b9f362622af7d127eb0a1ea5c1d27580db[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Sat Aug 26 22:25:02 2023 -0300
+
+    hub
+
+[33mcommit 3794f147974ec6e3a3085d86b9ad347f6f2ef0ba[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Sat Aug 26 21:40:28 2023 -0300
+
+    hub
+
+[33mcommit dc19150a427f3d6828b5544e569e24861984169e[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Sat Aug 26 20:04:11 2023 -0300
+
+    hub
+
+[33mcommit da22bd04336aa13f886c3f7b119952ffe93e0559[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Sat Aug 26 20:02:39 2023 -0300
+
+    hub
+
+[33mcommit fff5208f95a43fbee7214741ced41d83c1edda6e[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Sat Aug 26 16:58:39 2023 -0300
+
+    twitter files included
+
+[33mcommit 550e3cf4548d19d738068172a54207d37dac3b74[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Sat Aug 26 16:49:17 2023 -0300
+
+    twitter files included
+
+[33mcommit 3b3de23f52529354c1e150cbc6ed809c0c433b20[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Mon Aug 14 19:37:58 2023 -0300
+
+    adicionado cidade a Climas
+
+[33mcommit 1a9c7a46df550c2bcc222728cf8d40866b913d06[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Sun Aug 13 21:09:54 2023 -0300
+
+    adicionado metodo delete_clima
+
+[33mcommit d5863245dc07bc2af11b41c3cb219bde3604ca27[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Sun Aug 13 21:00:42 2023 -0300
+
+    climas added
+
+[33mcommit a2af34822e909ff9678b8408aa087ac4e3e74f4a[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Fri Aug 11 21:02:56 2023 -0300
+
+    var de ambiente
+
+[33mcommit 720774f2ce58ec9d8da6938718d0d69206dcdafa[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Fri Aug 11 21:00:08 2023 -0300
+
+    var de ambiente
+
+[33mcommit ee6bb40c41e982cd00aa5306691c0e4d88d1e291[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Fri Aug 11 20:54:47 2023 -0300
+
+    var de ambiente
+
+[33mcommit 8e67f1c4e92ef2507e14493b33493344ad441219[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Fri Aug 11 17:12:41 2023 -0300
+
+    external db
+
+[33mcommit a8e70f149085dfe50f54393760da8e0a1d80e2fc[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Fri Aug 11 17:09:07 2023 -0300
+
+    external db
+
+[33mcommit e43325543fd1a2289da2b02b7f58dd99359b5b72[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Thu Aug 10 12:27:28 2023 -0300
+
+    postgres is set
+
+[33mcommit 74e01e5cd6f3a1ed1f71629f339a1c763215a657[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Tue Aug 8 15:13:53 2023 -0300
+
+    fix for nonJSON sendings
+
+[33mcommit 092e3f44521487c27ffdaf209b33adabfa8b9d12[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Tue Aug 8 14:59:12 2023 -0300
+
+    csv recorder
+
+[33mcommit d7b802fd790320147015358dc0333b1c576968c6[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Tue Aug 8 14:35:03 2023 -0300
+
+    csv recorder
+
+[33mcommit a36ee78474a468e23ed18581b7eda311d58606a4[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Tue Aug 8 14:12:27 2023 -0300
+
+    csv recorder
+
+[33mcommit 0300d65e0ca7517086d88c97bb0eea6049f59cbe[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Mon Aug 7 17:07:54 2023 -0300
+
+    post method is on
+
+[33mcommit f52498144c2659155c71ae7f087b9d7b2d7467f8[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Sat Aug 5 12:11:45 2023 -0300
+
+    response ajustments
+
+[33mcommit 33195418a1951912f2e5c5508ef4fa101788b03d[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Sat Aug 5 11:12:24 2023 -0300
+
+    new endpoint testing
+
+[33mcommit 9302754ac20cd8c81e4674fdd5b6c8cbf6e47a70[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Sat Aug 5 10:51:26 2023 -0300
+
+    new endpoint testing
+
+[33mcommit 2ff7666ce11d50ef68e6f8906fa79e886d8273d9[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Fri Aug 4 22:57:40 2023 -0300
+
+    for tomorrow
+
+[33mcommit edeee2d0cf86d194388680a2276c0bc98fea8379[m
+Author: Otavio Ciribelli <35749182+ciribelli@users.noreply.github.com>
+Date:   Thu Aug 3 20:24:44 2023 -0300
+
+    Update README.md
+
+[33mcommit ece8f3b9e737d5a375d8e25da879c74abcda6671[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Thu Aug 3 20:21:13 2023 -0300
+
+    gunicorn fix
+
+[33mcommit 822de0e5d6306b1f276a981567d9720c1f6bf310[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Thu Aug 3 20:09:40 2023 -0300
+
+    gunicorn fix
+
+[33mcommit 7a7f6c5fc3ad553785fe116927a6be1364658de4[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Thu Aug 3 19:54:24 2023 -0300
+
+    Add Heroku deployment files
+
+[33mcommit 00e97b6cdad7857167ca04847cf8be31cef17fe3[m
+Author: ciribelli <tiotal@gmail.com>
+Date:   Thu Aug 3 16:34:08 2023 -0300
+
+    fix from Mac OS
+
+[33mcommit be6d11c57f6b7e1e8f2892e90d9bd40a17670ba3[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Thu Aug 3 14:28:53 2023 -0300
+
+    readme.md
+
+[33mcommit 2f5309c8e819bef11a7eff13c16a2793d6d6bd39[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Thu Aug 3 14:22:20 2023 -0300
+
+    readme.md
+
+[33mcommit 90bef8095bdd4d2a85d6f9a9c80cd79adff51644[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Thu Aug 3 14:15:35 2023 -0300
+
+    ''
+
+[33mcommit e069efad1dcc5dadfd0f329f25d09b15b6c60481[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Thu Aug 3 13:23:59 2023 -0300
+
+    1st
+
+[33mcommit 203c32ea36aa5c35b3cab38bf2189800ac0c0152[m
+Author: BEVT <ciribelli@petrobras.com.br>
+Date:   Thu Aug 3 13:09:19 2023 -0300
+
+    1st on passis
