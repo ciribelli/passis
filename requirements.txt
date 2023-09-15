@@ -6,6 +6,7 @@ certifi==2023.7.22
 charset-normalizer==3.2.0
 click==8.1.6
 colorama==0.4.6
+DateTime==5.2
 Flask==2.3.2
 Flask-Migrate==4.0.4
 Flask-Script==2.0.6
@@ -14,6 +15,7 @@ google-search-results==2.4.2
 google-serp-api==1.0.4
 greenlet==2.0.2
 gunicorn==20.0.4
+heroku==0.1.4
 idna==3.4
 itsdangerous==2.1.2
 Jinja2==3.1.2
@@ -34,3 +36,4 @@ typing_extensions==4.7.1
 tzdata==2023.3
 urllib3==2.0.4
 Werkzeug==2.3.6
+zope.interface==6.0
