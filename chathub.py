@@ -1,7 +1,43 @@
 import main
 import send_msg
-import os
 import requests
+import os
+import openai
+
+def call_openAI(entrada):
+
+    content = generate_prompt(entrada)
+
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {
+                "role": "user",
+                "content": content,
+            }
+        ],
+        temperature=0.5,
+        max_tokens=64,
+        top_p=1.0,
+        frequency_penalty=0.0,
+        presence_penalty=0.0
+    )
+
+    return response.choices[0].message.content.strip()
+
+def generate_prompt(notas):
+    return """
+    Meu nome é o Otávio Ciribelli Borges. Nasci em 24 de junho de 1982. Sou casado e tenho 3 filhos.
+    Você é meu assistente para assuntos pessoais e me ajuda com ideias e lembrentes sobre minha rotina e o que acontece no mundo.
+    Responda por favor a pergunta que chegou abaixo sendo objetivo e preciso, dentro do possível:
+    {}
+
+    """.format(
+        notas.capitalize()
+    )
+
+
+
 
 def chatflow(entry):
     # Verifica se há mensagens na solicitação
@@ -46,7 +82,7 @@ def chatflow(entry):
             elif content.lower() == "responder":
                 tipo_pergunta = True
             else:
-                coletor = content + " ainda não é um comando conhecido 😊"
+                coletor = call_openAI(content)
 
             # envia a mensagem de retorno para o whatsapp
             try:
