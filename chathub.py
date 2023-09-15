@@ -49,7 +49,6 @@ def chatflow(entry):
                 tipo_pergunta = True
             else:
                 coletor = content + " ainda não é um comando conhecido 😊"
-
             # envia a mensagem de retorno para o whatsapp
             try:
                 print(tipo_pergunta)
