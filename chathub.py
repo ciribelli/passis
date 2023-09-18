@@ -4,6 +4,9 @@ import requests
 import os
 import openai
 
+memoria = []
+
+
 def call_openAI(entrada):
 
     content = generate_prompt(entrada)
@@ -77,7 +80,9 @@ def chatflow(entry):
             elif content.lower() == "responder":
                 tipo_pergunta = True
             else:
-                coletor = call_openAI(content)
+                ##### avalia se a mensagem nao eh feedback dos recursos de automacao #####
+                if not "✅" in content.lower():
+                    coletor = call_openAI(content)
 
             # envia a mensagem de retorno para o whatsapp
             try:
