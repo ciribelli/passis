@@ -343,6 +343,13 @@ class Memoria(db.Model):
     def __init__(self, content):
         self.content = content
 
+# salvando memorias diretamente sem uso da API
+def salvar_memoria_recebida(content):
+    memoria = Memoria(content=content)
+    db.session.add(memoria)
+    db.session.commit()
+    return "Memória eternizada ✅"
+
 @app.route('/memorias', methods=['POST'])
 def create_memoria():
     if request.method == 'POST':

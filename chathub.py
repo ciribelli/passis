@@ -3,6 +3,7 @@ import send_msg
 import requests
 import os
 import openai
+import app
 
 memoria = []
 
@@ -19,8 +20,8 @@ def call_openAI(entrada):
                 "content": content,
             }
         ],
-        temperature=0.5,
-        max_tokens=64,
+        temperature=0.8,
+        max_tokens=200,
         top_p=1.0,
         frequency_penalty=0.0,
         presence_penalty=0.0
@@ -78,7 +79,7 @@ def chatflow(entry):
                 token = os.getenv('token_clima')
                 coletor, datajson = main.busca_Clima(token)
             elif "📝" in content.lower():
-                coletor = "Sei que você quer fazer um registro de memória, mas ainda não estou pronto pra isso 🫠"
+                coletor = app.salvar_memoria_recebida(content.lower())
             elif content.lower() == "responder":
                 tipo_pergunta = True
             else:
