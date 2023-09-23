@@ -291,7 +291,7 @@ def recuperar_lista_documentos():
             lista_documentos.append(documento_info)
 
         # Converte a lista em JSON e retorna como resposta
-        return json.dumps({'documentos': lista_documentos})
+        return json.dumps(lista_documentos)
     except Exception as e:
         # Em caso de erro, retorna uma resposta de erro JSON
         return json.dumps({'erro': str(e)})
