@@ -332,6 +332,42 @@ def atualizar_documento(documento_id):
     except Exception as e:
         return json.dumps({'erro': str(e)}), 500
 
+
+
+# Rota para criar registros simples de memoria
+class Memoria(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.String(10000), nullable=False)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __init__(self, content):
+        self.content = content
+
+@app.route('/memorias', methods=['POST'])
+def create_memoria():
+    if request.method == 'POST':
+        data = request.get_json()
+        content = data.get('content')
+
+        if not content:
+            return Response(json.dumps({'message': 'O campo "content" é obrigatório'}), status=400, content_type='application/json')
+
+        nova_memoria = Memoria(content=content)
+
+        db.session.add(nova_memoria)
+        db.session.commit()
+
+        return Response(json.dumps({'message': 'Nova memória criada com sucesso!'}), status=201, content_type='application/json')
+
+@app.route('/memorias', methods=['GET'])
+def get_memorias():
+    if request.method == 'GET':
+        memorias = Memoria.query.order_by(Memoria.date_created.desc()).all()
+        serialized_memorias = [{'id': memoria.id, 'content': memoria.content, 'date_created': memoria.date_created.strftime('%Y-%m-%d %H:%M:%S')} for memoria in memorias]
+
+        return Response(json.dumps(serialized_memorias), status=200, content_type='application/json')
+
+
 if __name__ == '__main__':
     db.create_all()
     app.run(debug=True)
