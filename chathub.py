@@ -77,6 +77,8 @@ def chatflow(entry):
             elif content.lower() == "Clima" or content.lower() == "Climas" or content.lower() == "clima" or content.lower() == "climas":
                 token = os.getenv('token_clima')
                 coletor, datajson = main.busca_Clima(token)
+            elif "📝" in content.lower():
+                coletor = "Sei que você quer fazer um registro de memória, mas ainda não estou pronto pra isso 🫠"
             elif content.lower() == "responder":
                 tipo_pergunta = True
             else:
