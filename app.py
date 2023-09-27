@@ -1,6 +1,6 @@
 import io
 from flask import Flask, request, Response, json, send_file
-from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy, JSONB
 from flask_migrate import Migrate
 from datetime import datetime
 import urllib.parse as up
@@ -9,6 +9,7 @@ import requests
 import jsonify
 import os
 import main, send_msg, chathub
+import ast
 
 load_dotenv()
 
@@ -373,6 +374,37 @@ def get_memorias():
         serialized_memorias = [{'id': memoria.id, 'content': memoria.content, 'date_created': memoria.date_created.strftime('%Y-%m-%d %H:%M:%S')} for memoria in memorias]
 
         return Response(json.dumps(serialized_memorias), status=200, content_type='application/json')
+
+
+# Embeddings ----------------
+class Embedding(db.Model):
+    __tablename__ = 'embeddings'
+
+    id = db.Column(db.Integer, primary_key=True)
+    tabela = db.Column(db.String)
+    index = db.Column(db.Integer)
+    texto = db.Column(db.String)
+    n_tokens = db.Column(db.Integer)
+    embeddings = db.Column(JSONB)  # Correção aqui
+
+
+@app.route('/consultar_embeddings', methods=['POST'])
+def consultar_embeddings():
+    # Recupere o embedding de consulta da solicitação POST
+    embedding_consulta = request.json['embedding']
+
+    # Consulte os embeddings semelhantes usando SQLAlchemy
+    resultados = (db.session.query(Embedding.tabela, Embedding.index)
+        .filter(
+            Embedding.embeddings.op('&&')([embedding_consulta])
+        )
+        .all()
+    )
+
+    # Use json.dumps para retornar os resultados como uma string JSON
+    return json.dumps(resultados)
+
+
 
 
 if __name__ == '__main__':
