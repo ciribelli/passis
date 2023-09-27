@@ -102,6 +102,9 @@ class Checkin(db.Model):
 
 
 # referencia do crud https://stackabuse.com/using-sqlalchemy-with-flask-and-postgresql/
+# $ flask db init
+# $ flask db migrate
+# $ flask db upgrade
 @app.route('/checkin', methods=['POST', 'GET'])
 def handle_checkin():
     if request.method == 'POST':
@@ -377,29 +380,29 @@ def get_memorias():
 
 
 # Embeddings ----------------
-class Embedding(db.Model):
-    __tablename__ = 'embeddings'
-
-    id = db.Column(db.Integer, primary_key=True)
-    tabela = db.Column(db.String)
-    index = db.Column(db.Integer)
-    texto = db.Column(db.String)
-    n_tokens = db.Column(db.Integer)
-    embeddings = db.Column(JSONB)  # Correção aqui
-
-
-@app.route('/consultar_embeddings', methods=['POST'])
-def consultar_embeddings():
-    # Recupere o embedding de consulta da solicitação POST
-    embedding_consulta = request.json['embedding']
-
-    # Consulte os embeddings semelhantes usando SQLAlchemy
-    resultados = (db.session.query(Embedding.tabela, Embedding.index)
-        .filter(
-            Embedding.embeddings.op('&&')([embedding_consulta])
-        )
-        .all()
-    )
+# class Embedding(db.Model):
+#     __tablename__ = 'embeddings'
+#
+#     id = db.Column(db.Integer, primary_key=True)
+#     tabela = db.Column(db.String)
+#     index = db.Column(db.Integer)
+#     texto = db.Column(db.String)
+#     n_tokens = db.Column(db.Integer)
+#     embeddings = db.Column(JSONB)  # Correção aqui
+#
+#
+# @app.route('/consultar_embeddings', methods=['POST'])
+# def consultar_embeddings():
+#     # Recupere o embedding de consulta da solicitação POST
+#     embedding_consulta = request.json['embedding']
+#
+#     # Consulte os embeddings semelhantes usando SQLAlchemy
+#     resultados = (db.session.query(Embedding.tabela, Embedding.index)
+#         .filter(
+#             Embedding.embeddings.op('&&')([embedding_consulta])
+#         )
+#         .all()
+#     )
 
     # Use json.dumps para retornar os resultados como uma string JSON
     return json.dumps(resultados)
