@@ -67,6 +67,7 @@ def chatflow(entry):
             print("msg_body:", msg_body)
             tipo_pergunta = False
             content = msg_body
+            coletor = ""
             # para JOGOS
             if content.lower() == "jogos" or content.lower() == "jogo":
                 coletor, datajson = main.get_jogos_df()
