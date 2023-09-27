@@ -405,7 +405,7 @@ def get_memorias():
 #     )
 
     # Use json.dumps para retornar os resultados como uma string JSON
-    return json.dumps(resultados)
+    #return json.dumps(resultados)
 
 
 
