@@ -1,6 +1,6 @@
 import io
 from flask import Flask, request, Response, json, send_file
-from flask_sqlalchemy import SQLAlchemy, JSONB
+from flask_sqlalchemy import SQLAlchemy#, JSONB
 from flask_migrate import Migrate
 from datetime import datetime
 import urllib.parse as up
@@ -9,7 +9,7 @@ import requests
 import jsonify
 import os
 import main, send_msg, chathub
-import ast
+#import ast
 
 load_dotenv()
 
