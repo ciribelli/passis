@@ -442,6 +442,7 @@ def atualiza_embedding():
             resultados.append([table, index, concatenated_values])
     df = pd.DataFrame(resultados, columns=['tabela', 'index', 'texto'])
     embeddings.update_embeddings(df)
+    return "Atualizado ✅"
 
 if __name__ == '__main__':
     db.create_all()

@@ -78,5 +78,5 @@ def update_embeddings(df):
     df['embeddings'] = df.texto.apply(lambda x: openai.Embedding.create(input=x, engine='text-embedding-ada-002')['data'][0]['embedding'])
     df.to_csv('embeddings.csv', index=False)
     print("embeddings atualizados")
-    return "Atualizado ✅"
+
 
