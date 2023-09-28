@@ -1,7 +1,7 @@
 import requests
 import pandas as pd
 import json
-import app
+from app import app
 
 def remove_newlines(serie):
     serie = serie.replace('\n', ' ')
@@ -111,4 +111,7 @@ def update_embeddings():
     openai.api_key = os.getenv('OPENAI_API_KEY')
     df['embeddings'] = df.texto.apply(lambda x: openai.Embedding.create(input=x, engine='text-embedding-ada-002')['data'][0]['embedding'])
     df.to_csv('embeddings.csv', index=False)
-    return ('Atualizado ✅')
+    print("embeddings atualizados")
+    return "Atualizado ✅"
+
+update_embeddings()
