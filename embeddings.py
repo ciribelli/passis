@@ -1,8 +1,6 @@
 import pandas as pd
 
 
-
-
 def update_embeddings(df):
 
     import tiktoken

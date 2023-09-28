@@ -45,3 +45,4 @@ Werkzeug==2.3.6
 yarl==1.9.2
 zope.interface==6.0
 tiktoken==0.5.1
+matplotlib==3.8.0

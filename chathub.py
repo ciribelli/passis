@@ -4,6 +4,7 @@ import requests
 import os
 import openai
 import app
+import context
 
 memoria = []
 
@@ -16,7 +17,7 @@ def call_openAI(entrada):
         model="gpt-3.5-turbo",
         messages=[
             {
-                "role": "user",
+                "role": "system",
                 "content": content,
             }
         ],
@@ -89,7 +90,8 @@ def chatflow(entry):
             else:
                 ##### avalia se a mensagem nao eh feedback dos recursos de automacao #####
                 if not "✅" in content.lower():
-                    coletor = call_openAI(content)
+                    #coletor = call_openAI(content) # versão original sem embeddings
+                    coletor = context.responde(content)
 
             # envia a mensagem de retorno para o whatsapp
             try:
