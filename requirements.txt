@@ -91,7 +91,6 @@ Pygments==2.16.1
 python-dateutil==2.8.2
 python-dotenv==1.0.0
 python-json-logger==2.0.7
-pytz==2023.3
 pywin32==306
 pywinpty==2.0.11
 PyYAML==6.0.1
