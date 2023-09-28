@@ -1,7 +1,7 @@
 import requests
 import pandas as pd
 import json
-from app import app  # Importe a instância de app de app.py
+import app
 
 def remove_newlines(serie):
     serie = serie.replace('\n', ' ')
