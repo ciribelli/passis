@@ -6,8 +6,6 @@ from dotenv import load_dotenv
 import os
 
 
-
-
 def create_context(
     question, df, max_len=1800, size="ada"
 ):
@@ -50,7 +48,7 @@ def answer_question(
     max_len=1800,
     size="ada",
     debug=True,
-    max_tokens=150,
+    max_tokens=500,
     stop_sequence="\n"
 ):
     """
@@ -76,7 +74,7 @@ def answer_question(
             top_p=1,
             frequency_penalty=0,
             presence_penalty=0,
-            stop="\n",
+            stop="20",
             model=model,
         )
         return response["choices"][0]["text"].strip()
