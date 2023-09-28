@@ -3,41 +3,9 @@ import pandas as pd
 import json
 from app import app
 
-def remove_newlines(serie):
-    serie = serie.replace('\n', ' ')
-    serie = serie.replace('\\n', ' ')
-    serie = serie.replace('\r', ' ')
-    serie = serie.replace('\r', ' ')
-    serie = serie.replace('   ', ' ')
-    serie = serie.replace('  ', ' ')
-    serie = serie.replace('-', ' ')
-    serie = serie.replace(',', ' ')
-    serie = serie.replace('_', ' ')
-    serie = serie.replace('📝', '')
-    return serie
-
-def update_embeddings():
-    table_list = ['memorias', 'recuperar_lista_documentos']
 
 
-    resultados = []  # Lista para armazenar os valores concatenados de todas as linhas
-
-
-    for table in table_list:
-        response = app.test_client().get('/'+str(table))
-        data = json.loads(response.text)
-        df = pd.DataFrame(data)
-        # Iterar pelas linhas do DataFrame
-        for index, row in df.iterrows():
-            concatenated_values = ''
-            # Iterar pelas colunas e adicionar o nome da coluna e o valor à string
-            for col_name in df.columns:
-                concatenated_values += col_name + ': ' + remove_newlines(str(row[col_name])) + '. '
-            # Adicionar o nome da tabela, o ID (índice) e o conteúdo concatenado à lista de resultados
-            resultados.append([table, index, concatenated_values])
-
-    df = pd.DataFrame(resultados, columns=['tabela', 'index', 'texto'])
-
+def update_embeddings(df):
 
     import tiktoken
     # from openai.embeddings_utils import get_embedding, cosine_similarity
@@ -114,4 +82,3 @@ def update_embeddings():
     print("embeddings atualizados")
     return "Atualizado ✅"
 
-update_embeddings()

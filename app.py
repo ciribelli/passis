@@ -9,6 +9,8 @@ import requests
 import jsonify
 import os
 import main, send_msg, chathub
+import embeddings
+import pandas as pd
 #import ast
 
 load_dotenv()
@@ -408,7 +410,38 @@ def get_memorias():
     #return json.dumps(resultados)
 
 
+def remove_newlines(serie):
+    serie = serie.replace('\n', ' ')
+    serie = serie.replace('\\n', ' ')
+    serie = serie.replace('\r', ' ')
+    serie = serie.replace('\r', ' ')
+    serie = serie.replace('   ', ' ')
+    serie = serie.replace('  ', ' ')
+    serie = serie.replace('-', ' ')
+    serie = serie.replace(',', ' ')
+    serie = serie.replace('_', ' ')
+    serie = serie.replace('📝', '')
+    return serie
 
+def atualiza_embedding():
+    table_list = ['memorias', 'recuperar_lista_documentos']
+
+    resultados = []  # Lista para armazenar os valores concatenados de todas as linhas
+
+    for table in table_list:
+        response = app.test_client().get('/'+str(table))
+        data = json.loads(response.text)
+        df = pd.DataFrame(data)
+        # Iterar pelas linhas do DataFrame
+        for index, row in df.iterrows():
+            concatenated_values = ''
+            # Iterar pelas colunas e adicionar o nome da coluna e o valor à string
+            for col_name in df.columns:
+                concatenated_values += col_name + ': ' + remove_newlines(str(row[col_name])) + '. '
+            # Adicionar o nome da tabela, o ID (índice) e o conteúdo concatenado à lista de resultados
+            resultados.append([table, index, concatenated_values])
+    df = pd.DataFrame(resultados, columns=['tabela', 'index', 'texto'])
+    embeddings.update_embeddings(df)
 
 if __name__ == '__main__':
     db.create_all()

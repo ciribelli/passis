@@ -4,7 +4,6 @@ import requests
 import os
 import openai
 import app
-import embeddings
 
 memoria = []
 
@@ -84,7 +83,7 @@ def chatflow(entry):
                 coletor = app.salvar_memoria_recebida(content.lower())
             elif "🔄" in content.lower():
                 print(">>>> atualizando embeddings <<<<")
-                coletor = embeddings.update_embeddings()
+
             elif content.lower() == "responder":
                 tipo_pergunta = True
             else:
