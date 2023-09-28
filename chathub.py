@@ -4,6 +4,7 @@ import requests
 import os
 import openai
 import app
+import embeddings
 
 memoria = []
 
@@ -81,6 +82,8 @@ def chatflow(entry):
                 coletor, datajson = main.busca_Clima(token)
             elif "📝" in content.lower():
                 coletor = app.salvar_memoria_recebida(content.lower())
+            elif "🔄️" in content.lower():
+                coletor = embeddings.update_embeddings()
             elif content.lower() == "responder":
                 tipo_pergunta = True
             else:
