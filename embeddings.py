@@ -15,7 +15,6 @@ def update_embeddings(df):
 
         # Split the text into sentences
         sentences = text.split('. ')
-        print('--------------------', sentences)
         # Get the number of tokens for each sentence
         n_tokens = [len(tokenizer.encode(" " + sentence)) for sentence in sentences]
         print(n_tokens)
