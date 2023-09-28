@@ -1,7 +1,5 @@
-import requests
 import pandas as pd
-import json
-from app import app
+
 
 
 
