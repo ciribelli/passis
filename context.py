@@ -7,7 +7,7 @@ import os
 
 
 def create_context(
-    question, df, max_len=1800, size="ada"
+    question, df, max_len=1200, size="ada"
 ):
     """
     Create a context for a question by finding the most similar context from the dataframe
@@ -45,10 +45,10 @@ def answer_question(
     df,
     model="text-davinci-003",
     question="Am I allowed to publish model outputs to Twitter, without a human review?",
-    max_len=1800,
+    max_len=1200,
     size="ada",
     debug=True,
-    max_tokens=500,
+    max_tokens=240,
     stop_sequence="\n"
 ):
     """
@@ -68,7 +68,7 @@ def answer_question(
     try:
         # Create a completions using the question and context
         response = openai.Completion.create(
-            prompt=f"Você é meu assistente para assuntos pessoais e me ajuda com ideias e lembrentes sobre minha rotina e o que acontece no mundo. Responda por favor a pergunta que chegou abaixo sendo objetivo e preciso, dentro do possível: \n\nContexto: {context}\n\n---\n\nPergunta: {question}\nAnswer:",
+            prompt=f"Você é meu assistente para assuntos pessoais e me ajuda com ideias e lembretes sobre minha rotina e o que acontece no mundo. Responda por favor a pergunta que chegou abaixo sendo objetivo e preciso, dentro do possível: \n\nContexto: {context}\n\n---\n\nPergunta: {question}\nAnswer:",
             temperature=0,
             max_tokens=max_tokens,
             top_p=1,
@@ -87,6 +87,6 @@ def responde(pergunta):
     df['embeddings'] = df['embeddings'].apply(eval).apply(np.array)
     print(df)
     resposta = answer_question(df, question=pergunta).replace("\n", '<br>')
-    resposta = resposta.replace("<br>", "\n")
-    return resposta
+    saida = resposta.replace("<br>", "\n")
+    return saida
 
