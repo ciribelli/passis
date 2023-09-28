@@ -87,5 +87,6 @@ def responde(pergunta):
     df['embeddings'] = df['embeddings'].apply(eval).apply(np.array)
     print(df)
     resposta = answer_question(df, question=pergunta).replace("\n", '<br>')
+    resposta = resposta.replace("<br>", "\n")
     return resposta
 
