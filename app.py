@@ -1,6 +1,7 @@
 import io
 from flask import Flask, request, Response, json, send_file
 from flask_sqlalchemy import SQLAlchemy#, JSONB
+from sqlalchemy.dialects.postgresql import JSONB, insert
 from flask_migrate import Migrate
 from datetime import datetime
 import urllib.parse as up
@@ -380,34 +381,81 @@ def get_memorias():
 
         return Response(json.dumps(serialized_memorias), status=200, content_type='application/json')
 
-
 # Embeddings ----------------
-# class Embedding(db.Model):
-#     __tablename__ = 'embeddings'
-#
-#     id = db.Column(db.Integer, primary_key=True)
-#     tabela = db.Column(db.String)
-#     index = db.Column(db.Integer)
-#     texto = db.Column(db.String)
-#     n_tokens = db.Column(db.Integer)
-#     embeddings = db.Column(JSONB)  # Correção aqui
-#
-#
-# @app.route('/consultar_embeddings', methods=['POST'])
-# def consultar_embeddings():
-#     # Recupere o embedding de consulta da solicitação POST
-#     embedding_consulta = request.json['embedding']
-#
-#     # Consulte os embeddings semelhantes usando SQLAlchemy
-#     resultados = (db.session.query(Embedding.tabela, Embedding.index)
-#         .filter(
-#             Embedding.embeddings.op('&&')([embedding_consulta])
-#         )
-#         .all()
-#     )
+class VectorEmbedding(db.Model):
+    __tablename__ = 'vectors'
 
-    # Use json.dumps para retornar os resultados como uma string JSON
-    #return json.dumps(resultados)
+    id = db.Column(db.Integer, primary_key=True)
+    tabela = db.Column(db.String)
+    index = db.Column(db.Integer)
+    texto = db.Column(db.String)
+    n_tokens = db.Column(db.Integer)
+    embeddings = db.Column(JSONB)  # Correção aqui
+
+@app.route('/recuperar_dados', methods=['GET'])
+def recuperar_dados():
+    try:
+        # Consulte todos os registros na tabela VectorEmbedding
+        registros = VectorEmbedding.query.all()
+
+        # Crie uma lista de dicionários para representar os registros
+        dados = [
+            {
+                'id': registro.id,
+                'tabela': registro.tabela,
+                'index': registro.index,
+                'texto': registro.texto,
+                'n_tokens': registro.n_tokens,
+                'embeddings': registro.embeddings
+            }
+            for registro in registros
+        ]
+
+        # Retorne os dados como JSON
+        return json.dumps(dados)
+    except Exception as e:
+        return str(e), 400
+
+# busca as memorias e registros do DB
+# calcula n_tokens, embeddings e retorna para o DB
+@app.route('/inserir_dados', methods=['POST'])
+def inserir_dados():
+    # primeiro apago todos os embeddings
+    apagar_todos_os_embeddings()
+    
+    import embeddings_db
+    df = embeddings_db.atualiza_embedding()
+    print(df)
+
+    for index, row in df.iterrows():
+        novo_registro = VectorEmbedding(
+            tabela=row['tabela'],
+            index=row['index'],
+            texto=row['texto'],
+            n_tokens=row['n_tokens'],
+            embeddings=row['embeddings']
+        )
+        db.session.add(novo_registro)
+
+        # Commit das alterações ao banco de dados
+    db.session.commit()
+
+    # Commit das alterações ao banco de dados
+    db.session.commit()
+
+    return 'Dados inseridos com sucesso.'
+
+@app.route('/apagar_todos_os_embeddings', methods=['DELETE'])
+def apagar_todos_os_embeddings():
+    try:
+        num_registros_apagados = db.session.query(VectorEmbedding).delete()
+        db.session.commit()
+        response_data = {'message': f'{num_registros_apagados} registros apagados com sucesso.'}
+        response = Response(json.dumps(response_data), status=200, content_type='application/json'
+        )
+        return response
+    except Exception as e:
+        return str(e), 400
 
 
 def remove_newlines(serie):

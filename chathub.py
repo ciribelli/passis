@@ -46,14 +46,15 @@ def chatflow(entry):
                 coletor = app.salvar_memoria_recebida(content.lower())
             elif "🔄" in content.lower():
                 print(">>>> atualizando embeddings <<<<")
-                coletor = app.atualiza_embedding()
+                #coletor = app.atualiza_embedding()
+                coletor = app.inserir_dados()
             elif content.lower() == "responder":
                 tipo_pergunta = True
             else:
                 ##### avalia se a mensagem nao eh feedback dos recursos de automacao #####
                 if not "✅" in content.lower():
                     #coletor = call_openAI(content) # versão original sem embeddings
-                    coletor = context.responde(content)
+                    coletor = context.responde(content) # versão com embeddings
 
             # envia a mensagem de retorno para o whatsapp
             try:
