@@ -4,7 +4,7 @@ import openai
 from openai.embeddings_utils import distances_from_embeddings
 from dotenv import load_dotenv
 import os
-from app import app
+
 
 def create_context(
     question, df, max_len=1200, size="ada"
@@ -82,27 +82,27 @@ def answer_question(
         print(e)
         return ""
 
-# def responde(pergunta):
-#     df=pd.read_csv('embeddings.csv', index_col=0)
-#     df['embeddings'] = df['embeddings'].apply(eval).apply(np.array)
-#     print(df)
-#     resposta = answer_question(df, question=pergunta).replace("\n", '<br>')
-#     saida = resposta.replace("<br>", "\n")
-#     return saida
-
-
 def responde(pergunta):
-    with app.test_client() as client:
-        response = client.get('/recuperar_dados')
+    df=pd.read_csv('embeddings.csv', index_col=0)
+    df['embeddings'] = df['embeddings'].apply(eval).apply(np.array)
+    print(df)
+    resposta = answer_question(df, question=pergunta).replace("\n", '<br>')
+    saida = resposta.replace("<br>", "\n")
+    return saida
 
-    if response.status_code == 200:
-        dados = response.json()
-        df = pd.DataFrame(dados)
-        df['embeddings'] = df['embeddings'].apply(np.array)
 
-        # Continue com o restante do seu código
-        resposta = answer_question(df, question=pergunta).replace("\n", '<br>')
-        saida = resposta.replace("<br>", "\n")
-        return saida
-    else:
-        return 'Erro ao recuperar os dados do servidor de embeddings.', 500
+# def responde(pergunta):
+#     with app.test_client() as client:
+#         response = client.get('/recuperar_dados')
+
+#     if response.status_code == 200:
+#         dados = response.json()
+#         df = pd.DataFrame(dados)
+#         df['embeddings'] = df['embeddings'].apply(np.array)
+
+#         # Continue com o restante do seu código
+#         resposta = answer_question(df, question=pergunta).replace("\n", '<br>')
+#         saida = resposta.replace("<br>", "\n")
+#         return saida
+#     else:
+#         return 'Erro ao recuperar os dados do servidor.', 500
