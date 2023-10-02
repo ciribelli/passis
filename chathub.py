@@ -3,7 +3,7 @@ import send_msg
 import requests
 import os
 import openai
-from app import app
+import app
 import context
 
 def chatflow(entry):
@@ -54,10 +54,7 @@ def chatflow(entry):
                 ##### avalia se a mensagem nao eh feedback dos recursos de automacao #####
                 if not "✅" in content.lower():
                     #coletor = call_openAI(content) # versão original sem embeddings
-                    # abaixo, busco o contexto de embeddings
-                    with app.test_client() as client:
-                        response = client.get('/recuperar_dados')
-                    coletor = context.responde(response, content) # versão com embeddings
+                    coletor = context.responde(content) # versão com embeddings
 
             # envia a mensagem de retorno para o whatsapp
             try:

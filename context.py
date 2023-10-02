@@ -91,15 +91,15 @@ def responde(pergunta):
     return saida
 
 
-def responde(json_embeddings, pergunta):
-    if json_embeddings.status_code == 200:
-        dados = json_embeddings.json()
-        df = pd.DataFrame(dados)
-        df['embeddings'] = df['embeddings'].apply(np.array)
+# def responde(json_embeddings, pergunta):
+#     if json_embeddings.status_code == 200:
+#         dados = json_embeddings.json()
+#         df = pd.DataFrame(dados)
+#         df['embeddings'] = df['embeddings'].apply(np.array)
 
-        # Continue com o restante do seu código
-        resposta = answer_question(df, question=pergunta).replace("\n", '<br>')
-        saida = resposta.replace("<br>", "\n")
-        return saida
-    else:
-        return 'Erro ao recuperar os dados do servidor.', 500
+#         # Continue com o restante do seu código
+#         resposta = answer_question(df, question=pergunta).replace("\n", '<br>')
+#         saida = resposta.replace("<br>", "\n")
+#         return saida
+#     else:
+#         return 'Erro ao recuperar os dados do servidor.', 500
