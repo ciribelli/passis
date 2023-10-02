@@ -3,7 +3,7 @@ import send_msg
 import requests
 import os
 import openai
-import app
+from app import app
 import context
 
 def chatflow(entry):
