@@ -5,7 +5,6 @@ import os
 import openai
 import app
 import context
-from app import processar_pergunta
 
 def chatflow(entry):
     # Verifica se há mensagens na solicitação
