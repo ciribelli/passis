@@ -54,7 +54,11 @@ def chatflow(entry):
                 ##### avalia se a mensagem nao eh feedback dos recursos de automacao #####
                 if not "✅" in content.lower():
                     #coletor = call_openAI(content) # versão original sem embeddings
-                    coletor = context.responde(content) # versão com embeddings
+                    #coletor = context.responde(content) # versão com embeddings ESTAVEL!
+                    client = app.test_client()
+                    dados = {'pergunta': content}
+                    response = client.post('/fazer_perguntas', json=dados)
+                    coletor = response
 
             # envia a mensagem de retorno para o whatsapp
             try:
