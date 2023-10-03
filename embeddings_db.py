@@ -104,14 +104,18 @@ def atualiza_embedding():
         # Iterar pelas linhas do DataFrame
         for index, row in df.iterrows():
             concatenated_values = ''
+            indice = "" # posicao para guardar o primarykey do item na tabela de origem
             # Iterar pelas colunas e adicionar o nome da coluna e o valor à string
             for col_name in df.columns:
-                concatenated_values += col_name + ': ' + remove_newlines(str(row[col_name])) + '. '
+                if (col_name) == "id":
+                    indice = row[col_name]
+                else:
+                    concatenated_values += col_name + ': ' + remove_newlines(str(row[col_name])) + '. '
             # Adicionar o nome da tabela, o ID (índice) e o conteúdo concatenado à lista de resultados
-            resultados.append([table, index, concatenated_values])
+            resultados.append([table, indice, concatenated_values])
     df = pd.DataFrame(resultados, columns=['tabela', 'index', 'texto'])
     saida = update_embeddings_db(df)
     return saida
 
-
+#atualiza_embedding()
 
