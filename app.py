@@ -454,18 +454,11 @@ def apagar_todos_os_embeddings():
     except Exception as e:
         return str(e), 400
 
-
-@app.route('/fazer_perguntas', methods=['POST'])
-def fazer_perguntas():
+    
+def fazer_perguntas(pergunta):
     try:
-        if request.method == 'POST':
-            dados = request.get_json()
-            pergunta = dados.get('pergunta')
-            print(pergunta)
-        # Consulte todos os registros na tabela VectorEmbedding
         registros = VectorEmbedding.query.all()
 
-        # Crie uma lista de dicionários para representar os registros
         dados = [
             {
                 'id': registro.id,
@@ -478,7 +471,6 @@ def fazer_perguntas():
             for registro in registros
         ]
         
-        print(dados)
         import context
         saida = context.responde_emb(pergunta, dados)
 

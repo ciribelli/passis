@@ -3,8 +3,9 @@ import send_msg
 import requests
 import os
 import openai
-from app import app
+import app
 import context
+from app import processar_pergunta
 
 def chatflow(entry):
     # Verifica se há mensagens na solicitação
@@ -55,10 +56,7 @@ def chatflow(entry):
                 if not "✅" in content.lower():
                     #coletor = call_openAI(content) # versão original sem embeddings
                     #coletor = context.responde(content) # versão com embeddings ESTAVEL!
-                    client = app.test_client()
-                    dados = {'pergunta': content}
-                    response = client.post('/fazer_perguntas', json=dados)
-                    coletor = response
+                    app.fazer_perguntas(content)
 
             # envia a mensagem de retorno para o whatsapp
             try:
