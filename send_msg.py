@@ -77,10 +77,7 @@ def send_wapp_image(phone_number_id, from_number, coletor):
         "to": from_number,
         "text": {"body": coletor},
         "image": {
-            "link": "https://passis-bfd9b877f7d0.herokuapp.com/recuperar_documento/5",
-            "provider": {
-                "name": "Otavio"
-            }
+            "link": "https://passis-bfd9b877f7d0.herokuapp.com/recuperar_documento/5"
         }
     }
     headers = {"Content-Type": "application/json"}
