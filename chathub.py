@@ -2,9 +2,7 @@ import main
 import send_msg
 import requests
 import os
-import openai
 import app
-import context
 
 def chatflow(entry):
     # Verifica se há mensagens na solicitação
@@ -46,21 +44,18 @@ def chatflow(entry):
                 coletor = app.salvar_memoria_recebida(content.lower())
             elif "🔄" in content.lower():
                 print(">>>> atualizando embeddings <<<<")
-                #coletor = app.atualiza_embedding()
                 coletor = app.inserir_dados()
             elif content.lower() == "responder":
                 tipo_pergunta = True
             else:
                 ##### avalia se a mensagem nao eh feedback dos recursos de automacao #####
                 if not "✅" in content.lower():
-                    #coletor = call_openAI(content) # versão original sem embeddings
-                    #coletor = context.responde(content) # versão com embeddings ESTAVEL!
                     coletor = app.fazer_perguntas(content)
                     
             # envia a mensagem de retorno para o whatsapp
             try:
                 if (tipo_pergunta):
-                    send_msg.send_wapp_question(phone_number_id, from_number, "Aqui será o texto da pergunta")
+                    send_msg.send_wapp_image(phone_number_id, from_number, "Aqui será o texto da pergunta")
                 else:
                     send_msg.send_wapp_msg(phone_number_id, from_number, coletor)
             except requests.exceptions.RequestException as e:

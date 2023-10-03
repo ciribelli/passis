@@ -1,18 +1,12 @@
 import io
 from flask import Flask, request, Response, json, send_file
-from flask_sqlalchemy import SQLAlchemy#, JSONB
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import JSONB, insert
 from flask_migrate import Migrate
 from datetime import datetime
-import urllib.parse as up
 from dotenv import load_dotenv
-import requests
-import jsonify
 import os
 import main, send_msg, chathub
-import embeddings
-import pandas as pd
-#import ast
 
 load_dotenv()
 
@@ -82,10 +76,6 @@ def verify_webhook():
             return "Forbidden", 403
 
     return "Bad Request", 400
-
-# Executa o aplicativo Flask
-if __name__ == '__main__':
-    app.run(port=int(os.environ.get('PORT', 1337)))
 
 # Modelos
 
@@ -478,3 +468,6 @@ def fazer_perguntas(pergunta):
     except Exception as e:
         return str(e), 400
 
+# Executa o aplicativo Flask
+if __name__ == '__passis__':
+    app.run(port=int(os.environ.get('PORT', 1337)))

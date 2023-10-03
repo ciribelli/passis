@@ -2,17 +2,14 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import datetime
-import os
-import csv
 
 # busca a data do dia do sistema
 hoje = datetime.date.today().strftime('%d-%m-%Y')
 #print(datetime.date.today() + datetime.timedelta(days=1))
 url = 'http://www.uol.com.br/esporte/futebol/central-de-jogos/'
 resposta = requests.get(url)
-print(resposta.status_code, ' ', url, hoje)
 text = BeautifulSoup(resposta.text, 'html.parser')
-
+print ("Estou vivo")
 # FILTRAGEM DE DATA
 i_dia = text.find('li', {'data-ts': hoje})
 
