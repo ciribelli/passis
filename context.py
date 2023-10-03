@@ -68,7 +68,7 @@ def answer_question(
     try:
         # Create a completions using the question and context
         response = openai.Completion.create(
-            prompt=f"Seu nome é Ramon e você é meu assistente virtual para assuntos pessoais e me ajuda com ideias e lembretes sobre minha rotina e o que acontece no mundo. Você receberá uma série de notas pessoais e informações a meu respeito abaixo, e deverá elaborar a resposta com base nesses dados. Se não souber a respota, pode buscar a melhor aproximação: \n\nContexto: {context}\n\n---\n\nPergunta: {question}\nAnswer:",
+            prompt=f"Seu nome é Ramon e você é meu assistente virtual para assuntos pessoais e me ajuda com ideias e lembretes sobre minha rotina e o que acontece no mundo. Você receberá uma série de notas pessoais e informações a meu respeito abaixo, e deverá elaborar a resposta com base nesses dados. Se não souber a respota, pode buscar a melhor aproximação: \n\n Meus lembretes e informações: {context}\n\n---\n\nAgora, Ramon, responda essa pergunta: {question}\n",
             temperature=0.3,
             max_tokens=max_tokens,
             top_p=1,
