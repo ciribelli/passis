@@ -82,20 +82,19 @@ def answer_question(
         print(e)
         return ""
 
-def responde(pergunta):
-    df=pd.read_csv('embeddings.csv', index_col=0)
-    df['embeddings'] = df['embeddings'].apply(eval).apply(np.array)
-    print(df)
-    resposta = answer_question(df, question=pergunta).replace("\n", '<br>')
-    saida = resposta.replace("<br>", "\n")
-    return saida
+# def responde(pergunta):
+#     df=pd.read_csv('embeddings.csv', index_col=0)
+#     df['embeddings'] = df['embeddings'].apply(eval).apply(np.array)
+#     print(df)
+#     resposta = answer_question(df, question=pergunta).replace("\n", '<br>')
+#     saida = resposta.replace("<br>", "\n")
+#     return saida
 
 
 def responde_emb(pergunta, dados):
     df = pd.DataFrame(dados)
     print(df)
     df['embeddings'] = df['embeddings'].apply(np.array)
-    saida = "provisoria"
     resposta = answer_question(df, question=pergunta).replace("\n", '<br>')
     saida = resposta.replace("<br>", "\n")
     return saida

@@ -55,8 +55,8 @@ def chatflow(entry):
                 if not "✅" in content.lower():
                     #coletor = call_openAI(content) # versão original sem embeddings
                     #coletor = context.responde(content) # versão com embeddings ESTAVEL!
-                    app.fazer_perguntas(content)
-
+                    coletor = app.fazer_perguntas(content)
+                    
             # envia a mensagem de retorno para o whatsapp
             try:
                 if (tipo_pergunta):
