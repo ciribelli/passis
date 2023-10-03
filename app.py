@@ -440,7 +440,7 @@ def inserir_dados():
         # Commit das alterações ao banco de dados
     db.session.commit()
 
-    return 'Dados atualizados com sucesso ✅'
+    return 'Dados atualizados ✅'
 
 @app.route('/apagar_todos_os_embeddings', methods=['DELETE'])
 def apagar_todos_os_embeddings():
