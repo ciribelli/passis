@@ -49,7 +49,7 @@ def answer_question(
     size="ada",
     debug=True,
     max_tokens=240,
-    stop_sequence="\n"
+    #stop_sequence="\n"
 ):
     """
     Answer a question based on the most similar context from the dataframe texts
@@ -74,7 +74,7 @@ def answer_question(
             top_p=1,
             frequency_penalty=0,
             presence_penalty=0,
-            stop="20",
+            #stop="20",
             model=model,
         )
         return response["choices"][0]["text"].strip()
