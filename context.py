@@ -38,7 +38,7 @@ def create_context(
         returns.append(row["texto"])
 
     # Return the context
-    return "\n\n###\n\n".join(returns)
+    return "\n🤖\n".join(returns)
 
 
 def answer_question(
