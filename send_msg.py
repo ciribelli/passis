@@ -71,11 +71,14 @@ def send_wapp_image(phone_number_id, from_number, coletor):
     wapp_token = os.getenv('WHATSAPP_TOKEN')
     fb_url = f"https://graph.facebook.com/v17.0/{phone_number_id}/messages?access_token={wapp_token}"
     payload = {
-
-
         "messaging_product": "whatsapp",
+        "recipient_type": "individual",
         "to": from_number,
-        "text": {"body": coletor},
+        "type": "image",
+        "header":{
+        "type": "text",
+        "text": coletor
+        },
         "image": {
             "link": "https://passis-bfd9b877f7d0.herokuapp.com/recuperar_documento/5"
         }
