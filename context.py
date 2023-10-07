@@ -37,7 +37,7 @@ def create_context(
 
         # Else add it to the text that is being returned
         returns.append(row["texto"])
-        links.append(row["tabela"], '/', row["index"])
+        links.append(str(row["tabela"])+'/'+str(row["index"]))
 
     global first_item
     first_item = links[0]
