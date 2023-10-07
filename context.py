@@ -5,7 +5,7 @@ from openai.embeddings_utils import distances_from_embeddings
 from dotenv import load_dotenv
 import os
 
-
+first_item = ""
 def create_context(
     question, df, max_len=1200, size="ada"
 ):
@@ -22,6 +22,7 @@ def create_context(
     df['distances'] = distances_from_embeddings(q_embeddings, df['embeddings'].values, distance_metric='cosine')
 
     returns = []
+    links = []
     cur_len = 0
 
     # Sort by distance and add the text to the context until the context is too long
@@ -36,7 +37,10 @@ def create_context(
 
         # Else add it to the text that is being returned
         returns.append(row["texto"])
+        links.append(row["tabela"], '/', row["index"])
 
+    global first_item
+    first_item = links[0]
     # Return the context
     return "\n🤖\n".join(returns)
 
@@ -97,5 +101,5 @@ def responde_emb(pergunta, dados):
     df['embeddings'] = df['embeddings'].apply(np.array)
     resposta = answer_question(df, question=pergunta).replace("\n", '<br>')
     saida = resposta.replace("<br>", "\n")
-    return saida
+    return saida, first_item
 
