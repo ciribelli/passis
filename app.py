@@ -464,7 +464,7 @@ def fazer_perguntas(pergunta):
         import context
         saida, first_item = context.responde_emb(pergunta, dados)
         print (first_item, '<------------------')
-        return saida
+        return saida, first_item
     except Exception as e:
         return str(e), 400
 

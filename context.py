@@ -101,5 +101,6 @@ def responde_emb(pergunta, dados):
     df['embeddings'] = df['embeddings'].apply(np.array)
     resposta = answer_question(df, question=pergunta).replace("\n", '<br>')
     saida = resposta.replace("<br>", "\n")
+    global first_item
     return saida, first_item
 

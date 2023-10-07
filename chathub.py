@@ -29,6 +29,7 @@ def chatflow(entry):
             tipo_pergunta = False
             content = msg_body
             coletor = ""
+            link = ""
             # para JOGOS
             if content.lower() == "jogos" or content.lower() == "jogo":
                 coletor, datajson = main.get_jogos_df()
@@ -50,14 +51,19 @@ def chatflow(entry):
             else:
                 ##### avalia se a mensagem nao eh feedback dos recursos de automacao #####
                 if not "✅" in content.lower():
-                    coletor = app.fazer_perguntas(content)
+                    coletor, link = app.fazer_perguntas(content)
                     
             # envia a mensagem de retorno para o whatsapp
             try:
                 if (tipo_pergunta):
                     send_msg.send_wapp_image(phone_number_id, from_number, "Aqui será o texto da pergunta")
                 else:
+                    # envia a resposta texto openAI
                     send_msg.send_wapp_msg(phone_number_id, from_number, coletor)
+                    # caso seja um documento, envia o arquivo/imagem
+                    if( "documentos" in link.lower()):
+                        send_msg.send_wapp_image(link)
+
             except requests.exceptions.RequestException as e:
                 print("Erro ao enviar mensagem:", str(e))
 
