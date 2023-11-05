@@ -23,11 +23,7 @@ def chatflow(entry):
         from_number = message['from']
 
         # captura o timestamp das mensagem para contextos de data
-        print("entry['changes'][0]['value']", entry['changes'][0]['value'])
-        print("entry['changes'][0]['value']['statuses']", entry['changes'][0]['value']['statuses'])
-        print("entry['changes'][0]['value']['statuses'][0].get('timestamp')", entry['changes'][0]['value']['statuses'][0].get('timestamp'))
-        if 'statuses' in entry['changes'][0]['value']:
-            timestamp = entry['changes'][0]['value']['statuses'][0].get('timestamp')
+        timestamp = entry['changes'][0]['value']['messages'][0]['timestamp']
         data_hora = hora_e_data(timestamp)
 
         # Verifica se há um ID de botão de resposta
