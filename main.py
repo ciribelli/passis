@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import json
 import datetime
 
-def nucleo_jogos():
+def nucleo_jogos(json=None):
     # busca a data do dia do sistema
     hoje = datetime.date.today().strftime('%d-%m-%Y')
     #print(datetime.date.today() + datetime.timedelta(days=1))
