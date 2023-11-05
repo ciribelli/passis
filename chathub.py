@@ -23,6 +23,9 @@ def chatflow(entry):
         from_number = message['from']
 
         # captura o timestamp das mensagem para contextos de data
+        print("entry['changes'][0]['value']", entry['changes'][0]['value'])
+        print("entry['changes'][0]['value']['statuses'][0]", entry['changes'][0]['value']['statuses'][0])
+        print("entry['changes'][0]['value']['statuses'][0].get('timestamp')", entry['changes'][0]['value']['statuses'][0].get('timestamp'))
         if 'statuses' in entry['changes'][0]['value']:
             timestamp = entry['changes'][0]['value']['statuses'][0].get('timestamp')
         data_hora = hora_e_data(timestamp)
