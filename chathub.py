@@ -3,17 +3,28 @@ import send_msg
 import requests
 import os
 import app
+import datetime
+
+
+def hora_e_data(timestamp):
+    # aqui, pode-se buscar contextualizar para o GMT de cada usuario
+    # mas seria necessario acrescentar um arquivo de configuracao pessoal
+    data_hora = datetime.datetime.fromtimestamp(timestamp)
+    data_formatada = data_hora.strftime('%d-%m-%Y')
+    return data_formatada
 
 def chatflow(entry):
     # Verifica se há mensagens na solicitação
-    print('entry: ')
-    print(entry)
     if 'changes' in entry and entry['changes'][0]['value'].get('messages'):
         message = entry['changes'][0]['value']['messages'][0]
         print('entry_metadata: ')
         print(entry['changes'][0]['value']['metadata'])
         phone_number_id = entry['changes'][0]['value']['metadata']['phone_number_id']
         from_number = message['from']
+
+        # captura o timestamp das mensagem para contextos de data
+        timestamp = entry['changes'][0]['value']['statuses'][0]['timestamp']
+        data_hora = hora_e_data(timestamp)
 
         # Verifica se há um ID de botão de resposta
         button_reply_id = message['interactive']['button_reply']['id'] if 'interactive' in message and 'button_reply' in message['interactive'] else None
@@ -36,7 +47,7 @@ def chatflow(entry):
             link = ""
             # para JOGOS
             if content.lower() == "jogos" or content.lower() == "jogo":
-                coletor, datajson = main.get_jogos_df()
+                coletor, datajson = main.get_jogos_df(data_hora)
             # para CIDADE e TRANSITO
             elif content.lower() == "cidade" or content.lower() == "cidades" or content.lower() == "transito":
                 token = os.getenv('token_X')

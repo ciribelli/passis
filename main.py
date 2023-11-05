@@ -4,9 +4,9 @@ import json
 import datetime
 import pandas as pd
 import json
-def nucleo_jogos():
+def nucleo_jogos(data_hora):
     # busca a data do dia do sistema
-    hoje = datetime.date.today().strftime('%d-%m-%Y')
+    hoje = data_hora
     #print(datetime.date.today() + datetime.timedelta(days=1))
     url = 'http://www.uol.com.br/esporte/futebol/central-de-jogos/'
     resposta = requests.get(url)
@@ -91,8 +91,8 @@ def get_jogos():
     print(df_resultante)
     return df_resultante.to_json()
 
-def get_jogos_df(): # funcao teste para funcao hub
-    df_f = nucleo_jogos()
+def get_jogos_df(data_hora): # funcao teste para funcao hub
+    df_f = nucleo_jogos(data_hora)
     df_resultante = df_f.loc[:,['isBigGame','time1', 'time2', 'hora', 'competicao', 'transmissao']].sort_values(by=['hora'])
     saida = ''
     for index, row in df_resultante.iterrows():
