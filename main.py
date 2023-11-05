@@ -104,19 +104,12 @@ def get_jogos_df(): # funcao teste para funcao hub
                 'transmissao'] + '\n'
     return saida, df_resultante # [formato texto], [formato json]
 
-# filtro 1 para jogos em estádio específico utilizando o dataframe completo
-def get_estadio(elem):
-    df_f = nucleo_jogos()
-    df_n = df_f.loc[(df.estadio == elem)]
-    return df_n
-
 # filtro 2 para para times específicos utilizando o dataframe completo
 def get_time(elem):
     df_f = nucleo_jogos()
     df_n = df_f.loc[(df_f.time1 == elem)|(df_f.time2 == elem)]
     return df_n.to_json()
 
-# filtro 3 para para jogões do dia utilizando o dataframe completo
 # retorna o número de jogoes
 def filtro_jogao():
     n_jogoes = 0

@@ -6,8 +6,12 @@ import app
 
 def chatflow(entry):
     # Verifica se há mensagens na solicitação
+    print('entry: ')
+    print(entry)
     if 'changes' in entry and entry['changes'][0]['value'].get('messages'):
         message = entry['changes'][0]['value']['messages'][0]
+        print('entry_metadata: ')
+        print(entry['changes'][0]['value']['metadata'])
         phone_number_id = entry['changes'][0]['value']['metadata']['phone_number_id']
         from_number = message['from']
 
