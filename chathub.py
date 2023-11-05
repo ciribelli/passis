@@ -9,7 +9,7 @@ import datetime
 def hora_e_data(timestamp):
     # aqui, pode-se buscar contextualizar para o GMT de cada usuario
     # mas seria necessario acrescentar um arquivo de configuracao pessoal
-    data_hora = datetime.datetime.fromtimestamp(timestamp)
+    data_hora = datetime.datetime.fromtimestamp(int(timestamp))
     data_formatada = data_hora.strftime('%d-%m-%Y')
     return data_formatada
 
@@ -23,7 +23,8 @@ def chatflow(entry):
         from_number = message['from']
 
         # captura o timestamp das mensagem para contextos de data
-        timestamp = entry['changes'][0]['value']['statuses'][0]['timestamp']
+        if 'statuses' in entry['changes'][0]['value']:
+            timestamp = entry['changes'][0]['value']['statuses'][0].get('timestamp')
         data_hora = hora_e_data(timestamp)
 
         # Verifica se há um ID de botão de resposta
