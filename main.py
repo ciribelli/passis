@@ -2,8 +2,9 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import datetime
-
-def nucleo_jogos(json=None):
+import pandas as pd
+import json
+def nucleo_jogos():
     # busca a data do dia do sistema
     hoje = datetime.date.today().strftime('%d-%m-%Y')
     #print(datetime.date.today() + datetime.timedelta(days=1))
@@ -64,8 +65,7 @@ def nucleo_jogos(json=None):
     except:
         print('nao tem jogo')
 
-    import pandas as pd
-    import json
+
     # somo as duas listas contendo jogoes e jogos normais
     lista_completa = lista_jogoes + lista_jogos + lista_jogos_comp
 
@@ -86,7 +86,7 @@ def nucleo_jogos(json=None):
 # valer da extração de colunas mais importantes com a função 'loc'
 
 def get_jogos():
-    df_f  = nucleo_jogos
+    df_f = nucleo_jogos()
     df_resultante = df_f.loc[:,['time1', 'time2', 'hora', 'competicao', 'transmissao']].sort_values(by=['hora'])
     print(df_resultante)
     return df_resultante.to_json()
