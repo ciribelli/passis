@@ -92,7 +92,7 @@ def get_jogos():
     return df_resultante.to_json()
 
 def get_jogos_df(): # funcao teste para funcao hub
-    df_f = nucleo_jogos
+    df_f = nucleo_jogos()
     df_resultante = df_f.loc[:,['isBigGame','time1', 'time2', 'hora', 'competicao', 'transmissao']].sort_values(by=['hora'])
     saida = ''
     for index, row in df_resultante.iterrows():
@@ -106,12 +106,13 @@ def get_jogos_df(): # funcao teste para funcao hub
 
 # filtro 1 para jogos em estádio específico utilizando o dataframe completo
 def get_estadio(elem):
+    df_f = nucleo_jogos()
     df_n = df_f.loc[(df.estadio == elem)]
     return df_n
 
 # filtro 2 para para times específicos utilizando o dataframe completo
 def get_time(elem):
-    df_f = nucleo_jogos
+    df_f = nucleo_jogos()
     df_n = df_f.loc[(df_f.time1 == elem)|(df_f.time2 == elem)]
     return df_n.to_json()
 
@@ -120,7 +121,7 @@ def get_time(elem):
 def filtro_jogao():
     n_jogoes = 0
     try:
-        df_f = nucleo_jogos
+        df_f = nucleo_jogos()
         n_jogoes = df_f['isBigGame'].value_counts()[True]
     except:
         n_jogoes = 0
