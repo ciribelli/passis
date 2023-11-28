@@ -61,6 +61,10 @@ def chatflow(entry):
             elif "🔄" in content.lower():
                 print(">>>> atualizando embeddings <<<<")
                 coletor = app.inserir_dados()
+            elif "📝" in content.lower():
+                coletor = app.salvar_memoria_recebida(content.lower())
+            elif "❤" in content.lower():
+                coletor = "ok.. vamos trabalhar"
             elif content.lower() == "responder":
                 tipo_pergunta = True
             else:
