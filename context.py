@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 import openai
-from openai.embeddings_utils import distances_from_embeddings
+#from openai.embeddings_utils import distances_from_embeddings
+from scipy.spatial.distance import cosine
 from dotenv import load_dotenv
 import os
 
@@ -18,8 +19,10 @@ def create_context(
     # Get the embeddings for the question
     q_embeddings = openai.Embedding.create(input=question, engine='text-embedding-ada-002')['data'][0]['embedding']
 
-    # Get the distances from the embeddings
-    df['distances'] = distances_from_embeddings(q_embeddings, df['embeddings'].values, distance_metric='cosine')
+    # Get the distances from the embeddings - deprecated pela OpeanAI
+    # df['distances'] = distances_from_embeddings(q_embeddings, df['embeddings'].values, distance_metric='cosine')]
+    # nova alternativa para distancia cossenoidal:
+    df["distances"] = df["embeddings"].apply(lambda x: cosine(q_embeddings, x))
 
     returns = []
     links = []
@@ -72,7 +75,7 @@ def answer_question(
     try:
         # Create a completions using the question and context
         response = openai.Completion.create(
-            prompt=f"Seu nome é Ramon e você é meu assistente virtual para assuntos pessoais e me ajuda com ideias e lembretes sobre minha rotina e o que acontece no mundo. Você receberá uma série de notas pessoais e informações a meu respeito abaixo, e deverá elaborar a resposta com base nesses dados. Se não souber a respota, pode buscar a melhor aproximação: \n\n Meus lembretes e informações: {context}\n\n---\n\nAgora, Ramon, responda essa pergunta: {question}\n",
+            prompt=f"Você é meu assistente virtual para assuntos pessoais e me ajuda com ideias e lembretes sobre minha rotina e o que acontece no mundo. Você receberá uma série de notas pessoais e informações a meu respeito abaixo, e deverá elaborar a resposta com base nesses dados. Se não souber a respota, pode buscar a melhor aproximação: \n\n Meus lembretes e informações: {context}\n\n---\n\nAgora, Ramon, responda essa pergunta: {question}\n",
             temperature=0.3,
             max_tokens=max_tokens,
             top_p=1,

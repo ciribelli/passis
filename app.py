@@ -7,6 +7,8 @@ from datetime import datetime
 from dotenv import load_dotenv
 import os
 import main, send_msg, chathub
+import matplotlib.pyplot as plt
+from datetime import datetime, timedelta
 
 load_dotenv()
 
@@ -467,6 +469,64 @@ def fazer_perguntas(pergunta):
         return saida, first_item
     except Exception as e:
         return str(e), 400
+
+def plota_grafico(checkin_type, min_date, max_date, color):
+    # Dados fictícios para simular check-ins
+    fake_checkins = [
+        {'checkin': checkin_type, 'data': '2023-09-03', 'direction': 'in'},
+        {'checkin': checkin_type, 'data': '2023-09-05', 'direction': 'in'},
+        {'checkin': checkin_type, 'data': '2023-09-07', 'direction': 'in'},
+        {'checkin': checkin_type, 'data': '2023-09-08', 'direction': 'out'},
+        {'checkin': checkin_type, 'data': '2023-09-10', 'direction': 'in'},
+        {'checkin': checkin_type, 'data': '2023-09-12', 'direction': 'in'},
+        {'checkin': checkin_type, 'data': '2023-09-15', 'direction': 'out'},
+        {'checkin': checkin_type, 'data': '2023-09-16', 'direction': 'in'},
+        {'checkin': checkin_type, 'data': '2023-09-18', 'direction': 'in'},
+        {'checkin': checkin_type, 'data': '2023-09-20', 'direction': 'out'},
+        {'checkin': checkin_type, 'data': '2023-09-22', 'direction': 'in'},
+        {'checkin': checkin_type, 'data': '2023-09-23', 'direction': 'in'},
+    ]
+
+    # Convertendo datas de string para objetos datetime
+    for checkin in fake_checkins:
+        checkin['data'] = datetime.strptime(checkin['data'], '%Y-%m-%d').date()
+
+    # Criar um dicionário com contagem de check-ins por dia
+    counts_by_day = {date: 0 for date in sorted(set(checkin['data'] for checkin in fake_checkins))}
+
+    # Contar os check-ins do tipo específico e direção por dia
+    for checkin in fake_checkins:
+        if checkin['checkin'] == checkin_type and checkin['direction'] == 'in':
+            counts_by_day[checkin['data']] += 1
+
+    # Ordenar as datas e contagens
+    sorted_dates = sorted(counts_by_day.keys())
+    sorted_counts = [counts_by_day[date] for date in sorted_dates]
+
+    # Criar o gráfico de barras
+    plt.figure(figsize=(10, 6))
+    plt.bar(sorted_dates, sorted_counts, color=color)
+
+    plt.title(f'Número de Check-ins do Tipo "{checkin_type}"')
+    plt.xlabel('Data')
+    plt.ylabel('Número de Check-ins')
+    plt.yticks(range(max(sorted_counts) + 2))
+    plt.gca().yaxis.grid(True, linestyle='--')
+    plt.tight_layout()
+
+    # Salvar o gráfico como imagem e retornar o nome do arquivo
+    img_filename = f"{checkin_type}_checkins.png"
+    plt.savefig(img_filename)
+    plt.close()
+
+    # Obter o caminho absoluto do arquivo
+    full_path = os.path.abspath(img_filename)
+
+    return full_path
+
+
+
+
 
 # Executa o aplicativo Flask
 if __name__ == '__passis__':
