@@ -64,7 +64,7 @@ def chatflow(entry):
             elif "📝" in content.lower():
                 coletor = app.salvar_memoria_recebida(content.lower())
             elif "❤" in content.lower():
-                coletor = app.plota_grafico("EDISEN", datetime(2023, 9, 1).date(), datetime(2023, 9, 25).date(), 'pink')
+                coletor = app.plota_grafico("EDISEN", 'pink')
             elif content.lower() == "responder":
                 tipo_pergunta = True
             else:

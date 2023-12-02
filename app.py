@@ -470,7 +470,7 @@ def fazer_perguntas(pergunta):
     except Exception as e:
         return str(e), 400
 
-def plota_grafico(checkin_type, min_date, max_date, color):
+def plota_grafico(checkin_type, color):
     # Dados fictícios para simular check-ins
     fake_checkins = [
         {'checkin': checkin_type, 'data': '2023-09-03', 'direction': 'in'},
