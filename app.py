@@ -517,12 +517,13 @@ def plota_grafico(checkin_type, color):
 
     # Salvar o gráfico como imagem e retornar o nome do arquivo
     img_filename = f"{checkin_type}_checkins.png"
+    plt.savefig(img_filename)
     plt.close()
 
     # Obter o caminho absoluto do arquivo
     full_path = os.path.abspath(img_filename)
 
-    url = "https://passis-bfd9b877f7d0.herokuapp.com/criar_documento"
+    url = str(os.getenv('url')) + "criar_documento"
 
     payload = {'nome_do_documento': 'grafico',
                'descricao': 'grafico gerado automaticamente para checkin do tipo ' + checkin_type}
@@ -532,10 +533,8 @@ def plota_grafico(checkin_type, color):
     headers = {}
 
     response = requests.post(url, data=payload, files=files)
-    print("imagem enviada para a NUVEM")
+    print('Imagem gravada nas nuvens!')
     return full_path
-
-
 
 
 
