@@ -6,6 +6,8 @@ from flask_migrate import Migrate
 from datetime import datetime
 from dotenv import load_dotenv
 import os
+
+import context_newOpenAI_Lib
 import main, send_msg, chathub
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
@@ -465,7 +467,8 @@ def fazer_perguntas(pergunta):
         ]
         
         import context
-        saida, first_item = context.responde_emb(pergunta, dados)
+        #saida, first_item = context.responde_emb(pergunta, dados)
+        saida, first_item = context_newOpenAI_Lib.responde_emb(pergunta, dados)
         print (first_item, '<------------------')
         return saida, first_item
     except Exception as e:
