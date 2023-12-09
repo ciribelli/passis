@@ -18,8 +18,8 @@ def create_context(
     load_dotenv()
     client.api_key = os.getenv('OPENAI_API_KEY')
 
-    # Get the embeddings for the question
-    q_embeddings = client.embeddings.create(model='text-embedding-ada-002', input=question)['data'][0]['embedding']
+    # Get the embeddings for the question // nao documentado pela opeanAI
+    q_embeddings = client.embeddings.create(input=question, model='text-embedding-ada-002').data[0].embedding
 
     # Get the distances from the embeddings - deprecated pela OpeanAI
     # df['distances'] = distances_from_embeddings(q_embeddings, df['embeddings'].values, distance_metric='cosine')]
