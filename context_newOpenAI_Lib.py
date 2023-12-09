@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import openai
 from openai import OpenAI
 from scipy.spatial.distance import cosine
 from dotenv import load_dotenv
@@ -9,11 +10,21 @@ import os
 client = OpenAI()
 
 first_item = ""
-def create_context(    question, df, max_len=1200, size="ada"):
+def create_context(
+    question, df, max_len=1200, size="ada"
+):
+    """
+    Create a context for a question by finding the most similar context from the dataframe
+    """
     load_dotenv()
-    client.api_key = os.getenv('OPENAI_API_KEY')
+    openai.api_key = os.getenv('OPENAI_API_KEY')
 
-    q_embeddings = client.embeddings.create(input=question, engine='text-embedding-ada-002')['data'][0]['embedding']
+    # Get the embeddings for the question
+    q_embeddings = openai.Embedding.create(input=question, engine='text-embedding-ada-002')['data'][0]['embedding']
+
+    # Get the distances from the embeddings - deprecated pela OpeanAI
+    # df['distances'] = distances_from_embeddings(q_embeddings, df['embeddings'].values, distance_metric='cosine')]
+    # nova alternativa para distancia cossenoidal:
     df["distances"] = df["embeddings"].apply(lambda x: cosine(q_embeddings, x))
 
     returns = []
