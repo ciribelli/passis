@@ -80,10 +80,10 @@ def chatflow(entry):
                     # envia a resposta texto openAI
                     send_msg.send_wapp_msg(phone_number_id, from_number, coletor)
                     # caso seja um documento, envia o arquivo/imagem
-                    # if( "documentos" in link.lower()):
-                    #     # ATENCAO: ideal seria mudar nome da tabela no bd
-                    #     link = link.replace("recuperar_lista_documentos", "recuperar_documento")
-                    #     send_msg.send_wapp_image(phone_number_id, from_number, coletor, link)
+                    if( "documentos" in link.lower()):
+                        # ATENCAO: ideal seria mudar nome da tabela no bd
+                        link = link.replace("recuperar_lista_documentos", "recuperar_documento")
+                        send_msg.send_wapp_image(phone_number_id, from_number, coletor, link)
 
             except requests.exceptions.RequestException as e:
                 print("Erro ao enviar mensagem:", str(e))

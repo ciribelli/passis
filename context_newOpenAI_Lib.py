@@ -9,21 +9,11 @@ import os
 client = OpenAI()
 
 first_item = ""
-def create_context(
-    question, df, max_len=1200, size="ada"
-):
-    """
-    Create a context for a question by finding the most similar context from the dataframe
-    """
+def create_context(question, df, max_len=1200, size="ada"):
     load_dotenv()
     client.api_key = os.getenv('OPENAI_API_KEY')
-
     # Get the embeddings for the question // nao documentado pela opeanAI
     q_embeddings = client.embeddings.create(input=question, model='text-embedding-ada-002').data[0].embedding
-
-    # Get the distances from the embeddings - deprecated pela OpeanAI
-    # df['distances'] = distances_from_embeddings(q_embeddings, df['embeddings'].values, distance_metric='cosine')]
-    # nova alternativa para distancia cossenoidal:
     df["distances"] = df["embeddings"].apply(lambda x: cosine(q_embeddings, x))
 
     returns = []
@@ -32,14 +22,11 @@ def create_context(
 
     # Sort by distance and add the text to the context until the context is too long
     for i, row in df.sort_values('distances', ascending=True).iterrows():
-
         # Add the length of the text to the current length
         cur_len += row['n_tokens'] + 4
-
         # If the context is too long, break
         if cur_len > max_len:
             break
-
         # Else add it to the text that is being returned
         returns.append(row["texto"])
         links.append(str(row["tabela"])+'/'+str(row["index"]))
@@ -73,7 +60,7 @@ def answer_question(
                 {"role": "user", "content": question}
               ]
             )
-        return completion.choices[0].message
+        return completion.choices[0].message.content.strip()
 
     except Exception as e:
         print(e)
