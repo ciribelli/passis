@@ -399,6 +399,18 @@ def get_threads():
         serialized_threads = [thread.content for thread in threads]
         return serialized_threads, 200
 
+@app.route('/apagar_threads', methods=['DELETE'])
+def apagar_threads():
+    try:
+        # Apaga todos os itens da tabela Thread
+        Thread.query.delete()
+        db.session.commit()
+        return "Todos os itens da tabela Thread foram apagados", 200
+    except Exception as e:
+        db.session.rollback()
+        return f"Erro ao apagar itens da tabela Thread: {str(e)}", 500
+
+
 # Embeddings ----------------
 class VectorEmbedding(db.Model):
     __tablename__ = 'vectors'
@@ -488,10 +500,8 @@ def fazer_perguntas(pergunta):
             }
             for registro in registros
         ]
-
-        from deprecated import context
-        #saida, first_item = context.responde_emb(pergunta, dados)
-        saida, first_item = context_newOpenAI_Lib.responde_emb(pergunta, dados)
+        threads = Thread.query.order_by(Thread.date_created.desc()).limit(4).all()
+        saida, first_item = context_newOpenAI_Lib.responde_emb(pergunta, dados, threads)
         print (first_item, '<------------------')
         return saida, first_item
     except Exception as e:

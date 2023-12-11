@@ -51,6 +51,7 @@ def answer_question(
         print("Context:\n" + context)
         print("\n\n")
 
+
     try:
         # Create a completions using the question and context
         completion = client.chat.completions.create(
@@ -66,10 +67,11 @@ def answer_question(
         print(e)
         return ""
 
-def responde_emb(pergunta, dados):
+def responde_emb(pergunta, dados, threads):
     df = pd.DataFrame(dados)
     print(df)
     df['embeddings'] = df['embeddings'].apply(np.array)
+    print('_______________________', threads)
     resposta = answer_question(df, question=pergunta).replace("\n", '<br>')
     saida = resposta.replace("<br>", "\n")
     global first_item
