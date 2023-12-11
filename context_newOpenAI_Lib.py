@@ -55,7 +55,8 @@ def answer_question(
     messages = [
         {
             "role": "system",
-            "content": "Você é meu assistente virtual para assuntos pessoais e me ajuda com ideias e lembretes sobre minha rotina. Receba abaixo informações de contexto:" + "\n" + context
+            #"content": "Você é meu assistente virtual para assuntos pessoais e me ajuda com ideias e lembretes sobre minha rotina. Receba abaixo informações de contexto:" + "\n" + context
+            "content": "Youre a helpfull assistant"
         }
     ]
 
