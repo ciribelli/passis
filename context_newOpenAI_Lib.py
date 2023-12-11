@@ -66,19 +66,17 @@ def answer_question(
     messages.append({"role": "user", "content": question})
     print("-------......>>>>>>>>>>>>>>>>>>>>>>>>>> \n", messages)
 
-    try:
-
-
-        completion = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=messages
-        )
-
-        return completion.choices[0].message.content.strip()
-
-    except Exception as e:
-        print(e)
-        return ""
+    # try:
+    #     completion = client.chat.completions.create(
+    #         model="gpt-3.5-turbo",
+    #         messages=messages
+    #     )
+    #
+    #     return completion.choices[0].message.content.strip()
+    #
+    # except Exception as e:
+    #     print(e)
+    #     return ""
 
 def responde_emb(pergunta, dados, threads):
     df = pd.DataFrame(dados)
