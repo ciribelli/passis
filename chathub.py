@@ -70,7 +70,13 @@ def chatflow(entry):
             else:
                 ##### avalia se a mensagem nao eh feedback dos recursos de automacao #####
                 if not "✅" in content.lower():
+                    # envia mensagem para API openAI
                     coletor, link = app.fazer_perguntas(content)
+                    # registra mensagem de usuario na memoria
+                    input_data = {"role": "user", "content": content}
+                    app.salvar_thread(input_data)
+                    input_data = {"role": "system", "content": coletor}
+                    app.salvar_thread(input_data)
                     
             # envia a mensagem de retorno para o whatsapp
             try:

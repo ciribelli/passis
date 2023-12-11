@@ -1,16 +1,15 @@
 import io
 from flask import Flask, request, Response, json, send_file
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.dialects.postgresql import JSONB, insert
+from sqlalchemy.dialects.postgresql import JSONB
 from flask_migrate import Migrate
-from datetime import datetime
 from dotenv import load_dotenv
 import os
 
 import context_newOpenAI_Lib
-import main, send_msg, chathub
+import main, chathub
 import matplotlib.pyplot as plt
-from datetime import datetime, timedelta
+from datetime import datetime
 import requests
 
 load_dotenv()
@@ -376,6 +375,23 @@ def get_memorias():
 
         return Response(json.dumps(serialized_memorias), status=200, content_type='application/json')
 
+
+# Rota para registrar Threads com o Assistente
+class Thread(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.String(2000), nullable=False)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __init__(self, content):
+        self.content = content
+
+# salvando thread diretamente sem uso da API
+def salvar_thread(content):
+    thread = Thread(content=content)
+    db.session.add(thread)
+    db.session.commit()
+    return "Thread registrada ✅"
+
 # Embeddings ----------------
 class VectorEmbedding(db.Model):
     __tablename__ = 'vectors'
@@ -465,8 +481,8 @@ def fazer_perguntas(pergunta):
             }
             for registro in registros
         ]
-        
-        import context
+
+        from deprecated import context
         #saida, first_item = context.responde_emb(pergunta, dados)
         saida, first_item = context_newOpenAI_Lib.responde_emb(pergunta, dados)
         print (first_item, '<------------------')
