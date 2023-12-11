@@ -58,7 +58,8 @@ def answer_question(
               messages=[
                 {"role": "system", "content": "Você é meu assistente virtual para assuntos pessoais e me ajuda com ideias e lembretes sobre minha rotina. Receba abaixo informações de contexto:" + "\n" + context},
                 {"role": "user", "content": question}
-              ]
+              ],
+            stream=True,
             )
         return completion.choices[0].message.content.strip()
 
