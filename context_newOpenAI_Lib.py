@@ -40,6 +40,7 @@ def create_context(question, df, max_len=1200, size="ada"):
 def answer_question(
     df,
     question="Am I allowed to publish model outputs to Twitter, without a human review?",
+    lista_threads="aqui estarao as threads",
     max_len=1200,
     size="ada",
     debug=True,
@@ -57,10 +58,12 @@ def answer_question(
         completion = client.chat.completions.create(
               model="gpt-3.5-turbo",
               messages=[
-                {"role": "system", "content": "Você é meu assistente virtual para assuntos pessoais e me ajuda com ideias e lembretes sobre minha rotina. Receba abaixo informações de contexto:" + "\n" + context},
+                  {"role": "system", "content": "Você é meu assistente virtual para assuntos pessoais e me ajuda com ideias e lembretes sobre minha rotina. Receba abaixo informações de contexto:" + "\n" + context},
+                lista_threads,
                 {"role": "user", "content": question}
               ]
             )
+
         return completion.choices[0].message.content.strip()
 
     except Exception as e:
@@ -74,7 +77,7 @@ def responde_emb(pergunta, dados, threads):
     print(threads,'<<<<<<<<<<<<<<<<<<<<')
     for t in threads:
         print (t.content)
-    resposta = answer_question(df, question=pergunta).replace("\n", '<br>')
+    resposta = answer_question(df, question=pergunta, lista_threads=threads).replace("\n", '<br>')
     saida = resposta.replace("<br>", "\n")
     global first_item
     return saida, first_item
