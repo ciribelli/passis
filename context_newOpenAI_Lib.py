@@ -4,7 +4,7 @@ from openai import OpenAI
 from scipy.spatial.distance import cosine
 from dotenv import load_dotenv
 import os
-
+import json
 
 client = OpenAI()
 
@@ -54,15 +54,22 @@ def answer_question(
 
 
     try:
-        # Create a completions using the question and context
+        messages = [
+            {
+                "role": "system",
+                "content": "Você é meu assistente virtual para assuntos pessoais e me ajuda com ideias e lembretes sobre minha rotina. Receba abaixo informações de contexto:" + "\n" + context
+            }
+        ]
+
+        for thread in lista_threads:
+            messages.append(json.loads(thread))
+
+        messages.append({"role": "user", "content": question})
+
         completion = client.chat.completions.create(
-              model="gpt-3.5-turbo",
-              messages=[
-                  {"role": "system", "content": "Você é meu assistente virtual para assuntos pessoais e me ajuda com ideias e lembretes sobre minha rotina. Receba abaixo informações de contexto:" + "\n" + context},
-                lista_threads,
-                {"role": "user", "content": question}
-              ]
-            )
+            model="gpt-3.5-turbo",
+            messages=messages
+        )
 
         return completion.choices[0].message.content.strip()
 
