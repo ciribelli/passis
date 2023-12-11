@@ -66,6 +66,8 @@ def answer_question(
     messages.append({"role": "user", "content": question})
     print("-------......>>>>>>>>>>>>>>>>>>>>>>>>>> \n", messages)
 
+
+    return "eita nóis"
     # try:
     #     completion = client.chat.completions.create(
     #         model="gpt-3.5-turbo",
