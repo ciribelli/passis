@@ -397,7 +397,7 @@ def get_threads():
     if request.method == 'GET':
         threads = Thread.query.order_by(Thread.date_created.desc()).limit(6).all()
         serialized_threads = [thread.content for thread in threads]
-        return json.dumps(serialized_threads), 200
+        return serialized_threads, 200
 
 # Embeddings ----------------
 class VectorEmbedding(db.Model):
