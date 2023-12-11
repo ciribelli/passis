@@ -71,8 +71,9 @@ def responde_emb(pergunta, dados, threads):
     df = pd.DataFrame(dados)
     print(df)
     df['embeddings'] = df['embeddings'].apply(np.array)
+    print(threads,'<<<<<<<<<<<<<<<<<<<<')
     for t in threads:
-        print (t)
+        print (t.content)
     resposta = answer_question(df, question=pergunta).replace("\n", '<br>')
     saida = resposta.replace("<br>", "\n")
     global first_item

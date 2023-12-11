@@ -500,7 +500,7 @@ def fazer_perguntas(pergunta):
             }
             for registro in registros
         ]
-        threads = Thread.query.order_by(Thread.date_created.desc()).limit(4).all()
+        threads = Thread.query.with_entities(Thread.content).order_by(Thread.date_created.desc()).limit(4).all()
         saida, first_item = context_newOpenAI_Lib.responde_emb(pergunta, dados, threads)
         print (first_item, '<------------------')
         return saida, first_item
