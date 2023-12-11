@@ -52,21 +52,22 @@ def answer_question(
         print("Context:\n" + context)
         print("\n\n")
 
+    messages = [
+        {
+            "role": "system",
+            "content": "Você é meu assistente virtual para assuntos pessoais e me ajuda com ideias e lembretes sobre minha rotina. Receba abaixo informações de contexto:" + "\n" + context
+        }
+    ]
+
+    # Convertendo objetos SQLAlchemy para dicionários serializáveis
+    for thread in lista_threads:
+        messages.append({"role": thread.role, "content": thread.content})
+
+    messages.append({"role": "user", "content": question})
+    print("-------......>>>>>>>>>>>>>>>>>>>>>>>>>> \n", messages)
 
     try:
-        messages = [
-            {
-                "role": "system",
-                "content": "Você é meu assistente virtual para assuntos pessoais e me ajuda com ideias e lembretes sobre minha rotina. Receba abaixo informações de contexto:" + "\n" + context
-            }
-        ]
 
-        # Convertendo objetos SQLAlchemy para dicionários serializáveis
-        for thread in lista_threads:
-            messages.append({"role": thread.role, "content": thread.content})
-
-        messages.append({"role": "user", "content": question})
-        print("-------......>>>>>>>>>>>>>>>>>>>>>>>>>> \n", messages)
 
         completion = client.chat.completions.create(
             model="gpt-3.5-turbo",
