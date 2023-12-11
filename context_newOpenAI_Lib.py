@@ -61,11 +61,12 @@ def answer_question(
             }
         ]
 
+        # Convertendo objetos SQLAlchemy para dicionários serializáveis
         for thread in lista_threads:
-            messages.append(thread)
+            messages.append({"role": thread.role, "content": thread.content})
 
         messages.append({"role": "user", "content": question})
-        print(" ---.> \n \n", messages)
+
         completion = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=messages
