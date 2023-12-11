@@ -392,6 +392,13 @@ def salvar_thread(content):
     db.session.commit()
     return "Thread registrada ✅"
 
+@app.route('/threads', methods=['GET'])
+def get_threads():
+    if request.method == 'GET':
+        threads = Thread.query.order_by(Thread.date_created.desc()).limit(6).all()
+        serialized_threads = [thread.content for thread in threads]
+        return json.dumps(serialized_threads), 200
+
 # Embeddings ----------------
 class VectorEmbedding(db.Model):
     __tablename__ = 'vectors'
