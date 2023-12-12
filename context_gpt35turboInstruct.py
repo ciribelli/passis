@@ -65,10 +65,10 @@ def answer_question(
             messages.append(json.loads(thread[0]))
 
         messages.append({"role": "user", "content": question})
-
+        print(messages)
         response = client.completions.create(
             model="gpt-3.5-turbo-instruct",
-            prompt=messages
+            prompt=str(messages)
         )
 
         return response["choices"][0]["text"].strip()
