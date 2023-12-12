@@ -75,7 +75,7 @@ def chatflow(entry):
                     # registra mensagem de usuario na memoria
                     input_data = '{"role": "user", "content":"' + content + '"}'
                     app.salvar_thread(input_data)
-                    input_data = '{"role": "system", "content":"' + coletor + '"}'
+                    input_data = '{"role": "assistant", "content":"' + coletor + '"}'
                     app.salvar_thread(input_data)
                     
             # envia a mensagem de retorno para o whatsapp
