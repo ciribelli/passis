@@ -6,7 +6,8 @@ from flask_migrate import Migrate
 from dotenv import load_dotenv
 import os
 
-import context_newOpenAI_Lib
+import context_gpt35turbo
+import context_gpt35turboInstruct
 import main, chathub
 import matplotlib.pyplot as plt
 from datetime import datetime
@@ -501,7 +502,7 @@ def fazer_perguntas(pergunta):
             for registro in registros
         ]
         threads = Thread.query.with_entities(Thread.content).order_by(Thread.date_created.desc()).limit(4).all()
-        saida, first_item = context_newOpenAI_Lib.responde_emb(pergunta, dados, threads)
+        saida, first_item = context_gpt35turboInstruct.responde_emb(pergunta, dados, threads)
         print (first_item, '<------------------')
         return saida, first_item
     except Exception as e:

@@ -52,6 +52,7 @@ def answer_question(
         print("Context:\n" + context)
         print("\n\n")
 
+
     messages = [
         {
             "role": "system",
@@ -65,12 +66,12 @@ def answer_question(
 
         messages.append({"role": "user", "content": question})
 
-        completion = client.chat.completions.create(
+        response = client.completions.create(
             model="gpt-3.5-turbo-instruct",
-            messages=messages
+            prompt=messages
         )
 
-        return completion.choices[0].message.content.strip()
+        return response["choices"][0]["text"].strip()
 
     except Exception as e:
         print(e)
