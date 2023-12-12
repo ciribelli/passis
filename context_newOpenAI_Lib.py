@@ -66,7 +66,7 @@ def answer_question(
         messages.append({"role": "user", "content": question})
 
         completion = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-3.5-turbo-instruct",
             messages=messages
         )
 
