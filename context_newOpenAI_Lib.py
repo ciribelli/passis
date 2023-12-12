@@ -55,17 +55,14 @@ def answer_question(
     messages = [
         {
             "role": "system",
-            #"content": "Você é meu assistente virtual para assuntos pessoais e me ajuda com ideias e lembretes sobre minha rotina. Receba abaixo informações de contexto:" + "\n" + context
-            "content": "Youre a helpfull assistant"
+            "content": "Você é meu assistente virtual para assuntos pessoais e me ajuda com ideias e lembretes sobre minha rotina. Receba abaixo informações de contexto:" + "\n" + context
         }
     ]
 
-    # Convertendo objetos SQLAlchemy para dicionários serializáveis
     for thread in lista_threads:
         messages.append(json.loads(thread[0]))
 
     messages.append({"role": "user", "content": question})
-    print("-------......>>>>>>>>>>>>>>>>>>>>>>>>>> \n", messages)
 
     try:
         completion = client.chat.completions.create(
@@ -81,11 +78,7 @@ def answer_question(
 
 def responde_emb(pergunta, dados, threads):
     df = pd.DataFrame(dados)
-    print(df)
     df['embeddings'] = df['embeddings'].apply(np.array)
-    print(threads,'<<<<<<<<<<<<<<<<<<<<')
-    for t in threads:
-        print (t.content)
     resposta = answer_question(df, question=pergunta, lista_threads=threads).replace("\n", '<br>')
     saida = resposta.replace("<br>", "\n")
     global first_item
