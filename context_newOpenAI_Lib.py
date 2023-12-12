@@ -62,7 +62,7 @@ def answer_question(
 
     # Convertendo objetos SQLAlchemy para dicionários serializáveis
     for thread in lista_threads:
-        messages.append(thread[0])
+        messages.append(json.loads(thread[0]))
 
     messages.append({"role": "user", "content": question})
     print("-------......>>>>>>>>>>>>>>>>>>>>>>>>>> \n", messages)
