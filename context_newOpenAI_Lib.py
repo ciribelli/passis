@@ -39,7 +39,7 @@ def create_context(question, df, max_len=1200, size="ada"):
 
 def answer_question(
     df,
-    question="Am I allowed to publish model outputs to Twitter, without a human review?",
+    question="aqui vem a pergunta",
     lista_threads="aqui estarao as threads",
     max_len=1200,
     size="ada",
@@ -55,16 +55,16 @@ def answer_question(
     messages = [
         {
             "role": "system",
-            "content": "Você é meu assistente virtual para assuntos pessoais e me ajuda com ideias e lembretes sobre minha rotina. Receba abaixo informações de contexto:" + "\n" + context
+            "content": "Você é meu assistente virtual para ideias e lembretes sobre minha rotina. Receba abaixo informações de contexto:" + "\n" + context
         }
     ]
 
-    for thread in lista_threads:
-        messages.append(json.loads(thread[0]))
-
-    messages.append({"role": "user", "content": question})
-
     try:
+        for thread in lista_threads:
+            messages.append(json.loads(thread[0]))
+
+        messages.append({"role": "user", "content": question})
+
         completion = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=messages
