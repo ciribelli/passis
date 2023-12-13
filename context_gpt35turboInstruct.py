@@ -63,7 +63,7 @@ def answer_question(
     try:
         for thread in lista_threads:
             if(json.loads(thread[0])["role"] == "user"):
-                messages.append("\n", json.loads(thread[0])["content"])
+                messages.append("\n" + str(json.loads(thread[0])["content"]))
 
         messages.append("\n" + "Agora a pergunta principal que você precisa responder: " + "\n" + question)
         print("#######")
