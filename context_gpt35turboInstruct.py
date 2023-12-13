@@ -39,6 +39,7 @@ def create_context(question, df, max_len=1200, size="ada"):
 
 def answer_question(
     df,
+    model="gpt-3.5-turbo-instruct",
     question="aqui vem a pergunta",
     lista_threads="aqui estarao as threads",
     max_len=1200,
@@ -55,23 +56,18 @@ def answer_question(
 
 
     try:
-        message_text = ''
-
-        # for thread in lista_threads:
-        #     content = json.loads(thread[0])['content']
-        #     message_text += content + '\n'
-
-        # mensagem = "Você é meu assistente pessoal para ideias e lembretes sobre minha rotina. Receba abaixo minhas informações pessoais:" + "\n" + context + "\n" "Algumas mensagens já trocadas que podem ajudar com contexto: " + "\n" + message_text + "\n Agora a pergunta principal que você precisa responder: " + "\n" + question
-        mensagem = "Você é meu assistente pessoal para ideias e lembretes sobre minha rotina. Receba abaixo minhas informações pessoais:" + "\n" + context + "\n" + "\n Agora a pergunta principal que você precisa responder: " + "\n" + question
-        print(mensagem)
-        response = client.completions.create(
-            model="gpt-3.5-turbo-instruct",
-            prompt=mensagem,
-            max_tokens = max_tokens
+        # Create a completions using the question and context
+        response = client.Completion.create(
+            prompt=f"Você é meu assistente virtual para assuntos pessoais e me ajuda com ideias e lembretes sobre minha rotina e o que acontece no mundo. Você receberá uma série de notas pessoais e informações a meu respeito abaixo, e deverá elaborar a resposta com base nesses dados. Se não souber a respota, pode buscar a melhor aproximação: \n\n Meus lembretes e informações: {context}\n\n---\n\nAgora, responda essa pergunta: {question}\n",
+            temperature=0.3,
+            max_tokens=max_tokens,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0,
+            #stop="20",
+            model=model,
         )
-
-        return response.choices[0].text.strip()
-
+        return response.choices[0].message.content.strip()
     except Exception as e:
         print(e)
         return ""
