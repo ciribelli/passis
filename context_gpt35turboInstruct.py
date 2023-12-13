@@ -53,25 +53,13 @@ def answer_question(
         print("\n\n")
 
 
-    messages = [
-        {
-            "role": "system",
-            "content": "Você é meu assistente pessoal para ideias e lembretes sobre minha rotina. Receba abaixo minhas informações pessoais:" + "\n" + context + "\n " + "Agora seguem mensagens trocadas anteriormente com você:"
-        }
-    ]
+    mensagem = "Você é meu assistente pessoal para ideias e lembretes sobre minha rotina. Receba abaixo minhas informações pessoais:" + "\n" + context + "\n" + "Agora a pergunta principal que você precisa responder: " + "\n" + question
 
     try:
-        # for thread in lista_threads:
-        #     if(json.loads(thread[0])["role"] == "user"):
-        #         messages.append("\n" + str(json.loads(thread[0])["content"]))
-
-        messages.append("\n" + "Agora a pergunta principal que você precisa responder: " + "\n" + question)
-        print("#######")
-        print(messages[0]["content"])
 
         response = client.completions.create(
             model="gpt-3.5-turbo-instruct",
-            prompt=messages[0]["content"]
+            prompt=mensagem
         )
 
         return response.choices[0].text.strip()
