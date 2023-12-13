@@ -44,6 +44,7 @@ def answer_question(
     max_len=1200,
     size="ada",
     debug=True,
+    max_tokens=240,
 ):
 
     context = create_context(question, df, max_len=max_len, size=size,)
@@ -52,19 +53,20 @@ def answer_question(
         print("Context:\n" + context)
         print("\n\n")
 
-    message_text = ''
-
-    for thread in lista_threads:
-        content = json.loads(thread[0])['content']
-        message_text += content + '\n'
-
-    mensagem = "Você é meu assistente pessoal para ideias e lembretes sobre minha rotina. Receba abaixo minhas informações pessoais:" + "\n" + context + "\n" "Algumas mensagens já trocadas que podem ajudar com contexto: " + "\n" + message_text + "\n Agora a pergunta principal que você precisa responder: " + "\n" + question
 
     try:
+        message_text = ''
 
+        for thread in lista_threads:
+            content = json.loads(thread[0])['content']
+            message_text += content + '\n'
+
+        mensagem = "Você é meu assistente pessoal para ideias e lembretes sobre minha rotina. Receba abaixo minhas informações pessoais:" + "\n" + context + "\n" "Algumas mensagens já trocadas que podem ajudar com contexto: " + "\n" + message_text + "\n Agora a pergunta principal que você precisa responder: " + "\n" + question
+        print(mensagem)
         response = client.completions.create(
             model="gpt-3.5-turbo-instruct",
-            prompt=mensagem
+            prompt=mensagem,
+            max_tokens = max_tokens
         )
 
         return response.choices[0].text.strip()
