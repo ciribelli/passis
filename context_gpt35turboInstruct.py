@@ -57,11 +57,12 @@ def answer_question(
     try:
         message_text = ''
 
-        for thread in lista_threads:
-            content = json.loads(thread[0])['content']
-            message_text += content + '\n'
+        # for thread in lista_threads:
+        #     content = json.loads(thread[0])['content']
+        #     message_text += content + '\n'
 
-        mensagem = "Você é meu assistente pessoal para ideias e lembretes sobre minha rotina. Receba abaixo minhas informações pessoais:" + "\n" + context + "\n" "Algumas mensagens já trocadas que podem ajudar com contexto: " + "\n" + message_text + "\n Agora a pergunta principal que você precisa responder: " + "\n" + question
+        # mensagem = "Você é meu assistente pessoal para ideias e lembretes sobre minha rotina. Receba abaixo minhas informações pessoais:" + "\n" + context + "\n" "Algumas mensagens já trocadas que podem ajudar com contexto: " + "\n" + message_text + "\n Agora a pergunta principal que você precisa responder: " + "\n" + question
+        mensagem = "Você é meu assistente pessoal para ideias e lembretes sobre minha rotina. Receba abaixo minhas informações pessoais:" + "\n" + context + "\n" + "\n Agora a pergunta principal que você precisa responder: " + "\n" + question
         print(mensagem)
         response = client.completions.create(
             model="gpt-3.5-turbo-instruct",
