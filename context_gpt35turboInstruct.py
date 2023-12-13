@@ -67,11 +67,11 @@ def answer_question(
 
         messages.append("\n" + "Agora a pergunta principal que você precisa responder: " + "\n" + question)
         print("#######")
-        print(messages)
+        print(messages[0]["content"])
 
         response = client.completions.create(
             model="gpt-3.5-turbo-instruct",
-            prompt=str(messages)
+            prompt=messages[0]["content"]
         )
 
         return response.choices[0].text.strip()
