@@ -52,8 +52,14 @@ def answer_question(
         print("Context:\n" + context)
         print("\n\n")
 
+    message_text = ''
 
-    mensagem = "Você é meu assistente pessoal para ideias e lembretes sobre minha rotina. Receba abaixo minhas informações pessoais:" + "\n" + context + "\n" + "Agora a pergunta principal que você precisa responder: " + "\n" + question
+    for thread in lista_threads:
+        message = json.loads(thread)
+        content = message['content']
+        message_text += content + '\n'
+
+    mensagem = "Você é meu assistente pessoal para ideias e lembretes sobre minha rotina. Receba abaixo minhas informações pessoais:" + "\n" + context + "\n" "Algumas mensagens já trocadas que podem ajudar com contexto: " + "\n" + message_text + "\n Agora a pergunta principal que você precisa responder: " + "\n" + question
 
     try:
 
