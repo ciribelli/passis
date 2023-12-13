@@ -71,7 +71,7 @@ def answer_question(
             prompt=str(messages)
         )
 
-        return response["choices"][0]["text"].strip()
+        return response.choices[0].text.strip()
 
     except Exception as e:
         print(e)
