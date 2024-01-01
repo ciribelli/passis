@@ -76,7 +76,7 @@ def update_embeddings_db(df):
     load_dotenv()
     # openai.api_key = os.getenv('OPENAI_API_KEY')
     client.api_key = os.getenv('OPENAI_API_KEY')
-    df['embeddings'] = df.texto.apply(lambda x: client.embeddings.create(input=x, model='text-embedding-ada-002')).data[0].embedding
+    df['embeddings'] = df.texto.apply(lambda x: client.embeddings.create(input=x, model='text-embedding-ada-002').data[0].embedding)
     df.to_csv('embeddings.csv', index=False)
     print("embeddings atualizados")
     return df
