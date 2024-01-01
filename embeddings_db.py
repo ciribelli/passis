@@ -68,13 +68,15 @@ def update_embeddings_db(df):
     df2['n_tokens'] = df.texto.apply(lambda x: len(tokenizer.encode(x)))
     # ATENCAO --> aqui calculo o df2 mas ainda nao estou utilizando por instabilidades nos chunks
 
-    import openai
+    # import openai
+    from openai import OpenAI
     import os
     from dotenv import load_dotenv
-
+    client = OpenAI()
     load_dotenv()
-    openai.api_key = os.getenv('OPENAI_API_KEY')
-    df['embeddings'] = df.texto.apply(lambda x: openai.Embedding.create(input=x, engine='text-embedding-ada-002')['data'][0]['embedding'])
+    # openai.api_key = os.getenv('OPENAI_API_KEY')
+    client.api_key = os.getenv('OPENAI_API_KEY')
+    df['embeddings'] = df.texto.apply(lambda x: client.embeddings.create(input=x, engine='text-embedding-ada-002')['data'][0]['embedding'])
     df.to_csv('embeddings.csv', index=False)
     print("embeddings atualizados")
     return df
