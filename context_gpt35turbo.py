@@ -60,7 +60,7 @@ def answer_question(
     ]
 
     try:
-        for thread in lista_threads:
+        for thread in reversed(lista_threads):
             messages.append(json.loads(thread[0], strict=False))
 
         messages.append({"role": "user", "content": question})
