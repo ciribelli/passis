@@ -61,9 +61,11 @@ def answer_question(
 
     try:
         for thread in lista_threads:
-            messages.append(json.loads(thread[0]))
+            messages.append(json.loads(thread[0], strict=False))
 
         messages.append({"role": "user", "content": question})
+
+        print("mensagens: \n", messages)
 
         completion = client.chat.completions.create(
             model="gpt-3.5-turbo-1106",
