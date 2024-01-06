@@ -501,6 +501,7 @@ def fazer_perguntas(pergunta):
             for registro in registros
         ]
         threads = Thread.query.with_entities(Thread.content).order_by(Thread.date_created.desc()).limit(4).all()
+        print('estou em threads no arquivo app.py: \n', threads)
         saida, first_item = context_gpt35turbo.responde_emb(pergunta, dados, threads)
         print (first_item, '<------------------')
         return saida, first_item
