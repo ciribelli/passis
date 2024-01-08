@@ -379,7 +379,7 @@ def get_memorias():
 # Rota para registrar Threads com o Assistente
 class Thread(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.String(2000), nullable=False)
+    content = db.Column(db.String(5000), nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __init__(self, content):
@@ -501,7 +501,6 @@ def fazer_perguntas(pergunta):
             for registro in registros
         ]
         threads = Thread.query.with_entities(Thread.content).order_by(Thread.date_created.desc()).limit(4).all()
-        print('estou em threads no arquivo app.py: \n', threads)
         saida, first_item = context_gpt35turbo.responde_emb(pergunta, dados, threads)
         print (first_item, '<------------------')
         return saida, first_item

@@ -36,6 +36,16 @@ def create_context(question, df, max_len=1200, size="ada"):
     # Return the context
     return "\n🤖\n".join(returns)
 
+def get_current_weather(location, unit="fahrenheit"):
+    """Get the current weather in a given location"""
+    if "tokyo" in location.lower():
+        return json.dumps({"location": "Tokyo", "temperature": "10", "unit": unit})
+    elif "san francisco" in location.lower():
+        return json.dumps({"location": "San Francisco", "temperature": "72", "unit": unit})
+    elif "paris" in location.lower():
+        return json.dumps({"location": "Paris", "temperature": "22", "unit": unit})
+    else:
+        return json.dumps({"location": location, "temperature": "unknown"})
 
 def answer_question(
     df,
@@ -51,6 +61,29 @@ def answer_question(
     if debug:
         print("Context:\n" + context)
         print("\n\n")
+
+
+
+    tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "get_current_weather",
+                "description": "Get the current weather in a given location",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "location": {
+                            "type": "string",
+                            "description": "The city and state, e.g. San Francisco, CA",
+                        },
+                        "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
+                    },
+                    "required": ["location"],
+                },
+            },
+        }
+    ]
 
     messages = [
         {
@@ -69,9 +102,12 @@ def answer_question(
 
         completion = client.chat.completions.create(
             model="gpt-3.5-turbo-1106",
-            messages=messages
+            messages=messages,
+            tools=tools,
+            tool_choice="auto",  # auto is default, but we'll be explicit
         )
-
+        tool_calls = completion.choices[0].message.tool_calls
+        print('------------ **** --------------\n', tool_calls)
         return completion.choices[0].message.content.strip()
 
     except Exception as e:
