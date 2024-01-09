@@ -100,7 +100,7 @@ def answer_question(
                 # get_clima(**arguments) - Se os argumentos forem um dicionário
                 # get_clima(arguments) - Se os argumentos forem uma lista ou string, por exemplo
 
-                saida = app.get_clima
+                saida = app.get_clima()
                 # Para fins de exemplo, vamos imprimir os argumentos
                 print("Saida para get_clima:", saida)
 
