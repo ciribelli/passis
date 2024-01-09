@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import os
 import json
 import app
+import main
 
 client = OpenAI()
 
@@ -82,35 +83,23 @@ def answer_question(
 
         completion = client.chat.completions.create(
             model="gpt-3.5-turbo-1106",
-            messages=messages,
-            tools=tools,
-            tool_choice="auto",  # auto is default, but we'll be explicit
+            messages=messages
+            # tools=tools,
+            # tool_choice="auto",  # auto is default, but we'll be explicit
         )
-        respostas = completion.choices[0].message.tool_calls
-        print('------------ **** --------------\n', respostas)
-
-        # Para cada objeto na lista, extrair as informações relevantes e chamar a função
-        for resposta in respostas:
-            function_name = resposta.function.name
-            arguments = resposta.function.arguments
-
-            # Chamar a função com base nas informações extraídas
-            if function_name == 'get_clima':
-                # Chame a função get_clima com os argumentos adequados (se houver)
-                # get_clima(**arguments) - Se os argumentos forem um dicionário
-                # get_clima(arguments) - Se os argumentos forem uma lista ou string, por exemplo
-
-                saida = app.get_clima()
-                # Para fins de exemplo, vamos imprimir os argumentos
-                print("Saida para get_clima:", saida)
-
-
-
-
-
-
-
-
+        # respostas = completion.choices[0].message.tool_calls
+        # print('------------ **** --------------\n', respostas)
+        #
+        # # Para cada objeto na lista, extrair as informações relevantes e chamar a função
+        # for resposta in respostas:
+        #     function_name = resposta.function.name
+        #     function_args = json.loads(resposta.function.arguments)
+        #
+        #     # Chamar a função com base nas informações extraídas
+        #     if function_name == 'get_clima':
+        #         token = os.getenv('token_clima')
+        #         coletor, datajson = main.busca_Clima(token)
+        #         print("Saida para get_clima:", coletor)
 
         return completion.choices[0].message.content.strip()
 
