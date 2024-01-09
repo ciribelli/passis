@@ -5,6 +5,7 @@ from scipy.spatial.distance import cosine
 from dotenv import load_dotenv
 import os
 import json
+import app
 
 client = OpenAI()
 
@@ -36,17 +37,6 @@ def create_context(question, df, max_len=1200, size="ada"):
     # Return the context
     return "\n🤖\n".join(returns)
 
-def get_current_weather(location, unit="fahrenheit"):
-    """Get the current weather in a given location"""
-    if "tokyo" in location.lower():
-        return json.dumps({"location": "Tokyo", "temperature": "10", "unit": unit})
-    elif "san francisco" in location.lower():
-        return json.dumps({"location": "San Francisco", "temperature": "72", "unit": unit})
-    elif "paris" in location.lower():
-        return json.dumps({"location": "Paris", "temperature": "22", "unit": unit})
-    else:
-        return json.dumps({"location": location, "temperature": "unknown"})
-
 def answer_question(
     df,
     question="aqui vem a pergunta",
@@ -69,7 +59,7 @@ def answer_question(
             "type": "function",
             "function": {
                 "name": "get_clima",
-                "description": "Get the current weather without specifying a location",
+                "description": "Get the current weather without specifying a location. It also can provide information about current date and time.",
                 "parameters": {},
             },
         }
@@ -96,8 +86,32 @@ def answer_question(
             tools=tools,
             tool_choice="auto",  # auto is default, but we'll be explicit
         )
-        tool_calls = completion.choices[0].message.tool_calls
-        print('------------ **** --------------\n', tool_calls)
+        respostas = completion.choices[0].message.tool_calls
+        print('------------ **** --------------\n', respostas)
+
+        # Para cada objeto na lista, extrair as informações relevantes e chamar a função
+        for resposta in respostas:
+            function_name = resposta.function.name
+            arguments = resposta.function.arguments
+
+            # Chamar a função com base nas informações extraídas
+            if function_name == 'get_clima':
+                # Chame a função get_clima com os argumentos adequados (se houver)
+                # get_clima(**arguments) - Se os argumentos forem um dicionário
+                # get_clima(arguments) - Se os argumentos forem uma lista ou string, por exemplo
+
+                saida = app.get_clima
+                # Para fins de exemplo, vamos imprimir os argumentos
+                print("Saida para get_clima:", saida)
+
+
+
+
+
+
+
+
+
         return completion.choices[0].message.content.strip()
 
     except Exception as e:
