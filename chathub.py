@@ -4,15 +4,19 @@ import requests
 import os
 import app
 import datetime
+import pytz
 
 
-def hora_e_data(timestamp):
-    # aqui, pode-se buscar contextualizar para o GMT de cada usuario
-    # mas seria necessario acrescentar um arquivo de configuracao pessoal
-    data_hora = datetime.datetime.fromtimestamp(int(timestamp))
-    data_formatada = data_hora.strftime('%d-%m-%Y')
-    hora_formatada = data_hora.strftime('%H:%M')
-    return data_formatada, hora_formatada
+def hora_e_data(timestamp, user_timezone='America/Sao_Paulo'):
+    try:
+        data_hora = datetime.datetime.fromtimestamp(int(timestamp))
+        user_tz = pytz.timezone(user_timezone)
+        data_hora = pytz.utc.localize(data_hora).astimezone(user_tz)
+        data_formatada = data_hora.strftime('%d-%m-%Y')
+        hora_formatada = data_hora.strftime('%H:%M')
+        return data_formatada, hora_formatada
+    except Exception as e:
+        return None, f"Error: {e}"
 
 def chatflow(entry):
     # Verifica se há mensagens na solicitação
