@@ -5,8 +5,6 @@ from scipy.spatial.distance import cosine
 from dotenv import load_dotenv
 import os
 import json
-import app
-import main
 
 client = OpenAI()
 
@@ -40,6 +38,8 @@ def create_context(question, df, max_len=1200, size="ada"):
 
 def answer_question(
     df,
+    data_atual="alguma data",
+    hora_atual="alguma hora",
     question="aqui vem a pergunta",
     lista_threads="aqui estarao as threads",
     max_len=1200,
@@ -53,23 +53,10 @@ def answer_question(
         print("Context:\n" + context)
         print("\n\n")
 
-
-
-    tools = [
-        {
-            "type": "function",
-            "function": {
-                "name": "get_clima",
-                "description": "Get the current weather without specifying a location. It also can provide information about current date and time.",
-                "parameters": {},
-            },
-        }
-    ]
-
     messages = [
         {
             "role": "system",
-            "content": "Você é meu assistente pessoal para ideias e lembretes sobre minha rotina. Receba abaixo minhas informações pessoais:" + "\n" + context
+            "content": "Você é meu assistente pessoal. Receba abaixo minhas informações pessoais:" + "\n" + context + "Saiba que hoje é " + data_atual + "e agora são " + hora_atual
         }
     ]
 
@@ -84,33 +71,17 @@ def answer_question(
         completion = client.chat.completions.create(
             model="gpt-3.5-turbo-1106",
             messages=messages
-            # tools=tools,
-            # tool_choice="auto",  # auto is default, but we'll be explicit
         )
-        # respostas = completion.choices[0].message.tool_calls
-        # print('------------ **** --------------\n', respostas)
-        #
-        # # Para cada objeto na lista, extrair as informações relevantes e chamar a função
-        # for resposta in respostas:
-        #     function_name = resposta.function.name
-        #     function_args = json.loads(resposta.function.arguments)
-        #
-        #     # Chamar a função com base nas informações extraídas
-        #     if function_name == 'get_clima':
-        #         token = os.getenv('token_clima')
-        #         coletor, datajson = main.busca_Clima(token)
-        #         print("Saida para get_clima:", coletor)
-
         return completion.choices[0].message.content.strip()
 
     except Exception as e:
         print(e)
         return ""
 
-def responde_emb(pergunta, dados, threads):
+def responde_emb(pergunta, dados, threads, data_atual, hora_atual):
     df = pd.DataFrame(dados)
     df['embeddings'] = df['embeddings'].apply(np.array)
-    resposta = answer_question(df, question=pergunta, lista_threads=threads).replace("\n", '<br>')
+    resposta = answer_question(df, data_atual, hora_atual, question=pergunta, lista_threads=threads).replace("\n", '<br>')
     saida = resposta.replace("<br>", "\n")
     global first_item
     return saida, first_item

@@ -11,7 +11,8 @@ def hora_e_data(timestamp):
     # mas seria necessario acrescentar um arquivo de configuracao pessoal
     data_hora = datetime.datetime.fromtimestamp(int(timestamp))
     data_formatada = data_hora.strftime('%d-%m-%Y')
-    return data_formatada
+    hora_formatada = data_hora.strftime('%H:%M')
+    return data_formatada, hora_formatada
 
 def chatflow(entry):
     # Verifica se há mensagens na solicitação
@@ -24,7 +25,7 @@ def chatflow(entry):
 
         # captura o timestamp das mensagem para contextos de data
         timestamp = entry['changes'][0]['value']['messages'][0]['timestamp']
-        data_hora = hora_e_data(timestamp)
+        data_atual, hora_atual = hora_e_data(timestamp)
 
         # Verifica se há um ID de botão de resposta
         button_reply_id = message['interactive']['button_reply']['id'] if 'interactive' in message and 'button_reply' in message['interactive'] else None
@@ -47,7 +48,7 @@ def chatflow(entry):
             link = ""
             # para JOGOS
             if content.lower() == "jogos" or content.lower() == "jogo":
-                coletor, datajson = main.get_jogos_df(data_hora)
+                coletor, datajson = main.get_jogos_df(data_atual)
             # para CIDADE e TRANSITO
             elif content.lower() == "cidade" or content.lower() == "cidades" or content.lower() == "transito":
                 token = os.getenv('token_X')
@@ -71,7 +72,7 @@ def chatflow(entry):
                 ##### avalia se a mensagem nao eh feedback dos recursos de automacao #####
                 if not "✅" in content.lower():
                     # envia mensagem para API openAI
-                    coletor, link = app.fazer_perguntas(content)
+                    coletor, link = app.fazer_perguntas(content, data_atual, hora_atual)
                     # registra mensagem de usuario na memoria
                     input_data = '{"role": "user", "content":"' + content + '"}'
                     app.salvar_thread(input_data)
