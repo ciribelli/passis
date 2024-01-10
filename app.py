@@ -29,9 +29,9 @@ verify_token = os.environ.get('VERIFY_TOKEN')
 def index():
     return "Servidor ativo"
 
-@app.route('/v1/jogos', methods=['GET'])
-def get_jogos():
-    jogos = main.get_jogos()
+@app.route('/v1/jogos/<data_hora>', methods=['GET'])
+def get_jogos(data_hora):
+    jogos = main.get_jogos(data_hora)
     return Response(response=jogos, status=200, mimetype='application/json')
 
 @app.route('/v1/time/<nome_time>', methods=['GET'])

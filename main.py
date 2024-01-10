@@ -85,8 +85,8 @@ def nucleo_jogos(data_hora):
 
 # valer da extração de colunas mais importantes com a função 'loc'
 
-def get_jogos():
-    df_f = nucleo_jogos()
+def get_jogos(data_hora):
+    df_f = nucleo_jogos(data_hora)
     df_resultante = df_f.loc[:,['time1', 'time2', 'hora', 'competicao', 'transmissao']].sort_values(by=['hora'])
     print(df_resultante)
     return df_resultante.to_json()
