@@ -80,6 +80,14 @@ def answer_question(
                 "parameters": {},
             },
         },
+        {
+            "type": "function",
+            "function": {
+                "name": "busca_Cidade",
+                "description": "Busca informações em tempo real sobre o trânsito e eventos na cidade do Rio de Janeiro. Fonte das informações é Centro de Operações Rio.",
+                "parameters": {},
+            },
+        },
     ]
 
     messages = [
@@ -120,6 +128,10 @@ def answer_question(
                 if function_name == 'busca_Jogos':
                     function_output = main.get_jogos(function_args.get("date"))
                     print("\nSaida para busca_Jogos:\n", function_output, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
+                if function_name == 'busca_Cidade':
+                    token = os.getenv('token_X')
+                    function_output, datajson = main.busca_X("operacoesrio", token)
+                    print("\nSaida para busca_Cidade:\n", function_output)
 
                 messages.append(
                     {

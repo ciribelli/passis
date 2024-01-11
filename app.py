@@ -504,7 +504,6 @@ def fazer_perguntas(pergunta, data_atual, hora_atual):
         threads = Thread.query.with_entities(Thread.content).order_by(Thread.date_created.desc()).limit(4).all()
         #saida, first_item = context_gpt35turbo.responde_emb(pergunta, dados, threads, data_atual, hora_atual)
         saida, first_item = context_gpt35turboFuncCalling.responde_emb(pergunta, dados, threads, data_atual, hora_atual)
-        print (first_item, '<------------------')
         return saida, first_item
     except Exception as e:
         return str(e), 400
