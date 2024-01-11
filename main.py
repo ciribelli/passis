@@ -11,7 +11,7 @@ def nucleo_jogos(data_hora):
     url = 'http://www.uol.com.br/esporte/futebol/central-de-jogos/'
     resposta = requests.get(url)
     text = BeautifulSoup(resposta.text, 'html.parser')
-    print ("Estou vivo")
+    print ("Buscando jogos em: ", hoje)
     # FILTRAGEM DE DATA
     i_dia = text.find('li', {'data-ts': hoje})
 

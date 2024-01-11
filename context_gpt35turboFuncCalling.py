@@ -118,7 +118,7 @@ def answer_question(
                     function_output, datajson = main.busca_Clima(token)
                     print("\nSaida para busca_Clima:\n", function_output)
                 if function_name == 'busca_Jogos':
-                    function_output, datajson = main.get_jogos_df(function_args.get("date"))
+                    function_output, datajson = main.get_jogos(function_args.get("date"))
                     print("\nSaida para busca_Jogos:\n", function_output, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
 
                 messages.append(
