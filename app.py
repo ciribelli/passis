@@ -166,7 +166,7 @@ def get_checkins_by_date(start_date=None, end_date=None):
     else:
         # Se nenhum parâmetro de data for fornecido, recuperar todos os checkins
         checkins = Checkin.query.all()
-        print(checkins)
+    print(checkins)
     return ("olá, busquei seus checkins")
 # ______________________
 
