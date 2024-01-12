@@ -3,7 +3,7 @@ import send_msg
 import requests
 import os
 import app
-import datetime
+from datetime import datetime, timedelta
 import pytz
 
 
@@ -61,6 +61,11 @@ def chatflow(entry):
             elif content.lower() == "Clima" or content.lower() == "Climas" or content.lower() == "clima" or content.lower() == "climas":
                 token = os.getenv('token_clima')
                 coletor, datajson = main.busca_Clima(token)
+            # para CHECKIN
+            elif content.lower() == "checkin":
+                data_inicio = datetime.strptime(data_atual, '%d-%m-%Y') - timedelta(days=2)
+                data_inicio_formatada = data_inicio.strftime('%d-%m-%Y')
+                coletor = app.get_checkins_by_date(data_inicio_formatada, data_atual)
             elif "📝" in content.lower():
                 coletor = app.salvar_memoria_recebida(content.lower())
             elif "🔄" in content.lower():
