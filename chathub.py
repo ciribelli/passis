@@ -4,13 +4,11 @@ import requests
 import os
 import app
 from datetime import datetime, timedelta
-import datetime
 import pytz
-
 
 def hora_e_data(timestamp, user_timezone='America/Sao_Paulo'):
     try:
-        data_hora = datetime.datetime.fromtimestamp(int(timestamp))
+        data_hora = datetime.fromtimestamp(int(timestamp))
         user_tz = pytz.timezone(user_timezone)
         data_hora = pytz.utc.localize(data_hora).astimezone(user_tz)
         data_formatada = data_hora.strftime('%d-%m-%Y')
