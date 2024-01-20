@@ -162,13 +162,11 @@ def get_checkins_by_date(start_date=None, end_date=None):
         checkins = Checkin.query.filter(Checkin.data.between(start_date, end_date)).all()
 
     # Função para extrair o horário da data
-    def extract_time(date_str):
-        date_obj = datetime.strptime(date_str, '%d-%m-%Y %H:%M:%S')
+    def extract_time(date_obj):
         return date_obj.strftime('%H:%M')
 
     # Função para formatar a data
-    def format_date(date_str):
-        date_obj = datetime.strptime(date_str, '%d-%m-%Y %H:%M:%S')
+    def format_date(date_obj):
         return date_obj.strftime('%d/%m/%Y')
 
     # Dicionário para armazenar os dados agrupados por dia
@@ -176,9 +174,9 @@ def get_checkins_by_date(start_date=None, end_date=None):
 
     # Organizar os dados por dia
     for entry in checkins:
-        formatted_date = format_date(entry['data'])
+        formatted_date = format_date(entry.data)
         day_entries = daily_entries.get(formatted_date, [])
-        day_entries.append({'hour': extract_time(entry['data']), 'checkin': entry['checkin']})
+        day_entries.append({'hour': extract_time(entry.data), 'checkin': entry.checkin})
         daily_entries[formatted_date] = day_entries
 
     result_string = ""
@@ -187,7 +185,7 @@ def get_checkins_by_date(start_date=None, end_date=None):
         for entry in entries:
             result_string += f'✅ {entry["hour"]}  {entry["checkin"]}\n'
 
-    return (result_string)
+    return result_string
 # ______________________
 
 
