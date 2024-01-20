@@ -160,14 +160,10 @@ def get_checkins_by_date(start_date=None, end_date=None):
         start_date = datetime.strptime(start_date, '%d-%m-%Y')
         end_date = datetime.strptime(end_date, '%d-%m-%Y') + timedelta(days=1)
         checkins = Checkin.query.filter(Checkin.data.between(start_date, end_date)).all()
-    elif start_date:
-        start_date = datetime.strptime(start_date, '%d-%m-%Y')
-        checkins = Checkin.query.filter(Checkin.data >= start_date).all()
-    else:
-        # Se nenhum parâmetro de data for fornecido, recuperar todos os checkins
-        checkins = Checkin.query.all()
-    print(checkins)
-    return ("olá, busquei seus checkins")
+    if checkins:
+        serialized_checkin = [{'data': checkin.data.strftime('%d-%m-%Y %H:%M:%S'), 'checkin': checkin.checkin} for checkin in checkins]
+    print(serialized_checkin)
+    return (Response(json.dumps(serialized_checkin), status=200, content_type='application/json'))
 # ______________________
 
 
