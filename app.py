@@ -160,10 +160,34 @@ def get_checkins_by_date(start_date=None, end_date=None):
         start_date = datetime.strptime(start_date, '%d-%m-%Y')
         end_date = datetime.strptime(end_date, '%d-%m-%Y') + timedelta(days=1)
         checkins = Checkin.query.filter(Checkin.data.between(start_date, end_date)).all()
-    if checkins:
-        serialized_checkin = [{'data': checkin.data.strftime('%d-%m-%Y %H:%M:%S'), 'checkin': checkin.checkin} for checkin in checkins]
-    print(serialized_checkin)
-    return (Response(json.dumps(serialized_checkin), status=200, content_type='application/json'))
+
+    # Função para extrair o horário da data
+    def extract_time(date_str):
+        date_obj = datetime.strptime(date_str, '%d-%m-%Y %H:%M:%S')
+        return date_obj.strftime('%H:%M')
+
+    # Função para formatar a data
+    def format_date(date_str):
+        date_obj = datetime.strptime(date_str, '%d-%m-%Y %H:%M:%S')
+        return date_obj.strftime('%d/%m/%Y')
+
+    # Dicionário para armazenar os dados agrupados por dia
+    daily_entries = {}
+
+    # Organizar os dados por dia
+    for entry in checkins:
+        formatted_date = format_date(entry['data'])
+        day_entries = daily_entries.get(formatted_date, [])
+        day_entries.append({'hour': extract_time(entry['data']), 'checkin': entry['checkin']})
+        daily_entries[formatted_date] = day_entries
+
+    result_string = ""
+    for date, entries in daily_entries.items():
+        result_string += f'📅 {date} ------\n'
+        for entry in entries:
+            result_string += f'✅ {entry["hour"]}  {entry["checkin"]}\n'
+
+    return (result_string)
 # ______________________
 
 
