@@ -266,15 +266,34 @@ def get_cidade(date=None):
         try:
             # Convertendo a data para o formato desejado 'dd/mm/yyyy' para 'YYYY-mm-dd'
             date = datetime.strptime(date, '%d/%m/%Y').strftime('%Y-%m-%d')
+
+            # Consulta usando a faixa de datas
             clima = Clima.query.filter(Clima.data == date).first()
+
             if clima:
                 return clima.cidade
             else:
-                return "Dados não encontrados para a data fornecida"
+                return None
         except ValueError:
-            return "Formato de data inválido. Use o formato 'dd/mm/yyyy'."
+            return None
     else:
-        return "Por favor, forneça uma data válida"
+        return None
+
+@app.route('/obter_cidade', methods=['GET'])
+def obter_cidade():
+    date = request.args.get('date')
+
+    if date:
+        cidade = get_cidade(date)
+        if cidade:
+            return json.dumps({'cidade': cidade})
+        else:
+            return json.dumps({'mensagem': 'Dados não encontrados para a data fornecida'}), 404
+    else:
+        return json.dumps({'mensagem': 'Por favor, forneça uma data válida'}), 400
+
+if __name__ == '__main__':
+    app.run(debug=True)
 
 # Classe documentos
 class DocumentoBinario(db.Model):
