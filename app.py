@@ -262,11 +262,15 @@ def deletar_clima(clima_id):
 
 def get_cidade(date=None):
     if date:
-        clima = Clima.query.filter_by(data=date).first()
-        if clima:
-            return clima.cidade
-        else:
-            return "Dados não encontrados para a data fornecida"
+        try:
+            date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z')
+            clima = Clima.query.filter_by(data=date).first()
+            if clima:
+                return clima.cidade
+            else:
+                return "Dados não encontrados para a data fornecida"
+        except ValueError:
+            return "Formato de data inválido. Use o formato '%Y-%m-%dT%H:%M:%S%z'."
     else:
         return "Por favor, forneça uma data válida"
 
