@@ -260,8 +260,8 @@ def deletar_clima(clima_id):
         return {"message": f"Registro de clima {clima_id} não encontrado."}, 404
 
 def get_cidade(date=None):
+    print(date, '--------------------------------')
     if date:
-        date = datetime.strptime(date, '%d-%m-%Y')
         clima = Clima.query.filter_by(data=date).first()
         if clima:
             return clima.cidade
