@@ -263,11 +263,13 @@ def get_cidade(date=None):
     if date:
         try:
             # Tentando converter a data no formato 'YYYY-MM-DD' (formato do banco de dados)
-            formatted_date = datetime.strptime(date, '%Y-%m-%d').strftime('%Y-%m-%d')
+            formatted_date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z').strftime('%Y-%m-%d')
+            print(formatted_date, '-----------')
         except ValueError:
             try:
                 # Tentando converter a data no formato 'YYYY/MM/DD'
                 formatted_date = datetime.strptime(date, '%Y/%m/%d').strftime('%Y-%m-%d')
+                print(formatted_date, '-------bbb----')
             except ValueError:
                 return None
 
