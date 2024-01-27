@@ -175,13 +175,14 @@ def get_checkins_by_date(start_date=None, end_date=None):
     # Organizar os dados por dia
     for entry in checkins:
         formatted_date = format_date(entry.data)
+        cidade = get_cidade(formatted_date)
         day_entries = daily_entries.get(formatted_date, [])
-        day_entries.append({'hour': extract_time(entry.data), 'checkin': entry.checkin})
+        day_entries.append({'hour': extract_time(entry.data), 'checkin': entry.checkin, 'cidade': cidade})
         daily_entries[formatted_date] = day_entries
 
     result_string = ""
-    for date, entries in daily_entries.items():
-        result_string += f'📅 {date} ------\n'
+    for date, cidade, entries in daily_entries.items():
+        result_string += f'📅 {date} - {cidade}\n'
         for entry in entries:
             result_string += f'✅ {entry["hour"]}  {entry["checkin"]}\n'
 
@@ -257,6 +258,17 @@ def deletar_clima(clima_id):
         return {"message": f"Registro de clima {clima_id} deletado com sucesso."}
     else:
         return {"message": f"Registro de clima {clima_id} não encontrado."}, 404
+
+def get_cidade(date=None):
+    if date:
+        date = datetime.strptime(date, '%d-%m-%Y')
+        clima = Clima.query.filter_by(data=date).first()
+        if clima:
+            return clima.cidade
+        else:
+            return "Dados não encontrados para a data fornecida"
+    else:
+        return "Por favor, forneça uma data válida"
 
 # Classe documentos
 class DocumentoBinario(db.Model):
