@@ -259,37 +259,6 @@ def deletar_clima(clima_id):
         return {"message": f"Registro de clima {clima_id} não encontrado."}, 404
 
 
-def get_cidade(date=None):
-    if date:
-        try:
-
-            formatted_datetime = datetime.strptime(date, '%Y-%m-%d')
-            print(formatted_datetime,'00000000000000000000')
-            #clima = Clima.query.filter_by(data=formatted_datetime).first()
-            clima = Clima.query.order_by(Clima.id.desc()).limit(10).all()
-            if clima:
-                saida = []
-                for c in clima:
-                    saida.append(c)
-                return saida
-            else:
-                return None
-        except ValueError:
-            return None
-    else:
-        return None
-
-@app.route('/obter_cidade', methods=['GET'])
-def obter_cidade():
-    date = request.args.get('date')
-
-    if date:
-        cidade = get_cidade(date)
-        if cidade:
-            return cidade
-        else:
-            return json.dumps({'mensagem': 'Dados não encontrados para a data fornecida'}), 404
-
 if __name__ == '__main__':
     app.run(debug=True)
 
