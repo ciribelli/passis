@@ -268,7 +268,7 @@ def get_cidade(date=None):
             #clima = Clima.query.filter_by(data=formatted_datetime).first()
             clima = Clima.query.order_by(Clima.id.desc()).limit(10).all()
             if clima:
-                saida = ""
+                saida = []
                 for c in clima:
                     saida.append(c)
                 return saida
