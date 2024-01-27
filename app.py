@@ -264,6 +264,7 @@ def get_cidade(date=None):
     if date:
         try:
             date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z')
+            print(date, 'ssssssssssssssssss')
             clima = Clima.query.filter_by(data=date).first()
             if clima:
                 return clima.cidade
