@@ -176,13 +176,14 @@ def get_checkins_by_date(start_date=None, end_date=None):
     for entry in checkins:
         formatted_date = format_date(entry.data)
         cidade = get_cidade(formatted_date)
+        print(cidade, '-------------')
         day_entries = daily_entries.get(formatted_date, [])
-        day_entries.append({'hour': extract_time(entry.data), 'checkin': entry.checkin, 'cidade': cidade})
+        day_entries.append({'hour': extract_time(entry.data), 'checkin': entry.checkin})
         daily_entries[formatted_date] = day_entries
 
     result_string = ""
-    for date, cidade, entries in daily_entries.items():
-        result_string += f'📅 {date} - {cidade}\n'
+    for date, entries in daily_entries.items():
+        result_string += f'📅 {date} \n'
         for entry in entries:
             result_string += f'✅ {entry["hour"]}  {entry["checkin"]}\n'
 
@@ -260,7 +261,6 @@ def deletar_clima(clima_id):
         return {"message": f"Registro de clima {clima_id} não encontrado."}, 404
 
 def get_cidade(date=None):
-    print(date, '--------------------------------')
     if date:
         clima = Clima.query.filter_by(data=date).first()
         if clima:
