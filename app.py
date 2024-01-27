@@ -264,11 +264,14 @@ def get_cidade(date=None):
         try:
 
             formatted_datetime = datetime.strptime(date, '%Y-%m-%d')
-
-            clima = Clima.query.filter_by(data=formatted_datetime).first()
-
+            print(formatted_datetime,'00000000000000000000')
+            #clima = Clima.query.filter_by(data=formatted_datetime).first()
+            clima = Clima.query.order_by(Clima.id.desc()).limit(10).all()
             if clima:
-                return clima.cidade
+                saida = ""
+                for c in clima:
+                    saida.append(c)
+                return saida
             else:
                 return None
         except ValueError:
