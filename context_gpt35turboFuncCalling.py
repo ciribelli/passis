@@ -43,7 +43,7 @@ def answer_question(
     hora_atual="alguma hora",
     question="aqui vem a pergunta",
     lista_threads="aqui estarao as threads",
-    max_len=1200,
+    max_len=100,
     size="ada",
     debug=True,
 ):

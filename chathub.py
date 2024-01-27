@@ -62,8 +62,6 @@ def chatflow(entry):
                 coletor, datajson = main.busca_Clima(token)
             # para CHECKIN
             elif content.lower() == "checkin":
-                print('--------------------------------¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨', data_atual)
-                print(type(data_atual))
                 data_inicio = datetime.strptime(str(data_atual), '%d-%m-%Y') - timedelta(days=2)
                 data_inicio_formatada = data_inicio.strftime('%d-%m-%Y')
                 coletor = app.get_checkins_by_date(data_inicio_formatada, data_atual)
