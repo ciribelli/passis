@@ -191,8 +191,8 @@ def get_checkins_by_date(start_date=None, end_date=None):
 class Clima(db.Model):
     __tablename__ = 'climas'
     id = db.Column(db.Integer, primary_key=True)
-    # data = db.Column(db.String)  # Manter o formato ISO 8601
-    data = db.Column(db.DateTime, default=datetime.utcnow)
+    #data = db.Column(db.String)
+    data = db.Column(db.DateTime)  # Alteração para o tipo DateTime
     umidade = db.Column(db.Float)
     temperatura = db.Column(db.String)
     probabilidade = db.Column(db.Float)
@@ -261,14 +261,18 @@ def deletar_clima(clima_id):
 
 def get_cidade(date=None):
     if date:
-        formatted_date = datetime.strptime(str(date), '%Y-%m-%d')
-        print(formatted_date)
-        # Consultando o banco de dados usando a data formatada
-        clima = Clima.query.filter_by(data=formatted_date).first()
-        print(clima)
-        if clima:
-            return clima.cidade
-        else:
+        try:
+            # Convertendo a data para o formato desejado 'dd/mm/yyyy' para 'YYYY-mm-dd'
+            formatted_date = datetime.strptime(date, '%d/%m/%Y').strftime('%Y-%m-%d')
+            formatted_datetime = datetime.strptime(formatted_date, '%Y-%m-%d')
+
+            clima = Clima.query.filter_by(data=formatted_datetime).first()
+
+            if clima:
+                return clima.cidade
+            else:
+                return None
+        except ValueError:
             return None
     else:
         return None
