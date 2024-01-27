@@ -261,21 +261,12 @@ def deletar_clima(clima_id):
 
 def get_cidade(date=None):
     if date:
-        try:
-            # Tentando converter a data no formato 'YYYY-MM-DD' (formato do banco de dados)
-            formatted_date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z').strftime('%Y-%m-%d')
-            print(formatted_date, '-----------')
-        except ValueError:
-            try:
-                # Tentando converter a data no formato 'YYYY/MM/DD'
-                formatted_date = datetime.strptime(date, '%Y/%m/%d').strftime('%Y-%m-%d')
-                print(formatted_date, '-------bbb----')
-            except ValueError:
-                return None
 
+        formatted_date = datetime.strptime(date, '%d-%m-%Y').strftime('%Y-%m-%dT%H:%M:%S%z')
+        print(formatted_date)
         # Consultando o banco de dados usando a data formatada
         clima = Clima.query.filter_by(data=formatted_date).first()
-
+        print(clima)
         if clima:
             return clima.cidade
         else:
