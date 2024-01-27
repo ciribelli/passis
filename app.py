@@ -289,8 +289,6 @@ def obter_cidade():
             return cidade
         else:
             return json.dumps({'mensagem': 'Dados não encontrados para a data fornecida'}), 404
-    else:
-        return json.dumps({'mensagem': 'Por favor, forneça uma data válida'}), 400
 
 if __name__ == '__main__':
     app.run(debug=True)
