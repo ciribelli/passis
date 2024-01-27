@@ -262,8 +262,11 @@ def deletar_clima(clima_id):
 
 def get_cidade(date=None):
     if date:
+        print (date, '0000000')
+        date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%f%z')
+        print(date, '1111111111')
         try:
-            date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%f%z')
+            print(date, '2222222')
             clima = Clima.query.filter_by(data=date).first()
             if clima:
                 return clima.cidade
