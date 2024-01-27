@@ -261,8 +261,7 @@ def deletar_clima(clima_id):
 
 def get_cidade(date=None):
     if date:
-
-        formatted_date = datetime.strptime(date, '%d-%m-%Y').strftime('%Y-%m-%dT%H:%M:%S%z')
+        formatted_date = datetime.strptime(str(date), '%d-%m-%Y')
         print(formatted_date)
         # Consultando o banco de dados usando a data formatada
         clima = Clima.query.filter_by(data=formatted_date).first()
