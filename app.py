@@ -286,7 +286,7 @@ def obter_cidade():
     if date:
         cidade = get_cidade(date)
         if cidade:
-            return json.dumps({'cidade': cidade})
+            return cidade
         else:
             return json.dumps({'mensagem': 'Dados não encontrados para a data fornecida'}), 404
     else:
