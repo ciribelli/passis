@@ -159,7 +159,7 @@ def get_checkins_by_date(start_date=None, end_date=None):
     if start_date and end_date:
         start_date = datetime.strptime(start_date, '%d-%m-%Y')
         end_date = datetime.strptime(end_date, '%d-%m-%Y') + timedelta(days=1)
-        checkins = Checkin.query.filter(Checkin.data.between(start_date, end_date)).all()
+        checkins = Checkin.query.filter(Checkin.data.between(start_date, end_date)).order_by(Checkin.data).all()
 
     # Função para extrair o horário da data
     def extract_time(date_obj):

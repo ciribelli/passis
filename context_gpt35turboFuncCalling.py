@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import os
 import json
 import main
+import app
 
 client = OpenAI()
 
@@ -43,7 +44,7 @@ def answer_question(
     hora_atual="alguma hora",
     question="aqui vem a pergunta",
     lista_threads="aqui estarao as threads",
-    max_len=100,
+    max_len=800,
     size="ada",
     debug=True,
 ):
@@ -132,6 +133,8 @@ def answer_question(
                     token = os.getenv('token_X')
                     function_output, datajson = main.busca_X("operacoesrio", token)
                     print("\nSaida para busca_Cidade:\n", function_output)
+                #if function_name == 'busca_Checkin':
+                    #coletor = app.get_checkins_by_date(data_inicio_formatada, data_atual)
 
                 messages.append(
                     {
