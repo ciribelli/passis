@@ -76,6 +76,23 @@ def answer_question(
         {
             "type": "function",
             "function": {
+                "name": "busca_Checkin",
+                "description": "Busca uma lista de checkins num intervalo compreendido entre uma data específica e a data atual. Checkins podem ser compromissos quaisquer tais como, hora que acorda, hora que bebe água, hora que foi à academia, hora que chegou ao trabalho ou algum lugar.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "date": {
+                            "type": "string",
+                            "description": "A data de início da janela do intervalo deve ser informada no formato dd-mm-yyyy",
+                        }
+                    },
+                    "required": ["date"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
                 "name": "busca_Clima",
                 "description": "Busca informações em tempo real para o clima da cidade do Rio de Janeiro. Informações como temperatura, precipitação, ventos, dentre outras. Não demanda parâmetros de entrada.",
                 "parameters": {},
@@ -133,8 +150,9 @@ def answer_question(
                     token = os.getenv('token_X')
                     function_output, datajson = main.busca_X("operacoesrio", token)
                     print("\nSaida para busca_Cidade:\n", function_output)
-                #if function_name == 'busca_Checkin':
-                    #coletor = app.get_checkins_by_date(data_inicio_formatada, data_atual)
+                if function_name == 'busca_Checkin':
+                    function_output = app.get_checkins_by_date(function_args.get("date"), data_atual)
+                    print("\nSaida para busca_Checkin:\n", function_output, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
 
                 messages.append(
                     {
