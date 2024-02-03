@@ -152,6 +152,7 @@ def answer_question(
                     print("\nSaida para busca_Cidade:\n", function_output)
                 if function_name == 'busca_Checkin':
                     function_output, datajson = app.get_checkins_by_date(function_args.get("date"), data_atual)
+                    function_output = datajson
                     print('--------------------------------------------\n', datajson)
                     print("\nSaida para busca_Checkin:\n", datajson, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
 
