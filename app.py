@@ -184,7 +184,7 @@ def get_checkins_by_date(start_date=None, end_date=None):
         for entry in entries:
             result_string += f'✅ {entry["hour"]}  {entry["checkin"]}\n'
 
-    return result_string
+    return result_string, json.dumps(checkins)
 # ______________________
 
 class Clima(db.Model):

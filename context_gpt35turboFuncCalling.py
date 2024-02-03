@@ -77,7 +77,7 @@ def answer_question(
             "type": "function",
             "function": {
                 "name": "busca_Checkin",
-                "description": "Busca uma lista de checkins num intervalo compreendido entre uma data específica e a data atual. Checkins podem ser compromissos quaisquer tais como, hora que acorda, hora que bebe água, hora que foi à academia, hora que chegou ao trabalho ou algum lugar.",
+                "description": "Busca uma lista de checkins num intervalo compreendido entre uma data específica e a data atual. Checkins podem ser compromissos quaisquer tais como, hora que acorda, hora que bebe água, hora que foi à academia, hora que chegou ao trabalho ou algum lugar. O atributo direction descreve se alguém está entrando ou saindo do checkin (in ou out). Por exemplo, checkin 'awake' direction 'out' quer dizer 'dormir'",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -151,7 +151,8 @@ def answer_question(
                     function_output, datajson = main.busca_X("operacoesrio", token)
                     print("\nSaida para busca_Cidade:\n", function_output)
                 if function_name == 'busca_Checkin':
-                    function_output = app.get_checkins_by_date(function_args.get("date"), data_atual)
+                    function_output, datajson = app.get_checkins_by_date(function_args.get("date"), data_atual)
+                    print('--------------------------------------------\n', datajson)
                     print("\nSaida para busca_Checkin:\n", function_output, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
 
                 messages.append(
