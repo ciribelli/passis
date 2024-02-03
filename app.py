@@ -97,8 +97,6 @@ class Checkin(db.Model):
             data = datetime.utcnow()
         self.data = data
 
-
-# referencia do crud https://stackabuse.com/using-sqlalchemy-with-flask-and-postgresql/
 # $ flask db init
 # $ flask db migrate
 # $ flask db upgrade
@@ -160,6 +158,20 @@ def get_checkins_by_date(start_date=None, end_date=None):
         end_date = datetime.strptime(end_date, '%d-%m-%Y') + timedelta(days=1)
         checkins = Checkin.query.filter(Checkin.data.between(start_date, end_date)).order_by(Checkin.data).all()
 
+    # Função para converter objetos Checkin em dicionários
+    def serialize_checkin(checkin):
+        return {
+            'id': checkin.id,
+            'data': str(checkin.data),
+            'direction': checkin.direction,
+            'checkin': checkin.checkin
+        }
+
+    # Serializando a lista de checkins
+    serialized_checkins = [serialize_checkin(checkin) for checkin in checkins]
+    # Convertendo para JSON
+    json_result = json.dumps(serialized_checkins, default=str)
+
     # Função para extrair o horário da data
     def extract_time(date_obj):
         return date_obj.strftime('%H:%M')
@@ -184,7 +196,7 @@ def get_checkins_by_date(start_date=None, end_date=None):
         for entry in entries:
             result_string += f'✅ {entry["hour"]}  {entry["checkin"]}\n'
 
-    return result_string, json.dumps(checkins)
+    return result_string, json_result
 # ______________________
 
 class Clima(db.Model):

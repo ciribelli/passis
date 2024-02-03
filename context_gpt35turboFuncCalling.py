@@ -153,7 +153,7 @@ def answer_question(
                 if function_name == 'busca_Checkin':
                     function_output, datajson = app.get_checkins_by_date(function_args.get("date"), data_atual)
                     print('--------------------------------------------\n', datajson)
-                    print("\nSaida para busca_Checkin:\n", function_output, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
+                    print("\nSaida para busca_Checkin:\n", datajson, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
 
                 messages.append(
                     {
