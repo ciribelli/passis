@@ -65,6 +65,7 @@ def chatflow(entry):
                 data_inicio = datetime.strptime(str(data_atual), '%d-%m-%Y') - timedelta(days=4)
                 data_inicio_formatada = data_inicio.strftime('%d-%m-%Y')
                 coletor, datajson = app.get_checkins_by_date(data_inicio_formatada, data_atual)
+                print(coletor)
             elif "📝" in content.lower():
                 coletor = app.salvar_memoria_recebida(content.lower())
             elif "🔄" in content.lower():
