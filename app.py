@@ -559,7 +559,7 @@ def get_last_checkin_details():
             "checkin": last_checkin.checkin,
             "data": last_checkin.data
         }
-        return {"message": "success", "last_checkin": response}
+        return {"message": "success", "last_checkin": json.dumps(response)}
     else:
         return {"message": "No checkins found."}
 
