@@ -548,6 +548,32 @@ def fazer_perguntas(pergunta, data_atual, hora_atual):
     except Exception as e:
         return str(e), 400
 
+
+def get_last_checkin_details():
+    last_checkin = Checkin.query.order_by(Checkin.id.desc()).first()
+
+    if last_checkin:
+        response = {
+            "id": last_checkin.id,
+            "direction": last_checkin.direction,
+            "checkin": last_checkin.checkin,
+            "data": last_checkin.data
+        }
+        return {"message": "success", "last_checkin": response}
+    else:
+        return {"message": "No checkins found."}
+
+def delete_checkin_by_id(checkin_id):
+    checkin = Checkin.query.get(checkin_id)
+
+    if checkin:
+        db.session.delete(checkin)
+        db.session.commit()
+        return {"message": f"Checkin {checkin.checkin} successfully deleted."}
+    else:
+        return {"message": f"Checkin with ID {checkin_id} not found."}
+
+
 def plota_grafico(checkin_type, color):
     # Dados fictícios para simular check-ins
     fake_checkins = [

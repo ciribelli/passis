@@ -93,6 +93,14 @@ def answer_question(
         {
             "type": "function",
             "function": {
+                "name": "detalhes_Ultimo_Checkin",
+                "description": "função para buscar detalhes do último checkin realizado pelo usuário no banco de dados",
+                "parameters": {},
+            },
+        },
+        {
+            "type": "function",
+            "function": {
                 "name": "busca_Clima",
                 "description": "Busca informações em tempo real para o clima da cidade do Rio de Janeiro. Informações como temperatura, precipitação, ventos, dentre outras. Não demanda parâmetros de entrada.",
                 "parameters": {},
@@ -155,7 +163,9 @@ def answer_question(
                     function_output = datajson
                     print('--------------------------------------------\n', datajson)
                     print("\nSaida para busca_Checkin:\n", datajson, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
-
+                if function_name == 'detalhes_Ultimo_Checkin':
+                    function_output = app.get_last_checkin_details()
+                    print("\nSaida para detalhes_Ultimo_Checkin:\n", function_output)
                 messages.append(
                     {
                         "tool_call_id": resposta.id,
