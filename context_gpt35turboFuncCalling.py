@@ -165,7 +165,7 @@ def answer_question(
                     print("\nSaida para busca_Checkin:\n", datajson, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
                 if function_name == 'detalhes_Ultimo_Checkin':
                     function_output = app.get_last_checkin_details()
-                    print("\nSaida para detalhes_Ultimo_Checkin:\n", function_output)
+                    print("\nSaida para detalhes_Ultimo_Checkin:\n", str(function_output))
                 messages.append(
                     {
                         "tool_call_id": resposta.id,
