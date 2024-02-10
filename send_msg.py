@@ -4,6 +4,10 @@ import os
 
 def send_wapp_msg(phone_number_id, from_number, coletor):
     wapp_token = os.getenv('WHATSAPP_TOKEN')
+    #### para debugar ####
+    print("-----------------------------------------------------")
+    print (coletor)
+    print("-----------------------------------------------------")
     fb_url = f"https://graph.facebook.com/v17.0/{phone_number_id}/messages?access_token={wapp_token}"
     payload = {
         "messaging_product": "whatsapp",
