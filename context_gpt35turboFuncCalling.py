@@ -90,14 +90,14 @@ def answer_question(
                 },
             },
         },
-        {
-            "type": "function",
-            "function": {
-                "name": "detalhes_Ultimo_Checkin",
-                "description": "função para buscar detalhes do último checkin realizado pelo usuário no banco de dados",
-                "parameters": {},
-            },
-        },
+        # {
+        #     "type": "function",
+        #     "function": {
+        #         "name": "detalhes_Ultimo_Checkin",
+        #         "description": "função para buscar detalhes do último checkin realizado pelo usuário no banco de dados",
+        #         "parameters": {},
+        #     },
+        # },
         {
             "type": "function",
             "function": {
@@ -132,7 +132,7 @@ def answer_question(
         print("mensagens: \n", messages)
 
         completion = client.chat.completions.create(
-            model="gpt-3.5-turbo-1106",
+            model="gpt-3.5-turbo-0125",
             messages=messages,
             tools=tools, # para chamada da funcao
             tool_choice="auto", # para chamada da funcao
@@ -165,7 +165,7 @@ def answer_question(
                     print("\nSaida para busca_Checkin:\n", datajson, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
                 if function_name == 'detalhes_Ultimo_Checkin':
                     function_output = app.get_last_checkin_details()
-                    print("\nSaida para detalhes_Ultimo_Checkin:\n", str(function_output))
+                    print("\nSaida para detalhes_Ultimo_Checkin:\n", function_output)
                 messages.append(
                     {
                         "tool_call_id": resposta.id,
