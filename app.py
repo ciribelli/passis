@@ -167,10 +167,10 @@ def get_checkins_by_date(start_date=None, end_date=None):
         }
     # Serializando a lista de checkins
     serialized_checkins = [serialize_checkin(checkin) for checkin in checkins]
-    # Convertendo para JSON
-    json_result = json.dumps(serialized_checkins, default=str)
-    # Convertendo para Dataframe
-    df_result = pd.DataFrame(serialized_checkins)
+    # Serializando a lista de checkins para JSON
+    json_result = json.dumps([serialize_checkin(checkin) for checkin in checkins], default=str)
+    # Convertendo a lista de checkins para um DataFrame
+    df_result = pd.DataFrame([serialize_checkin(checkin) for checkin in checkins])
     # Função para extrair o horário da data
     def extract_time(date_obj):
         return date_obj.strftime('%H:%M')
