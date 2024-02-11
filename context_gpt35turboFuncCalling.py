@@ -159,8 +159,8 @@ def answer_question(
                     function_output, datajson = main.busca_X("operacoesrio", token)
                     print("\nSaida para busca_Cidade:\n", function_output)
                 if function_name == 'busca_Checkin':
-                    function_output, datajson = app.get_checkins_by_date(function_args.get("date"), data_atual)
-                    function_output = datajson
+                    text_output, datajson, df_output = app.get_checkins_by_date(function_args.get("date"), data_atual)
+                    function_output = df_output
                     print('--------------------------------------------\n', datajson)
                     print("\nSaida para busca_Checkin:\n", datajson, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
                 if function_name == 'detalhes_Ultimo_Checkin':
@@ -187,7 +187,6 @@ def answer_question(
             print("mensagens: \n", messages)
             return completion.choices[0].message.content.strip()
 
-
     except Exception as e:
         print(e)
         return ""
@@ -197,9 +196,7 @@ def responde_emb(pergunta, dados, threads, data_atual, hora_atual):
     df['embeddings'] = df['embeddings'].apply(np.array)
     resposta = answer_question(df, data_atual, hora_atual, question=pergunta, lista_threads=threads)
     #### para debugar ####
-    print("-----------------------------------------------------")
     print (resposta)
-    print("-----------------------------------------------------")
     global first_item
     return resposta, first_item
 
