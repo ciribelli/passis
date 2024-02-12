@@ -159,8 +159,9 @@ def answer_question(
                     function_output, datajson = main.busca_X("operacoesrio", token)
                     print("\nSaida para busca_Cidade:\n", function_output)
                 if function_name == 'busca_Checkin':
-                    text_output, datajson, df_output = app.get_checkins_by_date(function_args.get("date"), data_atual)
-                    function_output = df_output
+                    #text_output, datajson, df_output = app.get_checkins_by_date(function_args.get("date"), data_atual)
+                    text_output, datajson = app.get_checkins_by_date(function_args.get("date"), data_atual)
+                    function_output = datajson
                     print('--------------------------------------------\n', datajson)
                     print("\nSaida para busca_Checkin:\n", datajson, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
                 if function_name == 'detalhes_Ultimo_Checkin':
