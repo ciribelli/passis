@@ -169,8 +169,6 @@ def get_checkins_by_date(start_date=None, end_date=None):
     serialized_checkins = [serialize_checkin(checkin) for checkin in checkins]
     # Serializando a lista de checkins para JSON
     json_result = json.dumps([serialize_checkin(checkin) for checkin in checkins], default=str)
-    # Convertendo a lista de checkins para um DataFrame
-    #df_result = pd.DataFrame([serialize_checkin(checkin) for checkin in checkins])
     # Função para extrair o horário da data
     def extract_time(date_obj):
         return date_obj.strftime('%H:%M')
@@ -190,7 +188,7 @@ def get_checkins_by_date(start_date=None, end_date=None):
         result_string += f'📅 {date} \n'
         for entry in entries:
             result_string += f'✅ {entry["hour"]}  {entry["checkin"]}\n'
-    return result_string, json_result#, df_result
+    return result_string, json_result
 # ______________________
 
 class Clima(db.Model):
