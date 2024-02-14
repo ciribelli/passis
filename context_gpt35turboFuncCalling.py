@@ -162,10 +162,10 @@ def answer_question(
                     text_output, datajson = app.get_checkins_by_date(function_args.get("date"), data_atual)
                     #converter json para dataframe
                     df_result_from_json = pd.read_json(datajson, orient='records', convert_dates=['data'])
-                    function_output = df_result_from_json
+                    function_output = df_result_from_json.to_string(index=False)
                     print('--------------------------------------------\n', datajson)
                     print('--------------------------------------------\n', df_result_from_json)
-                    print("\nSaida para busca_Checkin:\n", datajson, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
+                    print("\nSaida para busca_Checkin:\n", function_output, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
                 if function_name == 'detalhes_Ultimo_Checkin':
                     function_output = app.get_last_checkin_details()
                     print("\nSaida para detalhes_Ultimo_Checkin:\n", function_output)
