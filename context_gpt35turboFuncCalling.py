@@ -162,9 +162,8 @@ def answer_question(
                     text_output, datajson = app.get_checkins_by_date(function_args.get("date"), data_atual)
                     #converter json para dataframe
                     df_result_from_json = pd.read_json(datajson, orient='records', convert_dates=['data'])
+                    # convertendo json para dataframe e dataframe into text para melhor expericia com LLM
                     function_output = df_result_from_json.to_string(index=False)
-                    print('--------------------------------------------\n', datajson)
-                    print('--------------------------------------------\n', df_result_from_json)
                     print("\nSaida para busca_Checkin:\n", function_output, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
                 if function_name == 'detalhes_Ultimo_Checkin':
                     function_output = app.get_last_checkin_details()
@@ -179,7 +178,7 @@ def answer_question(
 
 
             second_response = client.chat.completions.create(
-                model="gpt-3.5-turbo-1106",
+                model="gpt-3.5-turbo-0125",
                 messages=messages
             )
             print('\n\n\n **_dentro do if que chama funcao_** \n\n\n')
