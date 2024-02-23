@@ -197,7 +197,7 @@ def responde_emb(pergunta, dados, threads, data_atual, hora_atual):
     df['embeddings'] = df['embeddings'].apply(np.array)
     resposta = answer_question(df, data_atual, hora_atual, question=pergunta, lista_threads=threads)
     #### para debugar ####
-    print (resposta)
+    print ('Resposta para debug ----------------------------- \n\n', resposta)
     global first_item
     return resposta, first_item
 
