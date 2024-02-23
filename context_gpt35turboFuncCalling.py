@@ -126,7 +126,10 @@ def answer_question(
     try:
         print('#01 Resposta para debug ----------------------------- \n\n')
         for thread in reversed(lista_threads):
-            messages.append(json.loads(thread[0], strict=False))
+            try:
+                messages.append(json.loads(thread[0], strict=False))
+            except json.JSONDecodeError as e:
+                print(f"Erro de decodificação JSON: {e}")
 
         messages.append({"role": "user", "content": question})
         print('#02 Resposta para debug ----------------------------- \n\n')
