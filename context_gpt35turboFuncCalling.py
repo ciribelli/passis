@@ -54,7 +54,7 @@ def answer_question(
     if debug:
         print("Context:\n" + context)
         print("\n\n")
-
+    print('Inicio Resposta para debug ----------------------------- \n\n')
     tools = [
         {
             "type": "function",
@@ -124,11 +124,12 @@ def answer_question(
     ]
 
     try:
+        print('#01 Resposta para debug ----------------------------- \n\n')
         for thread in reversed(lista_threads):
             messages.append(json.loads(thread[0], strict=False))
 
         messages.append({"role": "user", "content": question})
-
+        print('#02 Resposta para debug ----------------------------- \n\n')
         print("mensagens: \n", messages)
 
         completion = client.chat.completions.create(
@@ -137,9 +138,9 @@ def answer_question(
             tools=tools, # para chamada da funcao
             tool_choice="auto", # para chamada da funcao
         )
-
+        
         respostas = completion.choices[0].message.tool_calls
-
+        print('#03 Resposta para debug ----------------------------- \n\n', respostas)
         if respostas:
             # Para cada objeto na lista, extrair as informações relevantes e chamar a função
             for resposta in respostas:
@@ -176,11 +177,12 @@ def answer_question(
                         "content": function_output,
                     })
 
-
+            print('#04 Resposta para debug ----------------------------- \n\n', messages)
             second_response = client.chat.completions.create(
                 model="gpt-3.5-turbo-1106",
                 messages=messages
             )
+            print('#05 Resposta para debug ----------------------------- \n\n')
             print('\n\n\n **_dentro do if que chama funcao_** \n\n\n')
             print("mensagens: \n", messages)
             return second_response.choices[0].message.content.strip()
@@ -190,7 +192,7 @@ def answer_question(
             return completion.choices[0].message.content.strip()
 
     except Exception as e:
-        print(e)
+        print('Erro no método completions: ', e)
         return ""
 
 def responde_emb(pergunta, dados, threads, data_atual, hora_atual):
@@ -198,7 +200,7 @@ def responde_emb(pergunta, dados, threads, data_atual, hora_atual):
     df['embeddings'] = df['embeddings'].apply(np.array)
     resposta = answer_question(df, data_atual, hora_atual, question=pergunta, lista_threads=threads)
     #### para debugar ####
-    print ('Resposta para debug ----------------------------- \n\n', resposta)
+    print ('Final - Resposta para debug ----------------------------- \n\n', resposta)
     global first_item
     return resposta, first_item
 
