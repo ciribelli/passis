@@ -132,7 +132,7 @@ def answer_question(
         for thread in reversed(lista_threads):
             print('-/-/--/-/-//-/-/-/--/-/-/-/-', thread)
             try:
-                messages.append(thread[0])
+                messages.append(json.loads(thread[0], strict=False))
             except json.JSONDecodeError as e:
                 print(f"Erro de decodificação JSON: {e}")
 
