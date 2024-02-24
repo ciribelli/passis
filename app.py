@@ -540,7 +540,7 @@ def fazer_perguntas(pergunta, data_atual, hora_atual):
             }
             for registro in registros
         ]
-        threads = Thread.query.with_entities(Thread.content).order_by(Thread.date_created.desc()).limit(4).all()
+        threads = Thread.query.with_entities(Thread.content).order_by(Thread.date_created.desc()).limit(10).all()
         # deprecated:
         #saida, first_item = context_gpt35turbo.responde_emb(pergunta, dados, threads, data_atual, hora_atual)
         saida, first_item = context_gpt35turboFuncCalling.responde_emb(pergunta, dados, threads, data_atual, hora_atual)
