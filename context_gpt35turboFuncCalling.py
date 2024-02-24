@@ -38,6 +38,10 @@ def create_context(question, df, max_len=1200, size="ada"):
     # Return the context
     return "\n🤖\n".join(returns)
 
+def remove_spec_char(sentence):
+    cleaned_sentence = sentence.replace('"', ' ').replace("'", ' ')
+    return cleaned_sentence
+
 def answer_question(
     df,
     data_atual="alguma data",
@@ -126,9 +130,9 @@ def answer_question(
     try:
         print('#01 Resposta para debug ----------------------------- \n\n')
         for thread in reversed(lista_threads):
-            print('-/-/--/-/-//-/-/-/--/-/-/-/-', thread)
+            cleaned_thread = remove_spec_char(thread[0])
             try:
-                messages.append(json.loads(thread[0], strict=False))
+                messages.append(json.loads(cleaned_thread, strict=False))
             except json.JSONDecodeError as e:
                 print(f"Erro de decodificação JSON: {e}")
 
