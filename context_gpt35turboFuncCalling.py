@@ -58,7 +58,7 @@ def answer_question(
     if debug:
         print("Context:\n" + context)
         print("\n\n")
-    print('Inicio Resposta para debug ----------------------------- \n\n')
+
     tools = [
         {
             "type": "function",
@@ -130,9 +130,9 @@ def answer_question(
     try:
         print('#01 Resposta para debug ----------------------------- \n\n')
         for thread in reversed(lista_threads):
-            cleaned_thread = remove_spec_char(thread[0])
+            print('-/-/--/-/-//-/-/-/--/-/-/-/-', thread)
             try:
-                messages.append(json.loads(cleaned_thread, strict=False))
+                messages.append(json.loads(thread[0], strict=False))
             except json.JSONDecodeError as e:
                 print(f"Erro de decodificação JSON: {e}")
 
@@ -148,7 +148,7 @@ def answer_question(
         )
         
         respostas = completion.choices[0].message.tool_calls
-        print('#03 Resposta para debug ----------------------------- \n\n', respostas)
+
         if respostas:
             # Para cada objeto na lista, extrair as informações relevantes e chamar a função
             for resposta in respostas:
@@ -185,12 +185,11 @@ def answer_question(
                         "content": function_output,
                     })
 
-            print('#04 Resposta para debug ----------------------------- \n\n', messages)
             second_response = client.chat.completions.create(
                 model="gpt-3.5-turbo-1106",
                 messages=messages
             )
-            print('#05 Resposta para debug ----------------------------- \n\n')
+
             print('\n\n\n **_dentro do if que chama funcao_** \n\n\n')
             print("mensagens: \n", messages)
             return second_response.choices[0].message.content.strip()
@@ -207,8 +206,6 @@ def responde_emb(pergunta, dados, threads, data_atual, hora_atual):
     df = pd.DataFrame(dados)
     df['embeddings'] = df['embeddings'].apply(np.array)
     resposta = answer_question(df, data_atual, hora_atual, question=pergunta, lista_threads=threads)
-    #### para debugar ####
-    print ('Final - Resposta para debug ----------------------------- \n\n', resposta)
     global first_item
     return resposta, first_item
 
