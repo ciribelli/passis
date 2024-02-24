@@ -126,6 +126,7 @@ def answer_question(
     try:
         print('#01 Resposta para debug ----------------------------- \n\n')
         for thread in reversed(lista_threads):
+            print('-/-/--/-/-//-/-/-/--/-/-/-/-', thread)
             try:
                 messages.append(json.loads(thread[0], strict=False))
             except json.JSONDecodeError as e:
