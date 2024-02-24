@@ -83,9 +83,9 @@ def chatflow(entry):
                     # envia mensagem para API openAI
                     coletor, link = app.fazer_perguntas(content, data_atual, hora_atual)
                     # registra mensagem de usuario na memoria
-                    input_data = '{"role": "user", "content":"' + content + '"}'
+                    input_data = '{"role": "user", "content":"' + content.replace('"', ' ') + '"}'
                     app.salvar_thread(input_data)
-                    input_data = '{"role": "assistant", "content":"' + coletor + '"}'
+                    input_data = '{"role": "assistant", "content":"' + coletor.replace('"', ' ') + '"}'
                     app.salvar_thread(input_data)
                     
             # envia a mensagem de retorno para o whatsapp

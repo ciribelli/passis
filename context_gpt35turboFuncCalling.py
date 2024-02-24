@@ -38,12 +38,9 @@ def create_context(question, df, max_len=1200, size="ada"):
     # Return the context
     return "\n🤖\n".join(returns)
 
-def corrigir_aspas(conteudo):
-    try:
-        return json.loads(conteudo.replace('"', "'"), strict=False)
-    except json.JSONDecodeError as e:
-        print(f"Erro de decodificação JSON: {e}")
-        return None
+def remove_spec_char(sentence):
+    cleaned_sentence = sentence.replace('"', ' ').replace("'", ' ')
+    return cleaned_sentence
 
 def answer_question(
     df,
@@ -131,11 +128,11 @@ def answer_question(
     ]
 
     try:
-        print('#01 Resposta para debug ----------------------------- \n\n')
         for thread in reversed(lista_threads):
-            mensagem_decodificada = corrigir_aspas(thread[0])
-            if mensagem_decodificada is not None:
-                messages.append(mensagem_decodificada)
+            try:
+                messages.append(json.loads(thread[0], strict=False))
+            except json.JSONDecodeError as e:
+                print(f"Erro de decodificação JSON: {e}")
 
         messages.append({"role": "user", "content": question})
         print('#02 Resposta para debug ----------------------------- \n\n')
