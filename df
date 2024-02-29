@@ -1,0 +1,558 @@
+[33mcommit ce875b0674763afc38a9c608471173f118897ae9[m[33m ([m[1;36mHEAD -> [m[1;32m'login'[m[33m)[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Thu Feb 29 14:42:36 2024 -0300
+
+    multi user approach
+
+[33mcommit 2a3bf7dfd484cfde252dd607f669799b876ac5d1[m[33m ([m[1;31morigin/master[m[33m, [m[1;32mmaster[m[33m)[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Feb 24 17:10:05 2024 -0300
+
+    increasing number of threads from 4 to 10 assistant/user interactions
+
+[33mcommit 3f36384fab8e867eb8a05dfd4416e31174ef5a03[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Feb 24 16:58:54 2024 -0300
+
+    regex
+
+[33mcommit 68f47eed58fc8dab1bd994cb06d45ffe51b7cb03[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Feb 24 16:23:54 2024 -0300
+
+    def corrigir_aspas in json decoder
+
+[33mcommit 61bf582685de98633c5ee7ebdffab938ca535b1f[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Feb 24 15:59:44 2024 -0300
+
+    opa
+
+[33mcommit 499045dbeea3e8162129f7fcb7c3a48df61eae5e[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Feb 24 10:59:00 2024 -0300
+
+    test no json in threads
+
+[33mcommit 0bb206409f6a94e7c377123501fd2a31f9dcf5cc[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Feb 24 10:31:40 2024 -0300
+
+    roll back
+
+[33mcommit 023af7bac1b3235c34d3a7c94429b8a658e8bf9d[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Feb 24 10:20:05 2024 -0300
+
+    cleaning special char
+
+[33mcommit 089792a04c3e5e222984ef710123c6a1666aefe3[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Feb 24 09:35:19 2024 -0300
+
+    caracter
+
+[33mcommit da5854c0a426225c835a88b2df2b14280d4f0fcc[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Feb 23 11:58:03 2024 -0300
+
+    try except
+
+[33mcommit b8ced337f1d2e0455084055a3358eddac4577380[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Feb 23 11:22:00 2024 -0300
+
+    ...
+
+[33mcommit b7b4f630f55783ba146ffb0a67365326c19e1aa5[m
+Merge: 51c516a 97cc537
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Feb 23 10:23:10 2024 -0300
+
+    Merge branch 'master' of https://github.com/ciribelli/passis
+
+[33mcommit 51c516a6994891d1df3caf453e5b4a69b3a9681b[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Feb 23 10:20:49 2024 -0300
+
+    debuggin
+
+[33mcommit 97cc537ad613b81c5930ee51d923a0bf3d6bbbc9[m
+Author: Otavio Ciribelli <tiotalgmail.com@MacBook-Pro-de-Otavio.local>
+Date:   Thu Feb 15 22:20:09 2024 -0300
+
+    voltando para o modelo 1106
+
+[33mcommit 1455326d827142ec7ba6cb6c03a0037428450ae7[m
+Author: Otavio Ciribelli <tiotalgmail.com@MacBook-Pro-de-Otavio.local>
+Date:   Thu Feb 15 22:08:56 2024 -0300
+
+    model=gpt-3.5-turbo-0125
+
+[33mcommit 4f319761afb24b0a8438f59fdc378b8d1842c633[m
+Author: Otavio Ciribelli <tiotalgmail.com@MacBook-Pro-de-Otavio.local>
+Date:   Wed Feb 14 20:02:16 2024 -0300
+
+    ... text format ...
+
+[33mcommit d6d4786ee79a389cb1664309f83d769558206732[m
+Author: Otavio Ciribelli <tiotalgmail.com@MacBook-Pro-de-Otavio.local>
+Date:   Wed Feb 14 19:49:29 2024 -0300
+
+    dataframe instead of json for my checkins
+
+[33mcommit 3a209087bad5e1e5b225b8dca9f359e0fea0f65e[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sun Feb 11 21:15:54 2024 -0300
+
+    rollback dataframe
+
+[33mcommit be7628dc583e87121885ed351f06dc1a838839bd[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sun Feb 11 19:37:42 2024 -0300
+
+    new try
+
+[33mcommit 0b634428688ebb0b86cfc82bc9e0f74e1e39b87b[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sun Feb 11 19:25:10 2024 -0300
+
+    dataframe instead of json for my checkins
+
+[33mcommit 3970a3a9efe32bed31ac3a15c1fdda491a9a0d28[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sun Feb 11 19:13:48 2024 -0300
+
+    debug \n
+
+[33mcommit 5dc7b317ef8cd495e98f26d627b3887f57a59e86[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Feb 10 18:59:28 2024 -0300
+
+    debug
+
+[33mcommit cad0f5c2af92075b0450b297822ec00cfa2b762b[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Feb 10 16:57:35 2024 -0300
+
+    gpt-3.5-turbo-0125
+
+[33mcommit 89dcbe00e2293f7ec77ca540e534b87b0febdd7e[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Mon Feb 5 12:21:19 2024 -0300
+
+    dumping json
+
+[33mcommit 2be12b42c09464e9f73c8ad4cc7901df51c07478[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Mon Feb 5 12:02:35 2024 -0300
+
+    Object of type datetime is not JSON serializable
+
+[33mcommit 2858b121715e980212e69b4a2fd33602909a86f4[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Mon Feb 5 11:24:44 2024 -0300
+
+    detalhes ultimo checkin
+
+[33mcommit 82ad2e0bdc918206c8682342aa72ab2a57bc5c8f[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sun Feb 4 08:39:50 2024 -0300
+
+    datajson
+
+[33mcommit e2048e5d2328a71dad6061f46e32dc8673d7ad51[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sun Feb 4 08:17:29 2024 -0300
+
+    bug fix
+
+[33mcommit 6e5290e52b2f87ffd81194c8c0238d7bb5915ef6[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Feb 3 11:26:10 2024 -0300
+
+    datajson
+
+[33mcommit d1d8740320c834c24d2c83b94338378afbbe3787[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Feb 3 11:04:45 2024 -0300
+
+    serialize into json
+
+[33mcommit dcf5081af797ff2f871b6600d4e0bca084a02150[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Feb 3 10:45:29 2024 -0300
+
+    json data test for checkins
+
+[33mcommit 119fb18438df632ee5e5b55e6b35b9b842560e31[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Feb 3 09:41:50 2024 -0300
+
+    checkins as a function to openAI
+
+[33mcommit ce6ee54b3d9de899c5769cea8bc2aa5f6a8875f0[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 17:23:05 2024 -0300
+
+    lasttry
+
+[33mcommit 4f2ea772c91350b569330191c5606d1d49458522[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 17:17:51 2024 -0300
+
+    lasttry
+
+[33mcommit 5607ddfa5d3811624fc0c73b1aad4dec9e13d315[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 17:10:55 2024 -0300
+
+    lasttry
+
+[33mcommit 252bfa768d5ea9bdb00674205c641bac01952acc[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 16:04:44 2024 -0300
+
+    commit forever
+
+[33mcommit 3406dba294fdf003b9cba584330b71ffa2ee9425[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 15:59:24 2024 -0300
+
+    for
+
+[33mcommit 77759539670abc435e2354244a4bcbc552c24f95[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 15:54:08 2024 -0300
+
+    commit forever
+
+[33mcommit a4ae8abc979562e56d7ffe2a6bd8115744140230[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 15:48:03 2024 -0300
+
+    datetime
+
+[33mcommit 778922b84741c2551989570fdf8773f16548e9d3[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 14:41:08 2024 -0300
+
+    formato data
+
+[33mcommit 694aa08ed696e2eff23f8e17fd022c5dd7e7cd3e[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 13:24:17 2024 -0300
+
+    date
+
+[33mcommit 6c01a50a56ef3eebb344ddb8b03f650d40cdcdce[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 13:18:20 2024 -0300
+
+    date
+
+[33mcommit 6f8aac1d19d718af7d1d2ffe5fc2684730d40d0a[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 13:11:28 2024 -0300
+
+    que luta
+
+[33mcommit 5d2661d52214204ee94f73c4f57d3ea502632648[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 13:08:45 2024 -0300
+
+    formato
+
+[33mcommit 96bfb2d11dff063d11f41a84f831991829ba4cad[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 12:57:22 2024 -0300
+
+    formatted date
+
+[33mcommit 5fb741e8217637c2401ad2f9815eb30b7a05647c[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 12:53:06 2024 -0300
+
+    migrate from string to datetime in db
+
+[33mcommit 4ca05c8c5bc1c54de79411cc1e96b2b6a82ea7dc[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 12:30:24 2024 -0300
+
+    teste
+
+[33mcommit baef5737e382bd3c910c2e3458da89aa923d4c70[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 12:26:19 2024 -0300
+
+    endpoint para obter cidade
+
+[33mcommit dc57969c534ccef2d2e1528caf3775dbcf00dd8d[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 12:20:06 2024 -0300
+
+    'dates'
+
+[33mcommit 89faf34dcc67185b6d293366c8871081d55031d9[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 12:13:07 2024 -0300
+
+    war against date format
+
+[33mcommit a30d673bcd792dc28486c444318c9f486564c45e[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 12:07:49 2024 -0300
+
+    date
+
+[33mcommit dec93d9a8a4d057c494c855358c014734235ce65[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 12:01:19 2024 -0300
+
+    cidade
+
+[33mcommit ecfe174a7ee90abb80672e680f1c6db51a2dcb62[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 11:56:48 2024 -0300
+
+    .....
+
+[33mcommit 2fe033b0eabf010b15e1b5c9031c1657ff59c9b5[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 11:53:13 2024 -0300
+
+    ...
+
+[33mcommit 02878f17ba1811fc8b860835c792e04cf462db52[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 11:48:14 2024 -0300
+
+    trying to fit data format to establish query
+
+[33mcommit 9187946368ea76ebdd25986e694ebded09d8bfa0[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 11:43:40 2024 -0300
+
+    date format
+
+[33mcommit 437b659959fb07f80dd1e5221bd0986f9cfc8b8f[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 11:35:07 2024 -0300
+
+    new try
+
+[33mcommit cd3540f3dd2a68b66baac5eae316f5f3f1d74b2a[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 11:29:35 2024 -0300
+
+    bug
+
+[33mcommit 92957bd86313b574ac00a0ce634c9099d977731c[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 11:23:51 2024 -0300
+
+    add cidade to queries
+
+[33mcommit 95f6ddd34c9b410613830ae22bcdbc13068faa0d[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 10:19:18 2024 -0300
+
+    'order_by'
+
+[33mcommit 9c19f3acef7bbc717dcad493ba6ac4f85072c09c[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 27 09:16:54 2024 -0300
+
+    tests with max_token - 100
+
+[33mcommit b5af93891582e96e4a67572d21b7c50d6e50ea65[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 20 16:44:48 2024 -0300
+
+    checkins
+
+[33mcommit acdfd0dfd003e1880594ad210a395bf641e830aa[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 20 16:33:27 2024 -0300
+
+    checkins are serialized from now on
+
+[33mcommit 7ba9c0114b02d02fca9aabfebb26bc9f7d85f979[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 20 15:55:38 2024 -0300
+
+    checkins are serialized from now on
+
+[33mcommit 34eed333e8d9ae8b79ed00bc04bd2b5618acd021[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Jan 12 20:44:34 2024 -0300
+
+    bugs
+
+[33mcommit 18a51bb8d3afbdc1aebe7f3da81d422c080f36c5[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Jan 12 20:38:37 2024 -0300
+
+    kinda
+
+[33mcommit f89a7d2ec66fdf5f51c8e46eaecf6cc8e679f746[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Jan 12 20:31:46 2024 -0300
+
+    json.dumps(checkins)
+
+[33mcommit 0bde70fcf8e71af8afacf78ede170524b579a822[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Jan 12 20:17:17 2024 -0300
+
+    review on datetime imports
+
+[33mcommit 0187c55eeeba40fde773d746ea406620164fd211[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Jan 12 20:05:10 2024 -0300
+
+    import two libs from date
+
+[33mcommit 3d877300e196d54e82e01ea0db3d27795183adb9[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Jan 12 17:14:15 2024 -0300
+
+    '1+time'
+
+[33mcommit e8d9b38fef3f3f83a12253950836539715c885b7[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Fri Jan 12 17:06:53 2024 -0300
+
+    teste checkin query
+
+[33mcommit bb874ce320b81d73d5e5f143bb4e2ac4ee7fac1f[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Thu Jan 11 18:40:27 2024 -0300
+
+    adding function busca_Cidade
+
+[33mcommit d0318f19a9db298399712ee52286991476329f2f[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Thu Jan 11 10:37:29 2024 -0300
+
+    fix number of returns on busca_Jogos
+
+[33mcommit a2d35d9f3b7dd9f38b3544d766d59ee1d5df8ec5[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Thu Jan 11 10:09:56 2024 -0300
+
+    1st deploy of function calling
+
+[33mcommit 72ed1297c562f313326a0ca1d33d191a189e683f[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Thu Jan 11 09:57:11 2024 -0300
+
+    1st deploy of function calling
+
+[33mcommit 14d06b7a8100325f199b60ed709ca05f99cd6669[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Wed Jan 10 12:42:38 2024 -0300
+
+    America/Sao_Paulo as default for timezone
+
+[33mcommit 05f62b4b5e575d81b9510ece05dfb39c05143b7a[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Wed Jan 10 12:25:37 2024 -0300
+
+    now Assistant knows current date and time throw user timestamp input
+
+[33mcommit 4392ef4f8e8eea12fc720de89124cd0593eb16b2[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Wed Jan 10 08:35:31 2024 -0300
+
+    jogos com data e hora
+
+[33mcommit 28aea39696aa1f71665a5409a23e34baefb35040[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Tue Jan 9 18:23:15 2024 -0300
+
+    rollback
+
+[33mcommit 837ea6f27cc37611baa1e086e5c484341ca240ef[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Tue Jan 9 08:41:56 2024 -0300
+
+    new try for get_clima
+
+[33mcommit 5bf4d73fbf0a1ab2d7bdd22d1d981d0e90afafb2[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Tue Jan 9 08:32:36 2024 -0300
+
+    get_clima function calling test
+
+[33mcommit 9649413e25a3d5bad715935bbbc6c8ad1ebad008[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Tue Jan 9 08:18:00 2024 -0300
+
+    get_clima as function calling test
+
+[33mcommit 85306c4cf79d42d29f5aeff6fdc533b7b25796c3[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Mon Jan 8 20:39:33 2024 -0300
+
+    function calling
+
+[33mcommit 7bdbb5d9d396f28a3c817d2b4e99ada58e06c936[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 6 20:42:11 2024 -0300
+
+    lista_threads invertido
+
+[33mcommit 11022b035af8347e602eec9c6af5279e2960d53f[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 6 20:27:26 2024 -0300
+
+    threads findings
+
+[33mcommit 544def8427f4fa8a6f2853dd3a8fbfdbbe496e51[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Sat Jan 6 19:54:08 2024 -0300
+
+    invalid caracter in json
+
+[33mcommit 38268b8092345972bfcbeac51725168ee19e7001[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Mon Jan 1 12:31:30 2024 -0300
+
+    wowwwwww
+
+[33mcommit 7ce2de81efb9562cb808dd80f38f78f9bc5c0350[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Mon Jan 1 12:19:08 2024 -0300
+
+    wowwwwww
+
+[33mcommit 3e897d30346e5d7671bd7b132a23a2a6d7e5504d[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Mon Jan 1 12:09:38 2024 -0300
+
+    bug fix
+
+[33mcommit 2b5ce238dc57cecc4202d8959d35ee3262e8c5bc[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Mon Jan 1 11:51:07 2024 -0300
+
+    model instead of engine in embeddings
+
+[33mcommit aeb5eed9f48ac3ab7c70e9b4f33673c73253d1ee[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Mon Jan 1 11:44:36 2024 -0300
+
+    wowwwwww
+
+[33mcommit f732ea39c97283e8c52363f8e36e0bff5989d26e[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Wed Dec 13 19:31:01 2023 -0300
+
+    gpt-3.5-turbo-1106
+
+[33mcommit a4821b06449f8b9911a9a5b06edefc6189678915[m
+Author: Otavio Ciribelli <otavio.ciribelli@gmail.com>
+Date:   Wed Dec 13 14:03:32 2023 -0300
+
+    newnewtry
