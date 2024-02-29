@@ -16,7 +16,7 @@ load_dotenv()
 
 app = Flask(__name__)
 # configuracao do url db postgres externo ou local (arquivo .env deve estar na raiz do projeto)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL_EXTERNA')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL_EXTERNA_MU')
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -86,6 +86,7 @@ def verify_webhook():
 class Checkin(db.Model):
     __tablename__ = 'checkins'
     id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     data = db.Column(db.DateTime, default=datetime.utcnow)
     direction = db.Column(db.String(10))
     checkin = db.Column(db.String(100))
@@ -105,21 +106,43 @@ def handle_checkin():
     if request.method == 'POST':
         if request.is_json:
             dados = request.get_json()
-            new_checkin = Checkin(checkin=dados['checkin'], direction=dados['direction'], data=dados['data'])
-            db.session.add(new_checkin)
-            db.session.commit()
-            return {"message": f"checkin em {new_checkin.checkin} foi criado com sucesso."}
+
+
+            user_id = dados.get('user_id')
+            user = Usuario.query.get(user_id)
+
+            if user:
+                new_checkin = Checkin(
+                    checkin=dados['checkin'],
+                    direction=dados['direction'],
+                    data=dados['data'],
+                    usuario=user
+                )
+
+                db.session.add(new_checkin)
+                db.session.commit()
+                return {"message": f"Checkin em {new_checkin.checkin} foi criado com sucesso."}
+            else:
+                return {"error": "Usuário não encontrado."}
+
         else:
             return {"error": "Formato diferente de JSON"}
 
     elif request.method == 'GET':
-        checkins = Checkin.query.all()
+
+        user_id = request.args.get('user_id')
+        if user_id:
+            checkins = Checkin.query.filter_by(usuario_id=user_id).all()
+        else:
+            checkins = Checkin.query.all()
+
         results = [
             {
                 "id": checkin.id,
                 "data": checkin.data,
                 "direction": checkin.direction,
-                "checkin": checkin.checkin
+                "checkin": checkin.checkin,
+                "user_id": checkin.usuario_id  # Inclua o ID do usuário nos resultados
             } for checkin in checkins]
 
         return {"count": len(results), "checkins": results}
@@ -194,7 +217,7 @@ def get_checkins_by_date(start_date=None, end_date=None):
 class Clima(db.Model):
     __tablename__ = 'climas'
     id = db.Column(db.Integer, primary_key=True)
-    #data = db.Column(db.String)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     data = db.Column(db.DateTime)  # Alteração para o tipo DateTime
     umidade = db.Column(db.Float)
     temperatura = db.Column(db.String)
@@ -268,6 +291,7 @@ if __name__ == '__main__':
 # Classe documentos
 class DocumentoBinario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     nome_do_documento = db.Column(db.String(255))
     descricao = db.Column(db.Text)
     binario_data = db.Column(db.LargeBinary)
@@ -378,6 +402,7 @@ def atualizar_documento(documento_id):
 # Rota para criar registros simples de memoria
 class Memoria(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     content = db.Column(db.String(10000), nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -419,6 +444,7 @@ def get_memorias():
 # Rota para registrar Threads com o Assistente
 class Thread(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     content = db.Column(db.String(5000), nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -456,6 +482,7 @@ class VectorEmbedding(db.Model):
     __tablename__ = 'vectors'
 
     id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     tabela = db.Column(db.String)
     index = db.Column(db.Integer)
     texto = db.Column(db.String)
@@ -549,6 +576,27 @@ def fazer_perguntas(pergunta, data_atual, hora_atual):
         return str(e), 400
 
 
+# Modelo de Usuário
+class Usuario(db.Model):
+    __tablename__ = 'usuarios'
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(255), nullable=False)
+    email = db.Column(db.String(255), unique=True, nullable=False)
+    senha = db.Column(db.String(255), nullable=False)
+    telefone = db.Column(db.String(20), nullable=False)
+
+    # Relacionamentos com outras tabelas
+    checkins = db.relationship('Checkin', backref='usuario', lazy=True)
+    climas = db.relationship('Clima', backref='usuario', lazy=True)
+    thread = db.relationship('Thread', backref='usuario', lazy=True)
+    vectors = db.relationship('VectorEmbedding', backref='usuario', lazy=True)
+    memoria = db.relationship('Memoria', backref='usuario', lazy=True)
+    documento_binario = db.relationship('DocumentoBinario', backref='usuario', lazy=True)
+
+
+
+
+# ------------------------------------------ Experimentos -------------
 def get_last_checkin_details():
     last_checkin = Checkin.query.order_by(Checkin.id.desc()).first()
 
@@ -572,6 +620,9 @@ def delete_checkin_by_id(checkin_id):
         return {"message": f"Checkin {checkin.checkin} successfully deleted."}
     else:
         return {"message": f"Checkin with ID {checkin_id} not found."}
+
+
+
 
 
 def plota_grafico(checkin_type, color):
