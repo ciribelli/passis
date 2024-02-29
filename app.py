@@ -595,7 +595,6 @@ class Usuario(db.Model):
 
 
 
-
 # ------------------------------------------ Experimentos -------------
 def get_last_checkin_details():
     last_checkin = Checkin.query.order_by(Checkin.id.desc()).first()
