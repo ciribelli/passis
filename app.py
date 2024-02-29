@@ -594,7 +594,7 @@ class Usuario(db.Model):
     documento_binario = db.relationship('DocumentoBinario', backref='usuario', lazy=True)
 
 # Endpoint para adicionar um usuário
-@app.route('/api/adicionar_usuario', methods=['POST'])
+@app.route('/v1/adicionar_usuario', methods=['POST'])
 def adicionar_usuario():
     data = request.json
 
