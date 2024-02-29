@@ -593,6 +593,23 @@ class Usuario(db.Model):
     memoria = db.relationship('Memoria', backref='usuario', lazy=True)
     documento_binario = db.relationship('DocumentoBinario', backref='usuario', lazy=True)
 
+# Endpoint para adicionar um usuário
+@app.route('/api/adicionar_usuario', methods=['POST'])
+def adicionar_usuario():
+    data = request.json
+
+    novo_usuario = Usuario(nome=data['nome'],
+                           email=data['email'],
+                           senha=data['senha'],
+                           telefone=data['telefone'])
+
+    try:
+        db.session.add(novo_usuario)
+        db.session.commit()
+        return json.dumps({'mensagem': 'Usuário adicionado com sucesso!'}), 201
+    except Exception as e:
+        db.session.rollback()
+        return json.dumps({'erro': str(e)}), 500
 
 
 # ------------------------------------------ Experimentos -------------
