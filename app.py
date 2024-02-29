@@ -637,7 +637,7 @@ def plota_grafico(checkin_type, color):
         {'checkin': checkin_type, 'data': '2023-09-16', 'direction': 'in'},
         {'checkin': checkin_type, 'data': '2023-09-18', 'direction': 'in'},
         {'checkin': checkin_type, 'data': '2023-09-20', 'direction': 'out'},
-        {'checkin': checkin_type, 'data': '2023-09-22', 'direction': 'in'},
+
     ]
 
     # Convertendo datas de string para objetos datetime
