@@ -116,7 +116,7 @@ def handle_checkin():
                     checkin=dados['checkin'],
                     direction=dados['direction'],
                     data=dados['data'],
-                    usuario=user.id
+                    usuario=user
                 )
 
                 db.session.add(new_checkin)
