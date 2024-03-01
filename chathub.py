@@ -17,6 +17,7 @@ def hora_e_data(timestamp, user_timezone='America/Sao_Paulo'):
     except Exception as e:
         return None, f"Error: {e}"
 
+
 def chatflow(entry):
     # Verifica se há mensagens na solicitação
     if 'changes' in entry and entry['changes'][0]['value'].get('messages'):
