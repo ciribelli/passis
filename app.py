@@ -16,7 +16,7 @@ load_dotenv()
 
 app = Flask(__name__)
 # configuracao do url db postgres externo ou local (arquivo .env deve estar na raiz do projeto)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL_EXTERNA_MU')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL_LOCAL')
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -91,7 +91,8 @@ class Checkin(db.Model):
     direction = db.Column(db.String(10))
     checkin = db.Column(db.String(100))
 
-    def __init__(self, direction, checkin, data=None):
+    def __init__(self, usuario_id, direction, checkin, data=None):
+        self.usuario_id = usuario_id
         self.direction = direction
         self.checkin = checkin
         if data is None:
@@ -107,18 +108,17 @@ def handle_checkin():
         if request.is_json:
             dados = request.get_json()
 
-
-            user_id = dados.get('user_id')
-            user = Usuario.query.get(user_id)
-
+            print(dados)
+            info_usuario = dados.get('usuario')
+            user = Usuario.query.filter_by(telefone=info_usuario).first()
+            user_id = user.id
             if user:
                 new_checkin = Checkin(
-                    checkin=dados['checkin'],
-                    direction=dados['direction'],
+                    usuario_id=user_id,
                     data=dados['data'],
-                    usuario=user
+                    direction=dados['direction'],
+                    checkin=dados['checkin']
                 )
-                print(dados)
                 db.session.add(new_checkin)
                 db.session.commit()
                 return {"message": f"Checkin em {new_checkin.checkin} foi criado com sucesso."}
@@ -142,7 +142,7 @@ def handle_checkin():
                 "data": checkin.data,
                 "direction": checkin.direction,
                 "checkin": checkin.checkin,
-                "user_id": checkin.usuario_id  # Inclua o ID do usuário nos resultados
+                "user_id": checkin.usuario_id 
             } for checkin in checkins]
 
         return {"count": len(results), "checkins": results}
@@ -154,6 +154,7 @@ def handle_checkin_id(checkin_id):
     if request.method == 'GET':
         response = {
             "id": checkin.id,
+            "usuario_id": checkin.usuario_id,
             "direction": checkin.direction,
             "checkin": checkin.checkin,
             "data": checkin.data
@@ -162,12 +163,25 @@ def handle_checkin_id(checkin_id):
 
     elif request.method == 'PUT':
         dados = request.get_json()
+        # Verifica se 'usuario_id' está presente no payload JSON
+        if 'usuario_id' in dados:
+            info_usuario = dados.get('usuario')
+            user = Usuario.query.filter_by(telefone=info_usuario).first()
+            if not user:
+                return {"error": "Usuário não encontrado."}
+
+            # Atualiza o objeto checkin com o novo usuário
+            checkin.usuario_id = user.id
+
+        # Atualiza as outras informações do checkin
         checkin.direction = dados['direction']
         checkin.checkin = dados['checkin']
         checkin.data = dados['data']
+
         db.session.add(checkin)
         db.session.commit()
-        return {"message": f"checkin {checkin.checkin} successfully updated"}
+
+        return {"message": f"Checkin {checkin.checkin} atualizado com sucesso"}
 
     elif request.method == 'DELETE':
         db.session.delete(checkin)
@@ -410,36 +424,59 @@ class Memoria(db.Model):
         self.content = content
 
 # salvando memorias diretamente sem uso da API
-def salvar_memoria_recebida(content):
-    memoria = Memoria(content=content)
+def salvar_memoria_recebida(content, usuario_id):
+    memoria = Memoria(content=content, usuario_id=usuario_id)
     db.session.add(memoria)
     db.session.commit()
     return "Memória eternizada ✅"
+
 
 @app.route('/memorias', methods=['POST'])
 def create_memoria():
     if request.method == 'POST':
         data = request.get_json()
         content = data.get('content')
+        telefone_usuario = data.get('usuario')  # Alterado para 'usuario' para coincidir com a abordagem existente
+        # Verifica se 'usuario' está presente no payload JSON
+        if not content or not telefone_usuario:
+            return Response(json.dumps({'message': 'Os campos "content" e "usuario" são obrigatórios'}), status=400, content_type='application/json')
 
-        if not content:
-            return Response(json.dumps({'message': 'O campo "content" é obrigatório'}), status=400, content_type='application/json')
+        usuario = Usuario.query.filter_by(telefone=telefone_usuario).first()
+        if not usuario:
+            return Response(json.dumps({'message': 'Usuário não encontrado'}), status=404, content_type='application/json')
 
-        nova_memoria = Memoria(content=content)
+        nova_memoria = Memoria(content=content, usuario_id=usuario.id)
 
         db.session.add(nova_memoria)
         db.session.commit()
 
         return Response(json.dumps({'message': 'Nova memória criada com sucesso!'}), status=201, content_type='application/json')
+        
 
 @app.route('/memorias', methods=['GET'])
 def get_memorias():
     if request.method == 'GET':
-        memorias = Memoria.query.order_by(Memoria.date_created.desc()).all()
-        serialized_memorias = [{'id': memoria.id, 'content': memoria.content, 'date_created': memoria.date_created.strftime('%Y-%m-%d %H:%M:%S')} for memoria in memorias]
+        telefone_usuario = request.args.get('usuario')  # Obtém o telefone do usuário dos parâmetros da consulta
+    
+        if not telefone_usuario:
+            return Response(json.dumps({'message': 'O parâmetro "usuario" é obrigatório'}), status=400, content_type='application/json')
+
+        usuario = Usuario.query.filter_by(telefone=telefone_usuario).first()
+        print(usuario.id, usuario.nome)
+        if not usuario:
+            return Response(json.dumps({'message': 'Usuário não encontrado'}), status=404, content_type='application/json')
+
+        memorias = Memoria.query.filter_by(usuario_id=usuario.id).order_by(Memoria.date_created.desc()).all()
+        serialized_memorias = [
+            {
+                'id': memoria.id,
+                'content': memoria.content,
+                'date_created': memoria.date_created.strftime('%Y-%m-%d %H:%M:%S')
+            }
+            for memoria in memorias
+        ]
 
         return Response(json.dumps(serialized_memorias), status=200, content_type='application/json')
-
 
 # Rota para registrar Threads com o Assistente
 class Thread(db.Model):

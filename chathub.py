@@ -26,6 +26,11 @@ def chatflow(entry):
         phone_number_id = entry['changes'][0]['value']['metadata']['phone_number_id']
         from_number = message['from']
 
+        # adequacao para multiusuario
+        usuario = Usuario.query.filter_by(telefone=telefone_usuario).first()
+        if not usuario:
+            return Response(json.dumps({'message': 'Usuário não encontrado'}), status=404, content_type='application/json')
+
         # captura o timestamp das mensagem para contextos de data
         timestamp = entry['changes'][0]['value']['messages'][0]['timestamp']
         data_atual, hora_atual = hora_e_data(timestamp)
@@ -67,7 +72,7 @@ def chatflow(entry):
                 coletor, datajson = app.get_checkins_by_date(data_inicio_formatada, data_atual)
                 print(coletor)
             elif "📝" in content.lower():
-                coletor = app.salvar_memoria_recebida(content.lower())
+                coletor = app.salvar_memoria_recebida(content.lower(),usuario.id)
             elif "🔄" in content.lower():
                 print(">>>> atualizando embeddings <<<<")
                 coletor = app.inserir_dados()
