@@ -25,7 +25,7 @@ def chatflow(entry):
         print(entry['changes'][0]['value']['metadata'])
         phone_number_id = entry['changes'][0]['value']['metadata']['phone_number_id']
         from_number = message['from']
-
+        print(from_number)
         # captura o timestamp das mensagem para contextos de data
         timestamp = entry['changes'][0]['value']['messages'][0]['timestamp']
         data_atual, hora_atual = hora_e_data(timestamp)
