@@ -118,7 +118,7 @@ def handle_checkin():
                     data=dados['data'],
                     usuario=user
                 )
-
+                print(dados)
                 db.session.add(new_checkin)
                 db.session.commit()
                 return {"message": f"Checkin em {new_checkin.checkin} foi criado com sucesso."}
