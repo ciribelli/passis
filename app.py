@@ -16,7 +16,7 @@ load_dotenv()
 
 app = Flask(__name__)
 # configuracao do url db postgres externo ou local (arquivo .env deve estar na raiz do projeto)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL_LOCAL')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL_EXTERNA_MU')
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -436,7 +436,7 @@ def create_memoria():
     if request.method == 'POST':
         data = request.get_json()
         content = data.get('content')
-        telefone_usuario = data.get('usuario')  # Alterado para 'usuario' para coincidir com a abordagem existente
+        telefone_usuario = data.get('usuario')  
         # Verifica se 'usuario' está presente no payload JSON
         if not content or not telefone_usuario:
             return Response(json.dumps({'message': 'Os campos "content" e "usuario" são obrigatórios'}), status=400, content_type='application/json')
@@ -456,7 +456,7 @@ def create_memoria():
 @app.route('/memorias', methods=['GET'])
 def get_memorias():
     if request.method == 'GET':
-        telefone_usuario = request.args.get('usuario')  # Obtém o telefone do usuário dos parâmetros da consulta
+        telefone_usuario = request.args.get('usuario')  
     
         if not telefone_usuario:
             return Response(json.dumps({'message': 'O parâmetro "usuario" é obrigatório'}), status=400, content_type='application/json')
