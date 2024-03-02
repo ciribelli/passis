@@ -16,7 +16,7 @@ load_dotenv()
 
 app = Flask(__name__)
 # configuracao do url db postgres externo ou local (arquivo .env deve estar na raiz do projeto)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL_EXTERNA_MU')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL_LOCAL')
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -51,10 +51,25 @@ def get_clima():
     coletor, resposta = main.busca_Clima(token)
     return Response(response=resposta, status=200, mimetype='application/json')
 
+@app.route('/v1/test_chatflow', methods=['POST'])
+def testando():
+    data = request.json
+
+    entry = data.get('entry', [])[0]
+    print(entry['changes'][0]['value']['messages'][0])
+    from_number = "vazio"
+    if 'changes' in entry and entry['changes'][0]['value'].get('messages'):
+            message = entry['changes'][0]['value']['messages'][0]
+            phone_number_id = entry['changes'][0]['value']['metadata']['phone_number_id']
+            from_number = message['from']
+    return from_number, 200
+
 @app.route('/webhook', methods=['POST'])
 def webhook():
     data = request.json
-    # Verifica se o objeto 'object' está presente no corpo da solicitação
+    print(data)
+    # Verifica se o objeto 'object' está presente no corpo da solicitação#
+    ############ TESTAR SE EH USUARIO OU NAO #######
     if 'object' in data:
         entry = data.get('entry', [])[0]
         if 'changes' in entry and entry['changes'][0]['value'].get('messages'):
