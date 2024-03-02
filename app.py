@@ -65,10 +65,12 @@ def webhook():
             from_number = message['from']
         # adequacao para multiusuario
         usuario = Usuario.query.filter_by(telefone=from_number).first()
+
         if not usuario:
             return Response(json.dumps({'message': 'Usuário não encontrado'}), status=404, content_type='application/json')
-        print(usuario, '--------------------')
-        chathub.chatflow(entry, usuario)
+        else:
+            print(usuario, '--------------------')
+            chathub.chatflow(entry, usuario)
     return '', 200
 
 
