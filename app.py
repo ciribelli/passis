@@ -57,7 +57,18 @@ def webhook():
     # Verifica se o objeto 'object' está presente no corpo da solicitação
     if 'object' in data:
         entry = data.get('entry', [])[0]
-        chathub.chatflow(entry)
+        if 'changes' in entry and entry['changes'][0]['value'].get('messages'):
+            message = entry['changes'][0]['value']['messages'][0]
+            print('entry_metadata: ')
+            print(entry['changes'][0]['value']['metadata'])
+            phone_number_id = entry['changes'][0]['value']['metadata']['phone_number_id']
+            from_number = message['from']
+        # adequacao para multiusuario
+        usuario = Usuario.query.filter_by(telefone=from_number).first()
+        if not usuario:
+            return Response(json.dumps({'message': 'Usuário não encontrado'}), status=404, content_type='application/json')
+        print(usuario, '--------------------')
+        chathub.chatflow(entry, usuario)
     return '', 200
 
 
