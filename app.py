@@ -648,6 +648,43 @@ def adicionar_usuario():
         db.session.rollback()
         return json.dumps({'erro': str(e)}), 500
 
+# Endpoint para atualizar um usuário
+@app.route('/v1/atualizar_usuario/<int:usuario_id>', methods=['PUT'])
+def atualizar_usuario(usuario_id):
+    data = request.json
+
+    usuario = Usuario.query.get(usuario_id)
+
+    if not usuario:
+        return json.dumps({'mensagem': 'Usuário não encontrado'}), 404
+
+    try:
+        usuario.nome = data.get('nome', usuario.nome)
+        usuario.email = data.get('email', usuario.email)
+        usuario.senha = data.get('senha', usuario.senha)
+        usuario.telefone = data.get('telefone', usuario.telefone)
+
+        db.session.commit()
+        return json.dumps({'mensagem': 'Usuário atualizado com sucesso!'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return json.dumps({'erro': str(e)}), 500
+
+# Endpoint para apagar um usuário
+@app.route('/v1/apagar_usuario/<int:usuario_id>', methods=['DELETE'])
+def apagar_usuario(usuario_id):
+    usuario = Usuario.query.get(usuario_id)
+
+    if not usuario:
+        return json.dumps({'mensagem': 'Usuário não encontrado'}), 404
+
+    try:
+        db.session.delete(usuario)
+        db.session.commit()
+        return json.dumps({'mensagem': 'Usuário apagado com sucesso!'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return json.dumps({'erro': str(e)}), 500
 
 # ------------------------------------------ Experimentos -------------
 def get_last_checkin_details():

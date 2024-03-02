@@ -5,7 +5,7 @@ import os
 import app
 from datetime import datetime, timedelta
 import pytz
-import Usuario
+from app import Usuario
 
 def hora_e_data(timestamp, user_timezone='America/Sao_Paulo'):
     try:
