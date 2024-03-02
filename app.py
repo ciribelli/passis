@@ -54,6 +54,9 @@ def get_clima():
 @app.route('/webhook', methods=['POST'])
 def webhook():
     data = request.json
+    print('-------------------------')
+    print(data)
+    print('-------------------------')
     # Verifica se o objeto 'object' está presente no corpo da solicitação
     if 'object' in data:
         entry = data.get('entry', [])[0]
