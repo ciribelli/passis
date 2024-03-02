@@ -5,6 +5,7 @@ import os
 import app
 from datetime import datetime, timedelta
 import pytz
+import Usuario
 
 def hora_e_data(timestamp, user_timezone='America/Sao_Paulo'):
     try:
@@ -30,7 +31,7 @@ def chatflow(entry):
         usuario = Usuario.query.filter_by(telefone=telefone_usuario).first()
         if not usuario:
             return Response(json.dumps({'message': 'Usuário não encontrado'}), status=404, content_type='application/json')
-
+        print(usuario, '--------------------')
         # captura o timestamp das mensagem para contextos de data
         timestamp = entry['changes'][0]['value']['messages'][0]['timestamp']
         data_atual, hora_atual = hora_e_data(timestamp)
