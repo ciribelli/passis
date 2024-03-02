@@ -21,6 +21,9 @@ def hora_e_data(timestamp, user_timezone='America/Sao_Paulo'):
 def chatflow(entry):
     # Verifica se há mensagens na solicitação
     if 'changes' in entry and entry['changes'][0]['value'].get('messages'):
+        print('-------------------------')
+        print(entry)
+        print('-------------------------')
         message = entry['changes'][0]['value']['messages'][0]
         print('entry_metadata: ')
         print(entry['changes'][0]['value']['metadata'])
