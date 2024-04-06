@@ -139,7 +139,7 @@ def answer_question(
         print("mensagens: \n", messages)
 
         completion = client.chat.completions.create(
-            model="gpt-3.5-turbo-0125",
+            model="gpt-3.5-turbo-1106",
             messages=messages,
             tools=tools, # para chamada da funcao
             tool_choice="auto", # para chamada da funcao
@@ -184,7 +184,7 @@ def answer_question(
                     })
 
             second_response = client.chat.completions.create(
-                model="gpt-3.5-turbo-0125",
+                model="gpt-3.5-turbo-1106",
                 messages=messages
             )
 
