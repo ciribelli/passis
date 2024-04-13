@@ -210,6 +210,8 @@ def responde_emb(pergunta, dados, threads, data_atual, hora_atual, phone_number_
     df = pd.DataFrame(dados)
     df['embeddings'] = df['embeddings'].apply(np.array)
     resposta = answer_question(df, data_atual, hora_atual, phone_number_id, from_number, question=pergunta, lista_threads=threads, )
+    if (resposta == ""):
+        send_msg.send_wapp_msg(phone_number_id, from_number, "Aconteceu algo errado 🫤")
     global first_item
     return resposta, first_item
 
