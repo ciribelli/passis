@@ -142,7 +142,7 @@ def answer_question(
             model="gpt-3.5-turbo-1106",
             messages=messages,
             tools=tools, # para chamada da funcao
-            tool_choice="auto", # para chamada da funcao
+            tool_choice="none", # para chamada da funcao
         )
         
         respostas = completion.choices[0].message.tool_calls
