@@ -154,7 +154,7 @@ def answer_question(
         if respostas:
             # Para cada objeto na lista, extrair as informações relevantes e chamar a função
             # Envio uma mensagem para reduzir ansiedade
-            send_msg.send_wapp_image(phone_number_id, from_number, "Fala moço 😒")
+            send_msg.send_wapp_msg(phone_number_id, from_number, "Fala moço 😒")
             for resposta in respostas:
                 function_name = resposta.function.name
                 function_args = json.loads(resposta.function.arguments)
