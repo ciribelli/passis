@@ -528,7 +528,7 @@ def apagar_todos_os_embeddings():
         return str(e), 400
 
     
-def fazer_perguntas(pergunta, data_atual, hora_atual):
+def fazer_perguntas(pergunta, data_atual, hora_atual, phone_number_id, from_number):
     try:
         registros = VectorEmbedding.query.all()
 
@@ -546,7 +546,7 @@ def fazer_perguntas(pergunta, data_atual, hora_atual):
         threads = Thread.query.with_entities(Thread.content).order_by(Thread.date_created.desc()).limit(10).all()
         # deprecated:
         #saida, first_item = context_gpt35turbo.responde_emb(pergunta, dados, threads, data_atual, hora_atual)
-        saida, first_item = context_gpt35turboFuncCalling.responde_emb(pergunta, dados, threads, data_atual, hora_atual)
+        saida, first_item = context_gpt35turboFuncCalling.responde_emb(pergunta, dados, threads, data_atual, hora_atual, phone_number_id, from_number)
         return saida, first_item
     except Exception as e:
         return str(e), 400

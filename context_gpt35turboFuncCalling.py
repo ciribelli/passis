@@ -7,6 +7,7 @@ import os
 import json
 import main
 import app
+import send_msg
 
 client = OpenAI()
 
@@ -46,11 +47,14 @@ def answer_question(
     df,
     data_atual="alguma data",
     hora_atual="alguma hora",
+    phone_number_id = "algum num",
+    from_number = "algum codigo",
     question="aqui vem a pergunta",
     lista_threads="aqui estarao as threads",
     max_len=800,
     size="ada",
     debug=True,
+
 ):
 
     context = create_context(question, df, max_len=max_len, size=size,)
@@ -149,6 +153,8 @@ def answer_question(
 
         if respostas:
             # Para cada objeto na lista, extrair as informações relevantes e chamar a função
+            # Envio uma mensagem para reduzir ansiedade
+            send_msg.send_wapp_image(phone_number_id, from_number, "Fala moço 😒")
             for resposta in respostas:
                 function_name = resposta.function.name
                 function_args = json.loads(resposta.function.arguments)
@@ -200,10 +206,10 @@ def answer_question(
         print('Erro no método completions: ', e)
         return ""
 
-def responde_emb(pergunta, dados, threads, data_atual, hora_atual):
+def responde_emb(pergunta, dados, threads, data_atual, hora_atual, phone_number_id, from_number):
     df = pd.DataFrame(dados)
     df['embeddings'] = df['embeddings'].apply(np.array)
-    resposta = answer_question(df, data_atual, hora_atual, question=pergunta, lista_threads=threads)
+    resposta = answer_question(df, data_atual, hora_atual, phone_number_id, from_number, question=pergunta, lista_threads=threads, )
     global first_item
     return resposta, first_item
 
