@@ -556,13 +556,18 @@ def get_last_checkin_details():
     last_checkin = Checkin.query.order_by(Checkin.id.desc()).first()
 
     if last_checkin:
+        # Criando o dicionário 'response' diretamente dos atributos do objeto 'last_checkin'
         response = {
             "id": last_checkin.id,
             "direction": last_checkin.direction,
             "checkin": last_checkin.checkin,
             "data": last_checkin.data
         }
-        return {"message": "success", "last_checkin": json.dumps(response)}
+
+        # Criando o texto plano diretamente
+        texto_plano = f"Check-in: {last_checkin.checkin}\nData: {last_checkin.data}\nDireção: {last_checkin.direction}\nID do check-in: {last_checkin.id}"
+
+        return {"message": "success", "texto_plano": texto_plano}
     else:
         return {"message": "No checkins found."}
 
