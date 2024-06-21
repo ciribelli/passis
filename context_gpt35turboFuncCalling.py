@@ -103,14 +103,6 @@ def answer_question(
             "function": {
                 "name": "ultimo_Checkin",
                 "description": "função para buscar detalhes do último checkin realizado pelo usuário no banco de dados. Atributos como tipo de checkin, hora, e direction podem ser o objetivo do usuário. Quando o usuário perguntar 'qual foi o meu último checkin?', ou 'a que horas foi meu ultimo checkin?', essa é a função a ser chamada",
-                "parameters": {},
-            },
-        },
-        {
-            "type": "function",
-            "function": {
-                "name": "apagar_Ultimo_Checkin",
-                "description": "função para apagar o último checkin.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -156,7 +148,6 @@ def answer_question(
                 print(f"Erro de decodificação JSON: {e}")
 
         messages.append({"role": "user", "content": question})
-        print('#02 Resposta para debug ----------------------------- \n\n')
         print("mensagens: \n", messages)
 
         completion = client.chat.completions.create(
@@ -198,12 +189,9 @@ def answer_question(
                     print("\nSaida para busca_Checkin:\n", function_output, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
                 if function_name == 'ultimo_Checkin':
                     function_output = app.get_last_checkin_details()
+                    id = function_args.get("id")
+                    print("<<<<<<<<<<<<<<<<<<<<< " + id + " >>>>>>>>>>>>>>>>>>>>>")
                     print("\nSaida para ultimo_Checkin:\n", function_output)
-                if function_name == 'apagar_ultimo_Checkin':
-                    #function_output = app.get_last_checkin_details(function_args.get("id"))
-                    print (function_args.get("id"))
-                    function_output = "agora eu sei que tenho que apagar alguma coisa"
-                    print("\nSaida para apagar_ultimo_Checkin:\n", function_output)
                 messages.append(
                     {
                         "tool_call_id": resposta.id,
