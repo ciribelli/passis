@@ -103,16 +103,6 @@ def answer_question(
             "function": {
                 "name": "ultimo_Checkin",
                 "description": "função para buscar detalhes do último checkin realizado pelo usuário no banco de dados. Atributos como tipo de checkin, hora, e direction podem ser o objetivo do usuário. Quando o usuário perguntar 'qual foi o meu último checkin?', ou 'a que horas foi meu ultimo checkin?', essa é a função a ser chamada",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "id": {
-                            "type": "integer",
-                            "description": "o id do checkin é um número inteiro que corresponte ao último checkin a ser apagado",
-                        }
-                    },
-                    "required": ["id"],
-                },
             },
         },
         {
@@ -189,8 +179,6 @@ def answer_question(
                     print("\nSaida para busca_Checkin:\n", function_output, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
                 if function_name == 'ultimo_Checkin':
                     function_output = app.get_last_checkin_details()
-                    id = function_args.get("id")
-                    print("<<<<<<<<<<<<<<<<<<<<< " + str(id) + " >>>>>>>>>>>>>>>>>>>>>")
                     print("\nSaida para ultimo_Checkin:\n", function_output)
                 messages.append(
                     {
@@ -201,7 +189,8 @@ def answer_question(
                     })
 
             second_response = client.chat.completions.create(
-                model="gpt-3.5-turbo-1106",
+                #model="gpt-3.5-turbo-1106",
+                model="gpt-4o",
                 messages=messages
             )
 
