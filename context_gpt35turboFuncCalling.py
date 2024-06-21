@@ -190,7 +190,7 @@ def answer_question(
                 if function_name == 'ultimo_Checkin':
                     function_output = app.get_last_checkin_details()
                     id = function_args.get("id")
-                    print("<<<<<<<<<<<<<<<<<<<<< " + id + " >>>>>>>>>>>>>>>>>>>>>")
+                    print("<<<<<<<<<<<<<<<<<<<<< " + str(id) + " >>>>>>>>>>>>>>>>>>>>>")
                     print("\nSaida para ultimo_Checkin:\n", function_output)
                 messages.append(
                     {
