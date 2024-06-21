@@ -576,6 +576,7 @@ def delete_checkin_by_id(checkin_id):
     else:
         return {"message": f"Checkin with ID {checkin_id} not found."}
 
+def busca_localizacao(data):
 
 def plota_grafico(checkin_type, color):
     # Dados fictícios para simular check-ins
@@ -641,6 +642,8 @@ def plota_grafico(checkin_type, color):
     response = requests.post(url, data=payload, files=files)
     print('Imagem gravada nas nuvens!')
     return full_path
+
+
 
 
 

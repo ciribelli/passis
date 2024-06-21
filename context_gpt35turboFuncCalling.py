@@ -98,14 +98,14 @@ def answer_question(
                 },
             },
         },
-        # {
-        #     "type": "function",
-        #     "function": {
-        #         "name": "detalhes_Ultimo_Checkin",
-        #         "description": "função para buscar detalhes do último checkin realizado pelo usuário no banco de dados",
-        #         "parameters": {},
-        #     },
-        # },
+        {
+            "type": "function",
+            "function": {
+                "name": "ultimo_Checkin",
+                "description": "função para buscar detalhes do último checkin realizado pelo usuário no banco de dados. Atributos como tipo de checkin, hora, e direction podem ser o objetivo do usuário. Quando o usuário perguntar 'qual foi o meu último checkin?', ou 'a que horas foi meu ultimo checkin?', essa é a função a ser chamada",
+                "parameters": {},
+            },
+        },
         {
             "type": "function",
             "function": {
@@ -179,9 +179,9 @@ def answer_question(
                     # convertendo json para dataframe e dataframe into text para melhor expericia com LLM
                     function_output = df_result_from_json.to_string(index=False)
                     print("\nSaida para busca_Checkin:\n", function_output, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
-                if function_name == 'detalhes_Ultimo_Checkin':
+                if function_name == 'ultimo_Checkin':
                     function_output = app.get_last_checkin_details()
-                    print("\nSaida para detalhes_Ultimo_Checkin:\n", function_output)
+                    print("\nSaida para ultimo_Checkin:\n", function_output)
                 messages.append(
                     {
                         "tool_call_id": resposta.id,

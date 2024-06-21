@@ -109,4 +109,5 @@ def chatflow(entry):
                 print("Erro ao enviar mensagem:", str(e))
 
         else:
+            # enviar mensagem aqui
             print("Nem button_reply.id nem msg_body presentes.")
