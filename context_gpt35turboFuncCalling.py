@@ -109,6 +109,23 @@ def answer_question(
         {
             "type": "function",
             "function": {
+                "name": "apagar_Ultimo_Checkin",
+                "description": "função para apagar o último checkin.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "integer",
+                            "description": "o id do checkin é um número inteiro que corresponte ao último checkin a ser apagado",
+                        }
+                    },
+                    "required": ["id"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
                 "name": "busca_Clima",
                 "description": "Busca informações em tempo real para o clima da cidade do Rio de Janeiro. Informações como temperatura, precipitação, ventos, dentre outras. Não demanda parâmetros de entrada.",
                 "parameters": {},
@@ -182,6 +199,10 @@ def answer_question(
                 if function_name == 'ultimo_Checkin':
                     function_output = app.get_last_checkin_details()
                     print("\nSaida para ultimo_Checkin:\n", function_output)
+                if function_name == 'apagar_ultimo_Checkin':
+                    #function_output = app.get_last_checkin_details(function_args.get("id"))
+                    function_output = "vamos apagar o checkin " + str(function_args.get("id"))
+                    print("\nSaida para apagar_ultimo_Checkin:\n", function_output)
                 messages.append(
                     {
                         "tool_call_id": resposta.id,
