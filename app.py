@@ -567,7 +567,7 @@ def get_last_checkin_details():
         # Criando o texto plano diretamente
         texto_plano = f"Check-in: {last_checkin.checkin}\nData: {last_checkin.data}\nDireção: {last_checkin.direction}\nID do check-in: {last_checkin.id}"
 
-        return {"message": "success", "texto_plano": texto_plano}
+        return texto_plano
     else:
         return {"message": "No checkins found."}
 
