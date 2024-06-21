@@ -201,7 +201,8 @@ def answer_question(
                     print("\nSaida para ultimo_Checkin:\n", function_output)
                 if function_name == 'apagar_ultimo_Checkin':
                     #function_output = app.get_last_checkin_details(function_args.get("id"))
-                    function_output = "vamos apagar o checkin " + str(function_args.get("id"))
+                    print (function_args.get("id"))
+                    function_output = "agora eu sei que tenho que apagar alguma coisa"
                     print("\nSaida para apagar_ultimo_Checkin:\n", function_output)
                 messages.append(
                     {
