@@ -95,7 +95,7 @@ def chatflow(entry):
             # envia a mensagem de retorno para o whatsapp
             try:
                 if (tipo_pergunta):
-                    send_msg.send_wapp_image(phone_number_id, from_number, "Aqui será o texto da pergunta")
+                    send_msg.send_wapp_question(phone_number_id, from_number, "Aqui será o texto da pergunta")
                 else:
                     # envia a resposta texto openAI
                     send_msg.send_wapp_msg(phone_number_id, from_number, coletor)

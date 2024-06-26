@@ -30,7 +30,7 @@ def send_wapp_question(phone_number_id, from_number, coletor):
             },
             "type": "button",
             "body": {
-                "text": "Dificuldade de acordar, sendo 1 muito fácil, 2 indiferente e 3 difícil:"
+                "text": "Deseja salvar essas informações?"
             },
             "footer": {  # optional
                 "text": ""
@@ -41,21 +41,14 @@ def send_wapp_question(phone_number_id, from_number, coletor):
                         "type": "reply",
                         "reply": {
                             "id": "0",
-                            "title": "1"
+                            "title": "Sim"
                         }
                     },
                     {
                         "type": "reply",
                         "reply": {
                             "id": "1",
-                            "title": "2"
-                        }
-                    },
-                    {
-                        "type": "reply",
-                        "reply": {
-                            "id": "2",
-                            "title": "3"
+                            "title": "Cancelar"
                         }
                     }
                 ]

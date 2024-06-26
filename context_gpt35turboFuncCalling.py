@@ -126,7 +126,7 @@ def answer_question(
     messages = [
         {
             "role": "system",
-            "content": "Você é meu assistente pessoal. Receba abaixo minhas informações pessoais:" + "\n" + context + "Saiba que hoje é " + data_atual + " e agora são " + hora_atual + "\n" + "Importante: quando for solicitado a registrar uma informação/lembrete: inicie sua resposta com o emoji 📝"
+            "content": "Você é meu assistente pessoal. Receba abaixo minhas informações pessoais:" + "\n" + context + "Saiba que hoje é " + data_atual + " e agora são " + hora_atual + "\n"
         }
     ]
 
