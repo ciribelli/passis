@@ -54,7 +54,7 @@ def answer_question(
     max_len=800,
     size="ada",
     debug=True,
-
+    eh_pergunta=False,
 ):
 
     context = create_context(question, df, max_len=max_len, size=size,)
@@ -121,6 +121,14 @@ def answer_question(
                 "parameters": {},
             },
         },
+        {
+            "type": "function",
+            "function": {
+                "name": "registra_Memoria",
+                "description": "Essa função simplesmente entende quando o usuário quer salvar uma informação qualquer na memória eterna.",
+                "parameters": {},
+            },
+        },
     ]
 
     messages = [
@@ -180,6 +188,9 @@ def answer_question(
                 if function_name == 'ultimo_Checkin':
                     function_output = app.get_last_checkin_details()
                     print("\nSaida para ultimo_Checkin:\n", function_output)
+                if function_name == 'registra_Memoria':
+
+                    print("\nSaida para ultimo_Checkin:\n", function_output)
                 messages.append(
                     {
                         "tool_call_id": resposta.id,
@@ -195,11 +206,11 @@ def answer_question(
 
             print('\n\n\n **_dentro do if que chama funcao_** \n\n\n')
             print("mensagens: \n", messages)
-            return second_response.choices[0].message.content.strip()
+            return second_response.choices[0].message.content.strip(), eh_pergunta
         else:
             print('\n\n\n **_fora do if que chama funcao_** \n\n\n')
             print("mensagens: \n", messages)
-            return completion.choices[0].message.content.strip()
+            return completion.choices[0].message.content.strip(), eh_pergunta
 
     except Exception as e:
         print('Erro no método completions: ', e)
@@ -209,7 +220,8 @@ def answer_question(
 def responde_emb(pergunta, dados, threads, data_atual, hora_atual, phone_number_id, from_number):
     df = pd.DataFrame(dados)
     df['embeddings'] = df['embeddings'].apply(np.array)
-    resposta = answer_question(df, data_atual, hora_atual, phone_number_id, from_number, question=pergunta, lista_threads=threads, )
+    resposta, tipo = answer_question(df, data_atual, hora_atual, phone_number_id, from_number, question=pergunta, lista_threads=threads, )
+    print('------------------>>>>>>>>>>>>>>>>>>>>>>>>>', tipo)
     global first_item
     return resposta, first_item
 
