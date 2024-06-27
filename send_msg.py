@@ -13,7 +13,7 @@ def send_wapp_msg(phone_number_id, from_number, coletor):
     headers = {"Content-Type": "application/json"}
     response = requests.post(fb_url, json=payload, headers=headers)
 
-    print(response.text)
+
 
 def send_wapp_question(phone_number_id, from_number, coletor):
     wapp_token = os.getenv('WHATSAPP_TOKEN')
@@ -26,7 +26,7 @@ def send_wapp_question(phone_number_id, from_number, coletor):
         "interactive": {
             "header": {
                 "type": "text",
-                "text": "📝"
+                "text": "Registro em memória 📝"
             },
             "type": "button",
             "body": {
@@ -57,8 +57,6 @@ def send_wapp_question(phone_number_id, from_number, coletor):
     }
     headers = {"Content-Type": "application/json"}
     response = requests.post(fb_url, json=payload, headers=headers)
-
-    print(response.text)
 
 def send_wapp_image(phone_number_id, from_number, coletor, endpoint):
     wapp_token = os.getenv('WHATSAPP_TOKEN')

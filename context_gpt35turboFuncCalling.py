@@ -190,7 +190,7 @@ def answer_question(
                     print("\nSaida para ultimo_Checkin:\n", function_output)
                 if function_name == 'registra_Memoria':
                     eh_pergunta = True
-                    function_output = "pergunte ao usuário se ele quer salvar essas informações. Apresente as informações que ele pediu e confirme se ele quer mesmo."
+                    function_output = question
                     print("\nSaida para registra_Memoria, pois isso claramente é um pedido para salvar na memória:\n", function_output)
                 messages.append(
                     {
