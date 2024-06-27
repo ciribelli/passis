@@ -224,5 +224,5 @@ def responde_emb(pergunta, dados, threads, data_atual, hora_atual, phone_number_
     resposta, tipo = answer_question(df, data_atual, hora_atual, phone_number_id, from_number, question=pergunta, lista_threads=threads, )
     print('------------------>>>>>>>>>>>>>>>>>>>>>>>>>', tipo)
     global first_item
-    return resposta, first_item
+    return resposta, first_item, tipo
 

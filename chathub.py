@@ -85,7 +85,7 @@ def chatflow(entry):
                 ##### avalia se a mensagem nao eh feedback dos recursos de automacao #####
                 if not "✅" in content.lower():
                     # envia mensagem para API openAI
-                    coletor, link = app.fazer_perguntas(content, data_atual, hora_atual, phone_number_id, from_number)
+                    coletor, link, tipo_pergunta = app.fazer_perguntas(content, data_atual, hora_atual, phone_number_id, from_number)
                     # registra mensagem de usuario na memoria
                     input_data = '{"role": "user", "content":"' + content.replace('"', ' ') + '"}'
                     app.salvar_thread(input_data)
