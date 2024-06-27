@@ -189,8 +189,8 @@ def answer_question(
                     function_output = app.get_last_checkin_details()
                     print("\nSaida para ultimo_Checkin:\n", function_output)
                 if function_name == 'registra_Memoria':
-
-                    print("\nSaida para ultimo_Checkin:\n", function_output)
+                    eh_pergunta = True
+                    print("\nSaida para registra_Memoria, pois isso claramente é um pedido para salvar na memória:\n", function_output)
                 messages.append(
                     {
                         "tool_call_id": resposta.id,
