@@ -26,11 +26,11 @@ def send_wapp_question(phone_number_id, from_number, coletor):
         "interactive": {
             "header": {
                 "type": "text",
-                "text": coletor
+                "text": "📝"
             },
             "type": "button",
             "body": {
-                "text": "Deseja salvar essas informações?"
+                "text": coletor
             },
             "footer": {  # optional
                 "text": ""
