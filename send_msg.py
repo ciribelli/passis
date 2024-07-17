@@ -2,6 +2,9 @@
 import requests
 import os
 
+import context_gpt35turboFuncCalling
+
+
 def send_wapp_msg(phone_number_id, from_number, coletor):
     wapp_token = os.getenv('WHATSAPP_TOKEN')
     fb_url = f"https://graph.facebook.com/v17.0/{phone_number_id}/messages?access_token={wapp_token}"
@@ -120,6 +123,9 @@ def download_media(url):
         file_path = f"arquivo.{file_extension}"
         with open(file_path, "wb") as file:
             file.write(response.content)
+        # provisorio -----------------------------------
+        context_gpt35turboFuncCalling.audio_transcription()
+
         print(f"Arquivo salvo com sucesso como {file_path}!")
         return file_path  # Retorna o caminho do arquivo salvo
     else:
