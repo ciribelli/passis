@@ -234,4 +234,5 @@ def audio_transcription():
         model="whisper-1",
         file=audio_file
     )
+    return (transcription.text)
     print(transcription.text)

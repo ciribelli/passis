@@ -123,9 +123,6 @@ def download_media(url):
         file_path = f"arquivo.{file_extension}"
         with open(file_path, "wb") as file:
             file.write(response.content)
-        # provisorio -----------------------------------
-        context_gpt35turboFuncCalling.audio_transcription()
-
         print(f"Arquivo salvo com sucesso como {file_path}!")
         return file_path  # Retorna o caminho do arquivo salvo
     else:

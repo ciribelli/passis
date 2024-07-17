@@ -1,3 +1,4 @@
+import context_gpt35turboFuncCalling
 import main
 import send_msg
 import requests
@@ -116,6 +117,8 @@ def chatflow(entry):
             media_url_response = send_msg.get_url_wapp_media(id)
             print(media_url_response, ' <--------------------- url da mídia')
             send_msg.download_media(media_url_response)
+            transcricao = context_gpt35turboFuncCalling.audio_transcription()
+            send_msg.send_wapp_msg(phone_number_id, from_number, transcricao)
 
 
 
