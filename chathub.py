@@ -112,17 +112,28 @@ def chatflow(entry):
         else:
             # arquivos de mídia tratados aqui
             print("Nem button_reply.id nem msg_body presentes.")
-            # passo 1: recuperar 'tipo' e 'id' da mídia
-            # assumindo que serão somente audios nesse momento
-            id = entry['changes'][0]['value']['messages'][0]['audio']['id']
-
-            # para audio transcript
-            send_msg.send_wapp_msg(phone_number_id, from_number, "👂 _transcrevendo_ 🖋")
-            media_url_response = send_msg.get_url_wapp_media(id)
-            print(media_url_response, ' <--------------------- url da mídia')
-            send_msg.download_media(media_url_response)
-            transcricao = context_gpt35turboFuncCalling.audio_transcription()
-            send_msg.send_wapp_msg(phone_number_id, from_number, transcricao)
+            try:
+                # passo 1: verificar e recuperar 'tipo' e 'id' da mídia
+                media_type = entry['changes'][0]['value']['messages'][0]['type']
+                if media_type == 'audio':
+                    # Recuperar o ID do áudio
+                    audio_id = entry['changes'][0]['value']['messages'][0]['audio']['id']
+                    # Enviar mensagem de transcrição em andamento
+                    send_msg.send_wapp_msg(phone_number_id, from_number, "👂 _transcrevendo_ 🖋")
+                    # Obter URL da mídia
+                    media_url_response = send_msg.get_url_wapp_media(audio_id)
+                    # Baixar a mídia
+                    send_msg.download_media(media_url_response)
+                    # Realizar a transcrição do áudio
+                    transcricao = context_gpt35turboFuncCalling.audio_transcription()
+                    # Enviar a transcrição de volta ao usuário
+                    send_msg.send_wapp_msg(phone_number_id, from_number, transcricao)
+                else:
+                    print(f"Tipo de mídia não suportado: {media_type}")
+                    send_msg.send_wapp_msg(phone_number_id, from_number, "Tipo de mídia não suportado. Por favor, envie um áudio.")
+            except KeyError as e:
+                print(f"Erro ao processar a mensagem: {e}")
+                send_msg.send_wapp_msg(phone_number_id, from_number, "Erro ao processar a mensagem. Por favor, tente novamente.")
 
 
 
