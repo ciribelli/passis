@@ -285,7 +285,7 @@ def obter_cidade_atual_e_clima(data_inicio=None, data_fim=None):
     for clima in climas:
         clima_dict = {
             'id': clima.id,
-            'data': clima.data,
+            'data': str(clima.data),
             'umidade': clima.umidade,
             'temperatura': clima.temperatura,
             'probabilidade': clima.probabilidade,
