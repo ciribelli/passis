@@ -101,8 +101,8 @@ def answer_question(
         {
             "type": "function",
             "function": {
-                "name": "obter_climas",
-                "description": "Busca informações sobre minha localização atual (cidade) e o clima desta região (temperatura, vento, umidade, probabilidade de chuva) num intervalo de tempo compreendido entre uma data específica e a data atual.",
+                "name": "obter_cidade_atual_e_clima",
+                "description": "Busca informações sobre minha localização (em qual cidade estou) e o clima desta região (temperatura, vento, umidade, probabilidade de chuva) num intervalo de tempo compreendido entre uma data específica e a data atual.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -195,9 +195,9 @@ def answer_question(
                     token = os.getenv('token_X')
                     function_output, datajson = main.busca_X("operacoesrio", token)
                     print("\nSaida para busca_Cidade:\n", function_output)
-                if function_name == 'obter_climas':
-                    function_output = app.obter_climas(function_args.get("date"), data_atual)
-                    print("\nSaida para obter_climas:\n", function_output)
+                if function_name == 'obter_cidade_atual_e_clima':
+                    function_output = app.obter_cidade_atual_e_clima(function_args.get("date"), data_atual)
+                    print("\nSaida para obter_cidade_atual_e_clima:\n", function_output)
                 if function_name == 'busca_Checkin':
                     text_output, datajson = app.get_checkins_by_date(function_args.get("date"), data_atual)
                     #converter json para dataframe

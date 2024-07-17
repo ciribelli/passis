@@ -265,7 +265,7 @@ def deletar_clima(clima_id):
         return {"message": f"Registro de clima {clima_id} não encontrado."}, 404
 
 # para ser utilizado pelas functions:
-def obter_climas(data_inicio=None, data_fim=None):
+def obter_cidade_atual_e_clima(data_inicio=None, data_fim=None):
     query = Clima.query
 
     # Aplica filtros de data se especificados
