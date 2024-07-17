@@ -113,7 +113,11 @@ def chatflow(entry):
             # arquivos de mídia tratados aqui
             print("Nem button_reply.id nem msg_body presentes.")
             # passo 1: recuperar 'tipo' e 'id' da mídia
+            # assumindo que serão somente audios nesse momento
             id = entry['changes'][0]['value']['messages'][0]['audio']['id']
+
+            # para audio transcript
+            send_msg.send_wapp_msg(phone_number_id, from_number, "👂 _transcrevendo_ 🖋")
             media_url_response = send_msg.get_url_wapp_media(id)
             print(media_url_response, ' <--------------------- url da mídia')
             send_msg.download_media(media_url_response)
