@@ -96,3 +96,30 @@ def get_url_wapp_media(id):
         return response_data.get('url')
     else:
         response.raise_for_status()
+
+def download_media(url):
+    wapp_token = os.getenv('WHATSAPP_TOKEN')
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {wapp_token}"
+    }
+    response = requests.get(url, headers=headers)
+
+    # Verificando se a requisição foi bem-sucedida
+    if response.status_code == 200:
+        # Detecta o tipo de conteúdo (imagem, áudio, etc.) da resposta
+        content_type = response.headers['Content-Type']
+        if 'image' in content_type:
+            file_extension = 'jpg'
+        elif 'audio' in content_type:
+            file_extension = 'mp3'
+        else:
+            file_extension = 'bin'
+
+        # Salvando o conteúdo do arquivo em um arquivo local
+        with open(f"arquivo.{file_extension}", "wb") as file:
+            file.write(response.content)
+        print(f"Arquivo salvo com sucesso como arquivo.{file_extension}!")
+    else:
+        print(f"Falha ao baixar o arquivo. Status code: {response.status_code}")
+        print("Resposta do servidor:", response.text)
