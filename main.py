@@ -143,14 +143,14 @@ def busca_X(perfil, token):
     saida = ""
     print(results, "~~~~~~~~~~~~~~")
     # Extract information from each tweet and store it in the dictionary
-    for tweet in results['organic_results']['tweets']:
+    for result in results['organic_results']:
         tweet_info = {
-            'link': tweet['link'],
-            'snippet': tweet['snippet'],
-            'published_date': tweet['published_date']
+            'link': result['link'],
+            'snippet': result.get('snippet', ''),
+            'published_date': result.get('date', '')  # Use 'date' instead of 'published_date' if available
         }
-        saida = saida + "✖️ " + tweet["snippet"] + ' ⏰ ' +  tweet["published_date"] + '\n'
-        twitter_results_dict[tweet['link']] = tweet_info
+        saida = f"✖️ {result['snippet']} ⏰ {result.get('date', '')}\n"
+        twitter_results_dict[result['link']] = tweet_info
 
     # fazer o dump da variavel abaixo para colocar na API fora do HUB (caso se deseje gravar em db)
     twitter_results_dict 
