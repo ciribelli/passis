@@ -84,8 +84,8 @@ def answer_question(
         {
             "type": "function",
             "function": {
-                "name": "busca_Checkin",
-                "description": "Busca uma lista de checkins num intervalo compreendido entre uma data específica e a data atual. Checkins podem ser compromissos quaisquer tais como, hora que acorda, hora que bebe água, hora que foi à academia, hora que chegou ao trabalho ou algum lugar. O atributo direction descreve se alguém está entrando ou saindo do checkin (in ou out). Por exemplo, checkin 'awake' direction 'out' quer dizer 'dormir'",
+                "name": "obter_cidade_atual_e_clima",
+                "description": "Busca informações sobre minha localização (em qual cidade estou) e o clima desta região (temperatura, vento, umidade, probabilidade de chuva) num intervalo de tempo compreendido entre uma data específica e a data atual.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -101,8 +101,8 @@ def answer_question(
         {
             "type": "function",
             "function": {
-                "name": "obter_cidade_atual_e_clima",
-                "description": "Busca informações sobre minha localização (em qual cidade estou) e o clima desta região (temperatura, vento, umidade, probabilidade de chuva) num intervalo de tempo compreendido entre uma data específica e a data atual.",
+                "name": "busca_Checkin",
+                "description": "Busca uma lista de checkins num intervalo compreendido entre uma data específica e a data atual. Checkins podem ser compromissos quaisquer tais como, hora que acorda, hora que bebe água, hora que foi à academia, hora que chegou ao trabalho ou algum lugar. O atributo direction descreve se alguém está entrando ou saindo do checkin (in ou out). Por exemplo, checkin 'awake' direction 'out' quer dizer 'dormir'. Checkins NÃO trazem informação sobre minha localização",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -197,7 +197,7 @@ def answer_question(
                     print("\nSaida para busca_Cidade:\n", function_output)
                 if function_name == 'obter_cidade_atual_e_clima':
                     function_output = app.obter_cidade_atual_e_clima(function_args.get("date"), data_atual)
-                    print("\nSaida para obter_cidade_atual_e_clima:\n", function_output)
+                    print("\nSaida para obter_cidade_atual_e_clima:\n", function_output, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
                 if function_name == 'busca_Checkin':
                     text_output, datajson = app.get_checkins_by_date(function_args.get("date"), data_atual)
                     #converter json para dataframe
@@ -238,13 +238,6 @@ def answer_question(
         send_msg.send_wapp_msg(phone_number_id, from_number, "Aconteceu algo errado 🫤")
         return ""
 
-def responde_emb(pergunta, dados, threads, data_atual, hora_atual, phone_number_id, from_number):
-    df = pd.DataFrame(dados)
-    df['embeddings'] = df['embeddings'].apply(np.array)
-    resposta, tipo = answer_question(df, data_atual, hora_atual, phone_number_id, from_number, question=pergunta, lista_threads=threads, )
-    print('------------------>>>>>>>>>>>>>>>>>>>>>>>>>', tipo)
-    global first_item
-    return resposta, first_item, tipo
 
 def audio_transcription():
 
@@ -256,3 +249,11 @@ def audio_transcription():
     )
     return (transcription.text)
     print(transcription.text)
+
+def responde_emb(pergunta, dados, threads, data_atual, hora_atual, phone_number_id, from_number):
+    df = pd.DataFrame(dados)
+    df['embeddings'] = df['embeddings'].apply(np.array)
+    resposta, tipo = answer_question(df, data_atual, hora_atual, phone_number_id, from_number, question=pergunta, lista_threads=threads, )
+    print('------------------>>>>>>>>>>>>>>>>>>>>>>>>>', tipo)
+    global first_item
+    return resposta, first_item, tipo
