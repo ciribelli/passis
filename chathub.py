@@ -112,8 +112,9 @@ def chatflow(entry):
             # arquivos de mídia tratados aqui
             print("Nem button_reply.id nem msg_body presentes.")
             # passo 1: recuperar 'tipo' e 'id' da mídia
-            media_url_response = send_msg.get_url_wapp_media(1255830635389169)
-            print(media_url_response, ' <<<<<<<<--------------------- url da mídia')
+            id = entry['entry'][0]['changes'][0]['value']['messages'][0]['audio']['id']
+            media_url_response = send_msg.get_url_wapp_media(id)
+            print(media_url_response, ' <--------------------- url da mídia')
 
             # # Verificando se a requisição foi bem-sucedida
             # if media_url_response.status_code == 200:
