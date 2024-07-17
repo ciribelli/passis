@@ -101,6 +101,23 @@ def answer_question(
         {
             "type": "function",
             "function": {
+                "name": "obter_climas",
+                "description": "Busca informações sobre minha localização atual (cidade) e o clima desta região (temperatura, vento, umidade, probabilidade de chuva) num intervalo de tempo compreendido entre uma data específica e a data atual.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "date": {
+                            "type": "string",
+                            "description": "A data de início da janela do intervalo deve ser informada no formato dd-mm-yyyy",
+                        }
+                    },
+                    "required": ["date"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
                 "name": "ultimo_Checkin",
                 "description": "função para buscar detalhes do último checkin realizado pelo usuário no banco de dados. Atributos como tipo de checkin, hora, e direction podem ser o objetivo do usuário. Quando o usuário perguntar 'qual foi o meu último checkin?', ou 'a que horas foi meu ultimo checkin?', essa é a função a ser chamada",
             },
@@ -109,7 +126,7 @@ def answer_question(
             "type": "function",
             "function": {
                 "name": "busca_Clima",
-                "description": "Busca informações em tempo real para o clima da cidade do Rio de Janeiro. Informações como temperatura, precipitação, ventos, dentre outras. Não demanda parâmetros de entrada.",
+                "description": "Busca informações em tempo real para o clima da especificamente para a cidade do Rio de Janeiro. Informações como temperatura, precipitação, ventos, dentre outras. Não demanda parâmetros de entrada.",
                 "parameters": {},
             },
         },
@@ -178,6 +195,9 @@ def answer_question(
                     token = os.getenv('token_X')
                     function_output, datajson = main.busca_X("operacoesrio", token)
                     print("\nSaida para busca_Cidade:\n", function_output)
+                if function_name == 'obter_climas':
+                    function_output = app.obter_climas(function_args.get("date"), data_atual)
+                    print("\nSaida para obter_climas:\n", function_output)
                 if function_name == 'busca_Checkin':
                     text_output, datajson = app.get_checkins_by_date(function_args.get("date"), data_atual)
                     #converter json para dataframe

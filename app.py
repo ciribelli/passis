@@ -264,6 +264,38 @@ def deletar_clima(clima_id):
     else:
         return {"message": f"Registro de clima {clima_id} não encontrado."}, 404
 
+# para ser utilizado pelas functions:
+def obter_climas(data_inicio=None, data_fim=None):
+    query = Clima.query
+
+    # Aplica filtros de data se especificados
+    if data_inicio and data_fim:
+        data_fim = data_fim + timedelta(days=1)  # Ajusta para incluir até o final do dia
+        query = query.filter(Clima.data.between(data_inicio, data_fim))
+    elif data_inicio:
+        query = query.filter(Clima.data >= data_inicio)
+    elif data_fim:
+        query = query.filter(Clima.data <= data_fim)
+
+    # Executa a consulta
+    climas = query.all()
+
+    # Transforma os resultados em lista de dicionários
+    clima_lista = []
+    for clima in climas:
+        clima_dict = {
+            'id': clima.id,
+            'data': clima.data,
+            'umidade': clima.umidade,
+            'temperatura': clima.temperatura,
+            'probabilidade': clima.probabilidade,
+            'velvento': clima.velvento,
+            'condicao': clima.condicao,
+            'cidade': clima.cidade
+        }
+        clima_lista.append(clima_dict)
+
+    return {"message": "success", "climas": clima_lista}
 
 if __name__ == '__main__':
     app.run(debug=True)
