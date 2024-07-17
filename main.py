@@ -141,6 +141,7 @@ def busca_X(perfil, token):
     # # Create an empty dictionary to store the Twitter results
     twitter_results_dict = {}
     saida = ""
+    print(results, "~~~~~~~~~~~~~~")
     # Extract information from each tweet and store it in the dictionary
     for tweet in results['twitter_results']['tweets']:
         tweet_info = {
