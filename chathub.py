@@ -109,5 +109,28 @@ def chatflow(entry):
                 print("Erro ao enviar mensagem:", str(e))
 
         else:
-            # enviar mensagem aqui
+            # arquivos de mídia tratados aqui
             print("Nem button_reply.id nem msg_body presentes.")
+            # passo 1: recuperar 'tipo' e 'id' da mídia
+            media_url_response = send_msg.get_url_wapp_media(1255830635389169)
+            print(media_url_response.text)
+            # Verificando se a requisição foi bem-sucedida
+            if media_url_response.status_code == 200:
+                # Detecta o tipo de conteúdo (imagem, áudio, etc.) da resposta
+                content_type = media_url_response.headers['Content-Type']
+                if 'image' in content_type:
+                    file_extension = 'jpg'
+                elif 'audio' in content_type:
+                    file_extension = 'mp3'
+                else:
+                    file_extension = 'bin'
+
+                # Salvando o conteúdo do arquivo em um arquivo local
+                with open(f"arquivo.{file_extension}", "wb") as file:
+                    file.write(media_url_response.content)
+                print(f"Arquivo salvo com sucesso como arquivo.{file_extension}!")
+            else:
+                print(f"Falha ao baixar o arquivo. Status code: {media_url_response.status_code}")
+                print("Resposta do servidor:", media_url_response.text)
+
+
