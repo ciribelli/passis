@@ -81,13 +81,18 @@ def send_wapp_image(phone_number_id, from_number, coletor, endpoint):
     response = requests.post(fb_url, json=payload, headers=headers)
     print(response.text)
 
+
 def get_url_wapp_media(id):
     wapp_token = os.getenv('WHATSAPP_TOKEN')
     fb_url = f"https://graph.facebook.com/v17.0/{id}"
-    payload = {}
     headers = {
-    "Content-Type": "application/json",
-    "Authorization": f"Bearer {wapp_token}"
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {wapp_token}"
     }
-    response = requests.request("GET", fb_url, headers=headers, data=payload)
-    print(response.text)
+    response = requests.get(fb_url, headers=headers)
+
+    if response.status_code == 200:
+        response_data = response.json()
+        return response_data.get('url')
+    else:
+        response.raise_for_status()
