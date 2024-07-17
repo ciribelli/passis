@@ -117,9 +117,12 @@ def download_media(url):
             file_extension = 'bin'
 
         # Salvando o conteúdo do arquivo em um arquivo local
-        with open(f"arquivo.{file_extension}", "wb") as file:
+        file_path = f"arquivo.{file_extension}"
+        with open(file_path, "wb") as file:
             file.write(response.content)
-        print(f"Arquivo salvo com sucesso como arquivo.{file_extension}!")
+        print(f"Arquivo salvo com sucesso como {file_path}!")
+        return file_path  # Retorna o caminho do arquivo salvo
     else:
         print(f"Falha ao baixar o arquivo. Status code: {response.status_code}")
         print("Resposta do servidor:", response.text)
+        return None
