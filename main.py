@@ -143,7 +143,7 @@ def busca_X(perfil, token):
     saida = ""
     print(results, "~~~~~~~~~~~~~~")
     # Extract information from each tweet and store it in the dictionary
-    for tweet in results['twitter_results']['tweets']:
+    for tweet in results['organic_results']['tweets']:
         tweet_info = {
             'link': tweet['link'],
             'snippet': tweet['snippet'],
