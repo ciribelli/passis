@@ -79,7 +79,6 @@ def send_wapp_image(phone_number_id, from_number, coletor, endpoint):
     }
     headers = {"Content-Type": "application/json"}
     response = requests.post(fb_url, json=payload, headers=headers)
-
     print(response.text)
 
 def get_url_wapp_media(id):
@@ -90,4 +89,5 @@ def get_url_wapp_media(id):
     "Content-Type": "application/json",
     "Authorization": f"Bearer {wapp_token}"
     }
-    response = requests.post(fb_url, json=payload, headers=headers)
+    response = requests.request("GET", fb_url, headers=headers, data=payload)
+    print(response.text)
