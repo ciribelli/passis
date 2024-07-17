@@ -236,7 +236,7 @@ def answer_question(
     except Exception as e:
         print('Erro no método completions: ', e)
         send_msg.send_wapp_msg(phone_number_id, from_number, "Aconteceu algo errado 🫤")
-        return ""
+        return "", eh_pergunta
 
 
 def audio_transcription():
