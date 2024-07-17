@@ -196,6 +196,9 @@ def answer_question(
                     function_output, datajson = main.busca_X("operacoesrio", token)
                     print("\nSaida para busca_Cidade:\n", function_output)
                 if function_name == 'obter_cidade_atual_e_clima':
+                    print('estou na função obter cidade e clima')
+                    print('data alvo:')
+                    print(function_args.get("date"))
                     function_output = app.obter_cidade_atual_e_clima(function_args.get("date"), data_atual)
                     print("\nSaida para obter_cidade_atual_e_clima:\n", function_output, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
                 if function_name == 'busca_Checkin':

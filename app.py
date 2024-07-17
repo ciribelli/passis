@@ -271,11 +271,14 @@ def obter_cidade_atual_e_clima(data_inicio=None, data_fim=None):
     # Aplica filtros de data se especificados
     if data_inicio and data_fim:
         data_fim = data_fim + timedelta(days=1)  # Ajusta para incluir até o final do dia
-        query = query.filter(Clima.data.between(data_inicio, data_fim))
+        data_fim_str = str(data_fim)  # Converte para string
+        query = query.filter(Clima.data.between(data_inicio, data_fim_str))
     elif data_inicio:
         query = query.filter(Clima.data >= data_inicio)
     elif data_fim:
-        query = query.filter(Clima.data <= data_fim)
+        data_fim = data_fim + timedelta(days=1)  # Ajusta para incluir até o final do dia
+        data_fim_str = str(data_fim)  # Converte para string
+        query = query.filter(Clima.data <= data_fim_str)
 
     # Executa a consulta
     climas = query.all()
