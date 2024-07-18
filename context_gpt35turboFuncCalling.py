@@ -199,7 +199,10 @@ def answer_question(
                     print('estou na função obter cidade e clima')
                     print('data alvo:')
                     print(function_args.get("date"))
-                    function_output = app.obter_cidade_atual_e_clima(function_args.get("date"), data_atual)
+                    text_output, datajson = app.obter_cidade_atual_e_clima(function_args.get("date"), data_atual)
+                    df_result_from_json = pd.read_json(datajson, orient='records', convert_dates=['data'])
+                    # convertendo json para dataframe e dataframe into text para melhor expericia com LLM
+                    function_output = df_result_from_json.to_string(index=False)
                     print("\nSaida para obter_cidade_atual_e_clima:\n", function_output, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
                 if function_name == 'busca_Checkin':
                     text_output, datajson = app.get_checkins_by_date(function_args.get("date"), data_atual)
