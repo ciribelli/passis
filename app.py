@@ -298,13 +298,13 @@ def obter_cidade_atual_e_clima(start_date=None, end_date=None):
     for entry in climas:
         formatted_date = format_date(entry.data)
         day_entries = daily_entries.get(formatted_date, [])
-        day_entries.append({'hour': extract_time(entry.data), 'checkin': entry.checkin})
+        day_entries.append({'hour': extract_time(entry.data), 'cidade': entry.cidade})
         daily_entries[formatted_date] = day_entries
     result_string = ""
     for date, entries in daily_entries.items():
         result_string += f'📅 {date} \n'
         for entry in entries:
-            result_string += f'✅ {entry["hour"]}  {entry["checkin"]}\n'
+            result_string += f'✅ {entry["hour"]}  {entry["cidade"]}\n'
     return result_string, json_result
 
 if __name__ == '__main__':
