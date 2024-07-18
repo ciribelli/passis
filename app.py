@@ -232,7 +232,7 @@ def adicionar_clima():
     db.session.commit()
 
     return {"message": "Dados de clima adicionados com sucesso!"}
-
+# funcao nao utilizada:
 @app.route('/obter_climas', methods=['GET'])
 def obter_climas():
     climas = Clima.query.all()
@@ -265,28 +265,14 @@ def deletar_clima(clima_id):
         return {"message": f"Registro de clima {clima_id} não encontrado."}, 404
 
 # para ser utilizado pelas functions:
-def obter_cidade_atual_e_clima(data_inicio=None, data_fim=None):
-    query = Clima.query
-
-    # Aplica filtros de data se especificados
-    if data_inicio and data_fim:
-        data_fim = data_fim + timedelta(days=1)  # Ajusta para incluir até o final do dia
-        data_fim_str = str(data_fim)  # Converte para string
-        query = query.filter(Clima.data.between(data_inicio, data_fim_str))
-    elif data_inicio:
-        query = query.filter(Clima.data >= data_inicio)
-    elif data_fim:
-        data_fim = data_fim + timedelta(days=1)  # Ajusta para incluir até o final do dia
-        data_fim_str = str(data_fim)  # Converte para string
-        query = query.filter(Clima.data <= data_fim_str)
-
-    # Executa a consulta
-    climas = query.all()
-
-    # Transforma os resultados em lista de dicionários
-    clima_lista = []
-    for clima in climas:
-        clima_dict = {
+def obter_cidade_atual_e_clima(start_date=None, end_date=None):
+    if start_date and end_date:
+        start_date = datetime.strptime(start_date, '%d-%m-%Y')
+        end_date = datetime.strptime(end_date, '%d-%m-%Y') + timedelta(days=1)
+        climas = Clima.query.filter(Checkin.data.between(start_date, end_date)).order_by(Checkin.data).all()
+    # Função para converter objetos Clima em dicionários
+    def serialize_clima(clima):
+        return {
             'id': clima.id,
             'data': str(clima.data),
             'umidade': clima.umidade,
@@ -296,9 +282,30 @@ def obter_cidade_atual_e_clima(data_inicio=None, data_fim=None):
             'condicao': clima.condicao,
             'cidade': clima.cidade
         }
-        clima_lista.append(clima_dict)
-
-    return {"message": "success", "climas": clima_lista}
+    # Serializando a lista de checkins
+    serialized_checkins = [serialize_clima(clima) for clima in climas]
+    # Serializando a lista de checkins para JSON
+    json_result = json.dumps([serialize_clima(clima) for clima in climas], default=str)
+    # Função para extrair o horário da data
+    def extract_time(date_obj):
+        return date_obj.strftime('%H:%M')
+    # Função para formatar a data
+    def format_date(date_obj):
+        return date_obj.strftime('%d/%m/%Y')
+    # Dicionário para armazenar os dados agrupados por dia
+    daily_entries = {}
+    # Organizar os dados por dia
+    for entry in climas:
+        formatted_date = format_date(entry.data)
+        day_entries = daily_entries.get(formatted_date, [])
+        day_entries.append({'hour': extract_time(entry.data), 'checkin': entry.checkin})
+        daily_entries[formatted_date] = day_entries
+    result_string = ""
+    for date, entries in daily_entries.items():
+        result_string += f'📅 {date} \n'
+        for entry in entries:
+            result_string += f'✅ {entry["hour"]}  {entry["checkin"]}\n'
+    return result_string, json_result
 
 if __name__ == '__main__':
     app.run(debug=True)
