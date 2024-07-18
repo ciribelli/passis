@@ -304,7 +304,7 @@ def obter_cidade_atual_e_clima(start_date=None, end_date=None):
     for date, entries in daily_entries.items():
         result_string += f'📅 {date} \n'
         for entry in entries:
-            result_string += f'🧭 {entry["hour"]}  {entry["cidade"]} {entry["temperatura"]} {entry["umidade"]} {entry["cidade"]}velvento\n'
+            result_string += f'🧭 {entry["hour"]}  {entry["cidade"]} {entry["temperatura"]} {entry["umidade"]} {entry["velvento"]}\n'
     return result_string, json_result
 
 if __name__ == '__main__':
