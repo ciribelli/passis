@@ -133,7 +133,7 @@ def chatflow(entry):
                     # Realizar a transcrição do áudio
                     transcricao = context_gpt35turboFuncCalling.audio_transcription()
                     # Enviar a transcrição de volta ao usuário
-                    send_msg.send_wapp_msg(phone_number_id, from_number, transcricao)
+                    send_msg.send_wapp_audio_reply(phone_number_id, from_number, transcricao)
                 else:
                     print(f"Tipo de mídia não suportado: {media_type}")
                     send_msg.send_wapp_msg(phone_number_id, from_number, "Tipo de mídia não suportado. Por favor, envie um áudio.")
