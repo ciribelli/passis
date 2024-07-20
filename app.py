@@ -486,6 +486,19 @@ def get_threads():
         serialized_threads = [thread.content for thread in threads]
         return serialized_threads, 200
 
+@app.route('/thread/<wapp_id>', methods=['GET'])
+def get_thread_by_wapp_id(wapp_id):
+    thread = Thread.query.filter_by(wapp_id=wapp_id).first()
+    if thread:
+        try:
+            content_json = json.loads(thread.content)
+            content_string = content_json['content']
+            return content_string, 200
+        except (json.JSONDecodeError, KeyError) as e:
+            return {'error': f'Invalid content format: {e}'}, 400
+    else:
+        return {'error': 'Thread not found'}, 404
+
 @app.route('/apagar_threads', methods=['DELETE'])
 def apagar_threads():
     try:

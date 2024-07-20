@@ -18,6 +18,14 @@ def hora_e_data(timestamp, user_timezone='America/Sao_Paulo'):
     except Exception as e:
         return None, f"Error: {e}"
 
+def responde_usuario_salva_thread(phone_number_id, from_number, coletor):
+    # envia a resposta texto openAI
+    wapp_response = send_msg.send_wapp_msg(phone_number_id, from_number, coletor)
+    response_dict = wapp_response.json()
+    wapp_id = response_dict["messages"][0]["id"]
+    # 📅 registra mensagem gerada pelo sistema em threads 📅
+    input_data = '{"role": "assistant", "content":"' + coletor.replace('"', ' ') + '"}'
+    app.salvar_thread(input_data, wapp_id)
 
 def chatflow(entry):
     # Verifica se há mensagens na solicitação
@@ -43,13 +51,19 @@ def chatflow(entry):
         msg_body = message['text']['body'] if 'text' in message else None
 
         if button_reply_id:
-            print("button_reply.id:", button_reply_id)
-            # Faça algo com o button_reply.id
             # Tratando o conteúdo do reply:
             button_id = message['interactive']['button_reply']['id']
             button_action = message['interactive']['button_reply']['title']
             wapp_id = message['context']['id']
             print('>>>> ', button_id, button_action, wapp_id)
+            if button_id == "1":
+                # memorizar a informação
+                content = app.get_thread_by_wapp_id(wapp_id)
+                print(content)
+                coletor = app.salvar_memoria_recebida(content.lower())
+                # responde o usuario no wapp e salva a conversa
+                responde_usuario_salva_thread(phone_number_id, from_number, coletor)
+
         elif msg_body:
             print("msg_body:", msg_body)
             tipo_pergunta = False
@@ -104,13 +118,8 @@ def chatflow(entry):
                 if (tipo_pergunta):
                     send_msg.send_wapp_question(phone_number_id, from_number, coletor)
                 else:
-                    # envia a resposta texto openAI
-                    wapp_response = send_msg.send_wapp_msg(phone_number_id, from_number, coletor)
-                    response_dict = wapp_response.json()
-                    wapp_id = response_dict["messages"][0]["id"]
-                    # 📅 registra mensagem gerada pelo sistema em threads 📅
-                    input_data = '{"role": "assistant", "content":"' + coletor.replace('"', ' ') + '"}'
-                    app.salvar_thread(input_data, wapp_id)
+                    # responde o usuario no wapp e salva a conversa
+                    responde_usuario_salva_thread(phone_number_id, from_number, coletor)
 
                     # caso seja um documento, envia o arquivo/imagem
                     if( "documentos" in link.lower()):
