@@ -15,7 +15,7 @@ import requests
 load_dotenv()
 
 app = Flask(__name__)
-# configuracao do url db postgres externo ou local (arquivo .env deve estar na raiz do projeto)
+# configuracao do url db postgres externo ou local (arquivo ..env deve estar na raiz do projeto)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL_EXTERNA')
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
@@ -465,14 +465,15 @@ def get_memorias():
 class Thread(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String(5000), nullable=False)
+    wapp_id = db.Column(db.String(100), nullable=True)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __init__(self, content):
         self.content = content
 
 # salvando thread diretamente sem uso da API
-def salvar_thread(content):
-    thread = Thread(content=content)
+def salvar_thread(content, wapp_id):
+    thread = Thread(content=content, wapp_id=wapp_id)
     db.session.add(thread)
     db.session.commit()
     return "Thread registrada ✅"

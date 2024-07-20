@@ -14,7 +14,6 @@ def send_wapp_msg(phone_number_id, from_number, coletor):
     response = requests.post(fb_url, json=payload, headers=headers)
 
 
-
 def send_wapp_question(phone_number_id, from_number, coletor):
     wapp_token = os.getenv('WHATSAPP_TOKEN')
     fb_url = f"https://graph.facebook.com/v20.0/{phone_number_id}/messages?access_token={wapp_token}"

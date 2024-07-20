@@ -30,6 +30,7 @@ def chatflow(entry):
         print(entry['changes'][0]['value']['metadata'])
         phone_number_id = entry['changes'][0]['value']['metadata']['phone_number_id']
         from_number = message['from']
+        wapp_id = message['id']
         print(from_number)
         # captura o timestamp das mensagem para contextos de data
         timestamp = entry['changes'][0]['value']['messages'][0]['timestamp']
@@ -95,9 +96,9 @@ def chatflow(entry):
                     coletor, link, tipo_pergunta = app.fazer_perguntas(content, data_atual, hora_atual, phone_number_id, from_number)
                     # registra mensagem de usuario na memoria
                     input_data = '{"role": "user", "content":"' + content.replace('"', ' ') + '"}'
-                    app.salvar_thread(input_data)
+                    app.salvar_thread(input_data, wapp_id)
                     input_data = '{"role": "assistant", "content":"' + coletor.replace('"', ' ') + '"}'
-                    app.salvar_thread(input_data)
+                    app.salvar_thread(input_data, wapp_id)
                     
             # envia a mensagem de retorno para o whatsapp
             try:
@@ -134,6 +135,9 @@ def chatflow(entry):
                     transcricao = context_gpt35turboFuncCalling.audio_transcription()
                     # Enviar a transcrição de volta ao usuário
                     send_msg.send_wapp_audio_reply(phone_number_id, from_number, transcricao)
+                    # Salvar o conteúdo transcrito nas threads
+                    input_data = '{"role": "assistant", "content":"' + transcricao + '"}'
+                    app.salvar_thread(input_data)
                 else:
                     print(f"Tipo de mídia não suportado: {media_type}")
                     send_msg.send_wapp_msg(phone_number_id, from_number, "Tipo de mídia não suportado. Por favor, envie um áudio.")
