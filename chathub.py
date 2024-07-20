@@ -94,11 +94,11 @@ def chatflow(entry):
                 if not "✅" in content.lower():
                     # envia mensagem para API openAI
                     coletor, link, tipo_pergunta = app.fazer_perguntas(content, data_atual, hora_atual, phone_number_id, from_number)
-                    # registra mensagem de usuario na memoria
+                    # registra mensagem recebida de usuario na memoria
                     input_data = '{"role": "user", "content":"' + content.replace('"', ' ') + '"}'
                     app.salvar_thread(input_data, wapp_id)
-                    input_data = '{"role": "assistant", "content":"' + coletor.replace('"', ' ') + '"}'
-                    app.salvar_thread(input_data, wapp_id)
+                    # input_data = '{"role": "assistant", "content":"' + coletor.replace('"', ' ') + '"}'
+                    # app.salvar_thread(input_data, wapp_id)
                     
             # envia a mensagem de retorno para o whatsapp
             try:
@@ -106,7 +106,14 @@ def chatflow(entry):
                     send_msg.send_wapp_question(phone_number_id, from_number, coletor)
                 else:
                     # envia a resposta texto openAI
-                    send_msg.send_wapp_msg(phone_number_id, from_number, coletor)
+                    wapp_response = send_msg.send_wapp_msg(phone_number_id, from_number, coletor)
+                    response_dict = wapp_response.json()
+                    wapp_id = response_dict["messages"][0]["id"]
+                    print("Message ID:", wapp_id)
+                    # registra mensagem gerada pelo sistema
+                    input_data = '{"role": "assistant", "content":"' + coletor.replace('"', ' ') + '"}'
+                    app.salvar_thread(input_data, wapp_id)
+
                     # caso seja um documento, envia o arquivo/imagem
                     if( "documentos" in link.lower()):
                         # ATENCAO: ideal seria mudar nome da tabela no bd
@@ -135,11 +142,6 @@ def chatflow(entry):
                     transcricao = context_gpt35turboFuncCalling.audio_transcription()
                     # Enviar a transcrição de volta ao usuário
                     send_msg.send_wapp_audio_reply(phone_number_id, from_number, transcricao)
-                    # Salvar o conteúdo transcrito nas threads
-                    input_data = '{"role": "assistant", "content":"' + transcricao + '"}'
-                    wapp_id = entry['changes'][0]['value']
-                    print(wapp_id, ' <><><><><><>')
-                    #app.salvar_thread(input_data, wapp_id)
                 else:
                     print(f"Tipo de mídia não suportado: {media_type}")
                     send_msg.send_wapp_msg(phone_number_id, from_number, "Tipo de mídia não suportado. Por favor, envie um áudio.")

@@ -12,6 +12,7 @@ def send_wapp_msg(phone_number_id, from_number, coletor):
     }
     headers = {"Content-Type": "application/json"}
     response = requests.post(fb_url, json=payload, headers=headers)
+    return (response)
 
 
 def send_wapp_question(phone_number_id, from_number, coletor):
@@ -107,6 +108,7 @@ def send_wapp_audio_reply(phone_number_id, from_number, coletor):
     headers = {"Content-Type": "application/json"}
     response = requests.post(fb_url, json=payload, headers=headers)
 
+
 def send_wapp_image(phone_number_id, from_number, coletor, endpoint):
     wapp_token = os.getenv('WHATSAPP_TOKEN')
     url = os.getenv('url')
@@ -128,7 +130,7 @@ def send_wapp_image(phone_number_id, from_number, coletor, endpoint):
     }
     headers = {"Content-Type": "application/json"}
     response = requests.post(fb_url, json=payload, headers=headers)
-    print(response.text)
+
 
 
 def get_url_wapp_media(id):
