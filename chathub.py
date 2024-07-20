@@ -48,7 +48,7 @@ def chatflow(entry):
             # Tratando o conteúdo do reply:
             button_id = message['interactive']['button_reply']['id']
             button_action = message['interactive']['button_reply']['title']
-            wapp_id = button_reply_id['context']['id']
+            wapp_id = message['context']['id']
             print('>>>> ', button_id, button_action, wapp_id)
         elif msg_body:
             print("msg_body:", msg_body)
