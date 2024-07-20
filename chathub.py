@@ -58,7 +58,7 @@ def chatflow(entry):
             print('>>>> ', button_id, button_action, wapp_id)
             if button_id == "1":
                 # memorizar a informação
-                content = app.get_thread_by_wapp_id(wapp_id)
+                content = app.get_thread_content_by_wapp_id(wapp_id)
                 print(content)
                 coletor = app.salvar_memoria_recebida(content.lower())
                 # responde o usuario no wapp e salva a conversa
