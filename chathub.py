@@ -25,7 +25,7 @@ def envia_prompt_api(content, data_atual, hora_atual, phone_number_id, from_numb
         # 📅 registra mensagem recebida de usuario em threads📅
         input_data = '{"role": "user", "content":"' + content.replace('"', ' ') + '"}'
         app.salvar_thread(input_data, wapp_id)
-
+        return coletor, link, tipo_pergunta
 def responde_usuario_salva_thread(phone_number_id, from_number, coletor):
     # envia a resposta texto openAI
     wapp_response = send_msg.send_wapp_msg(phone_number_id, from_number, coletor)
@@ -75,8 +75,8 @@ def chatflow(entry):
                 # memorizar a informação
                 content = app.get_thread_content_by_wapp_id(wapp_id)
                 print(content)
-                envia_prompt_api(content, data_atual, hora_atual, phone_number_id, from_number, wapp_id)
-
+                coletor, link, tipo_pergunta = envia_prompt_api(content, data_atual, hora_atual, phone_number_id, from_number, wapp_id)
+                responde_usuario_salva_thread(phone_number_id, from_number, coletor)
         elif msg_body:
             print("msg_body:", msg_body)
             tipo_pergunta = False
@@ -119,7 +119,7 @@ def chatflow(entry):
                 tipo_pergunta = True
             else:
                 ##### avalia se a mensagem nao eh feedback dos recursos de automacao #####
-                envia_prompt_api(content, data_atual, hora_atual, phone_number_id, from_number, wapp_id)
+                coletor, link, tipo_pergunta = envia_prompt_api(content, data_atual, hora_atual, phone_number_id, from_number, wapp_id)
                     
             # envia a mensagem de retorno para o whatsapp
             try:
