@@ -107,6 +107,7 @@ def send_wapp_audio_reply(phone_number_id, from_number, coletor):
     }
     headers = {"Content-Type": "application/json"}
     response = requests.post(fb_url, json=payload, headers=headers)
+    return (response)
 
 
 def send_wapp_image(phone_number_id, from_number, coletor, endpoint):
