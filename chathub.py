@@ -45,10 +45,11 @@ def chatflow(entry):
         if button_reply_id:
             print("button_reply.id:", button_reply_id)
             # Faça algo com o button_reply.id
-            print("vamos entender a mensagem completa: ------------------ ENTRY")
-            print(entry)
-            print("vamos entender a mensagem completa: ------------------ MESSAGE")
-            print(message)
+            # Tratando o conteúdo do reply:
+            button_id = message['interactive']['button_reply']['id']
+            button_action = message['interactive']['button_reply']['title']
+            wapp_id = button_reply_id['context']['id']
+            print('>>>> ', button_id, button_action, wapp_id)
         elif msg_body:
             print("msg_body:", msg_body)
             tipo_pergunta = False
