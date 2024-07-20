@@ -468,8 +468,9 @@ class Thread(db.Model):
     wapp_id = db.Column(db.String(100), nullable=True)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
-    def __init__(self, content):
+    def __init__(self, content, wapp_id):
         self.content = content
+        self.wapp_id = wapp_id
 
 # salvando thread diretamente sem uso da API
 def salvar_thread(content, wapp_id):
