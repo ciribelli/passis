@@ -137,7 +137,8 @@ def chatflow(entry):
                     send_msg.send_wapp_audio_reply(phone_number_id, from_number, transcricao)
                     # Salvar o conteúdo transcrito nas threads
                     input_data = '{"role": "assistant", "content":"' + transcricao + '"}'
-                    app.salvar_thread(input_data)
+                    wapp_id = entry['changes'][0]['value']['statuses'][0]['id']
+                    app.salvar_thread(input_data, wapp_id)
                 else:
                     print(f"Tipo de mídia não suportado: {media_type}")
                     send_msg.send_wapp_msg(phone_number_id, from_number, "Tipo de mídia não suportado. Por favor, envie um áudio.")
