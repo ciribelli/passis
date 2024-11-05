@@ -1,6 +1,6 @@
 ## Passis - Meu Assistente Pessoal
 ##### Aluno: Otávio Ciribelli Borges (https://github.com/ciribelli) 
-##### Orientador: Anderson Nascimento (________________________)
+##### Orientador: Anderson Nascimento (https://github.com/insightds)
 
 Trabalho apresentado ao curso [BI MASTER](https://ica.puc-rio.ai/bi-master) como pré-requisito para conclusão de curso e obtenção de crédito na disciplina "Projetos de Sistemas Inteligentes de Apoio à Decisão". - [Link para o código](https://github.com/link_do_repositorio). - [Link para a monografia](https://link_da_monografia.com). - Trabalhos relacionados: - [Nome do Trabalho 1](https://link_do_trabalho.com). - [Nome do Trabalho 2](https://link_do_trabalho.com).
 ### Resumo
