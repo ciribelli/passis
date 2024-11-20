@@ -95,14 +95,26 @@ A arquitetura do sistema é composta por um backend desenvolvido em Python por m
 
 #### chathub.py
 
-- Este arquivo é responsável pelo fluxo de mensagens e interações do usuário, gerenciando as mensagens recebidas e indicando as ações a serem tomadas com base no conteúdo da mensagem.
-- O termo 'hub' se refere às múltiplas interações que este módulo do sistema realiza desde o recebimento das mensagens do _Webhook_, triagem das informações para entender a natureza do conteúdo (se áudio ou texto, por exemplo) e conexões com o modelo de linguagem e mensageria para que a resposta contextual seja enviada ao usuário.
+- Este arquivo é responsável pelo fluxo de comunicação e interação do usuário, gerenciando as informações recebidas e indicando as ações a serem tomadas com base no conteúdo da mensagem.
+- O termo 'hub' se refere às múltiplas interações que este módulo do sistema realiza desde o recebimento das mensagens do _Webhook_, triagem das informações para entender a natureza do conteúdo (se áudio ou texto, por exemplo) e conexões com o modelo de linguagem e funções de mensageria. Pode-se dizer que sua função é também garantir que o usuário receba alguma resposta para toda e qualquer interação.
 - Existem comandos textuais específicos que são funcionais e permitem atuar diretamente no sistema, conforme listagem na tabela abaixo:
-- 
-- 
-- 
-- Funções de Suporte: Mencione funções de suporte como hora_e_data para manipulação de timestamps e envia_prompt_api para enviar prompts para a API do OpenAI.
-context_gpt35turboFuncCalling.py
+
+
+| Comando/Texto                              | Explicação                                                                           |
+|--------------------------------------------|--------------------------------------------------------------------------------------|
+| "jogos" ou "jogo"                          | Obtém informações sobre jogos para a data atual                                      |
+| "cidade", "cidades" ou "transito"         | Busca informações sobre a cidade e trânsito no X (antigo Twitter)                    |
+| "Clima", "Climas", "clima" ou "climas"    | Busca informações sobre o clima                                                      |
+| "checkin"                                  | Obtém informações de check-ins dos últimos 4 dias até a data atual                   |
+| "localização" ou "localizacao"            | Obtém a cidade atual e informações sobre o clima dos últimos 4 dias até a data atual |
+| "📝"                                       | Salva na memória as informações contidas na mensagem                                 |
+| "🔄"                                       | Força a atualização dos vetores de embeddings                                        |
+| "responder"                                | Ativa o modo de pergunta, enviando uma questão ao usuário                            |
+| "✅"                                       | Mensagem reservada do sistema para evitar o envio do prompt para a API OpenAI        |
+
+- Para o caso de comandos via linguagem natural, sejam estes recebidos via texto ou áudio, o chathub.py faz com que estes comandos cheguem ao módulo da API da OpenAI via comando 'envia_prompt_api'.
+
+#### context_gpt35turboFuncCalling.py
 
 Descrição Geral: Introduza o arquivo context_gpt35turboFuncCalling.py como o responsável por criar contextos e responder perguntas usando o modelo GPT-3.5 Turbo.
 Função create_context: Detalhe a função create_context, que cria um contexto relevante para uma pergunta específica.
