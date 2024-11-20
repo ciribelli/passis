@@ -23,12 +23,12 @@ A mudança de paradigma é tamanha que, de acordo com o documento *Strategic Pla
 
 _Figura 01 - Aumento do interesse por soluções do tipo “AI Personal Assistant”, segundo informações do site Google Trends_
 
-#### 1.1 Motivação
+#### 1.2 Motivação
 Suponhamos que alguém decida fazer uma promessa de ano novo comprometendo-se a dormir mais cedo no ano que se inicia, na busca por uma vida mais equilibrada e saudável. Ou ainda, uma pessoa se comprometa em fazer caminhadas diárias para melhorar seu desempenho cardiorespiratório. Ou por último, alguém busque por uma sugestão de programação para uma tarde de sábado de acordo com suas preferências e as condições climáticas daquele dia. Naturalmente, cada uma dessas pessoas poderia buscar um aplicativo de caminhadas, baixar um monitor de sono para seu _smartwatch_ ou fazer uma busca numa rede social ou portal de eventos para saber a programação de jogos naquela tarde. Acontece que todas essas são informações estão persistidas de forma estanque em suas origens, com pouca ou nenhuma personalização de conteúdo para atender a real necessidade desses indivíduos. O aplicativo de caminhadas irá calcular o ritmo de caminhada, apresentar o tempo e a velocidade média num _dashboard_. Um mapa também será exibido para que as pessoas interajam com sua caminhada. Em verdade, o que se desejava com o aplicativo era apenas saber se as caminhadas estão sendo mais frequentes neste ano quando comparadas ao ano anterior. Tal raciocínio vale para o aplicativo de sono e o site de busca por entretenimento. Eventualmente, num dia chuvoso e com um clássico de futebol exibido na TV aberta envolvendo seu time do coração, poderia ser essa a sugestão que mais agrada quem procura o que fazer com seu tempo.
 
 Muito provalvemente, a pergunta que se quer responder neste trabalho, em meio à vastidão de informações geradas diariamente por pessoas e sistemas, é: *qual o melhor recorte de dados que deve ser consultado para prover a resposta mais adequada para uma determinada necessidade*?
 
-#### 1.1 Proposição
+#### 1.3 Proposição
 
 A proposta deste trabalho, neste contexto de altíssima disponibilidade de dados e recursos tecnológicos que permitem imensa agregação de informações de diferentes origens em modelos de liguagem de grande escala, consiste em propor um *assistente pessoal que forneça sugestões 
 em assuntos de domínio das memórias particulares, localização geográfica, compromissos (checkins), clima, trânsito e eventos externos*[^7]. 
@@ -60,6 +60,71 @@ Organizations in this future are trying to maximize the impact of their employee
 
 
 ### 2. Modelagem
+
+
+
+
+A arquitetura do sistema é composta por um backend desenvolvido em Python por meio de um servidor web que implementa o _framework_ Flask que gerencia as rotas e endpoints, um conjunto de funções de processamento e busca, e um modelo de linguagem de larga escala (LLM) que gera as respostas contextuais. Esses elementos estão apresentados. Além do servidor principal, um banco de dados Postgres também suporta o funcionamento da aplicação guardando as informações do usuário relativamente a memórias, documentos, compromissos ("checkins") etc. A figura XXXX apresenta um panorama da visão funcional do sistema.
+
+![image](https://github.com/user-attachments/assets/f899012d-10e1-45f9-8437-236883fa67d7)
+
+#### app.py
+- Este arquivo é a entrada principal do aplicativo Flask. Nele estão contidas as rotas e endpoints da API. Nele também está implementado um trecho importante do sistema que é uma estrutura tipicamente reconhecida como _webhook_. Este trecho do código funciona como um ponto de espera e conexão ativa com a API da Meta e seu aplicativo Whatsapp Business. Portanto, ainda que o conceito de arquitetura contemple a propriedade de agnosticidade à interface por usar exclusivamente as rotas e endpoints do arquivo app.py para seu funcionamento, neste webhook é onde acontece a implementação desta prova de conceito que foi feita utilizando o Whatsapp enquanto interface de usuário.
+- Uma lista completa das rotas e endpoints do arquivo app.py estão listadas na tabela a seguir:
+
+| Rota                          | Métodos           | Descrição                                                       |
+|-------------------------------|-------------------|-----------------------------------------------------------------|
+| /                             | GET               | Página inicial do servidor                                       |
+| /v1/jogos/<data_hora>         | GET               | Obtém jogos para uma data/hora específica (Central de jogos UOL) |
+| /v1/time/<nome_time>          | GET               | Obtém informações sobre um time específico (Central de jogos UOL) |
+| /v1/x/                        | GET               | Busca informações de um perfil no X (antigo Twitter)           |
+| /v1/clima                     | GET               | Obtém informações climáticas (API Clima Tempo)                 |
+| /webhook                      | POST, GET         | Webhook para interações (POST) e verificações (GET) com a Meta |
+| /checkin                      | POST, GET         | Cria (POST) ou lista (GET) check-ins                           |
+| /checkin/<checkin_id>         | GET, PUT, DELETE  | Obtém, atualiza ou deleta um check-in específico                |
+| /adicionar_clima              | POST              | Adiciona dados climáticos                                       |
+| /deletar_clima/<clima_id>     | DELETE            | Deleta um registro climático específico                          |
+| /criar_documento              | POST              | Cria um novo documento binário                                   |
+| /recuperar_documento/<documento_id> | GET         | Recupera um documento binário específico                        |
+| /recuperar_lista_documentos   | GET               | Lista todos os documentos binários                               |
+| /excluir_documento/<documento_id> | DELETE        | Exclui um documento binário específico                          |
+| /atualizar_documento/<documento_id> | PUT         | Atualiza informações de um documento binário                    |
+| /memorias                     | POST, GET         | Cria (POST) ou lista (GET) memórias                            |
+| /threads                      | GET               | Obtém as últimas threads (conversas) registradas no Passis     |
+
+
+#### chathub.py
+
+- Este arquivo é responsável pelo fluxo de mensagens e interações do usuário, gerenciando as mensagens recebidas e indicando as ações a serem tomadas com base no conteúdo da mensagem.
+- O termo 'hub' se refere às múltiplas interações que este módulo do sistema realiza desde o recebimento das mensagens do _Webhook_, triagem das informações para entender a natureza do conteúdo (se áudio ou texto, por exemplo) e conexões com o modelo de linguagem e mensageria para que a resposta contextual seja enviada ao usuário.
+- Existem comandos textuais específicos que são funcionais e permitem atuar diretamente no sistema, conforme listagem na tabela abaixo:
+- 
+- 
+- 
+- Funções de Suporte: Mencione funções de suporte como hora_e_data para manipulação de timestamps e envia_prompt_api para enviar prompts para a API do OpenAI.
+context_gpt35turboFuncCalling.py
+
+Descrição Geral: Introduza o arquivo context_gpt35turboFuncCalling.py como o responsável por criar contextos e responder perguntas usando o modelo GPT-3.5 Turbo.
+Função create_context: Detalhe a função create_context, que cria um contexto relevante para uma pergunta específica.
+Função answer_question: Explique a função answer_question, que utiliza o contexto criado para gerar respostas.
+Função audio_transcription: Mencione a função audio_transcription para transcrição de áudios.
+embeddings_db.py
+
+Descrição Geral: Introduza o arquivo embeddings_db.py como o responsável pela atualização e gerenciamento de embeddings.
+Função update_embeddings_db: Detalhe a função update_embeddings_db, que atualiza os embeddings no banco de dados.
+Função atualiza_embedding: a função atualiza_embedding, que recupera dados de diferentes tabelas e atualiza os embeddings.
+main.py
+
+Descrição Geral: Introduza o arquivo main.py como o responsável por funções específicas de busca e processamento de dados.
+Função nucleo_jogos: Detalhe a função nucleo_jogos, que busca informações sobre jogos de futebol.
+Função busca_X: Explique a função busca_X, que utiliza a API do Google para buscar informações no Twitter.
+Função busca_Clima: Mencione a função busca_Clima, que busca informações climáticas usando a API do Clima Tempo.
+send_msg.py
+
+Descrição Geral: Introduza o arquivo send_msg.py como o responsável pelo envio de mensagens via WhatsApp.
+Função send_wapp_msg: Detalhe a função send_wapp_msg, que envia mensagens de texto.
+Função send_wapp_question: Explique a função send_wapp_question, que envia perguntas interativas.
+Função send_wapp_audio_reply: Mencione a função send_wapp_audio_reply, que envia respostas de áudio.
 Falar do banco de dados passisdb
 Falar do text-to-query
 Mostrar como fico o contexto
@@ -67,7 +132,7 @@ Mostrar como fico o contexto
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin pulvinar nisl vestibulum tortor fringilla, eget imperdiet neque condimentum. Proin vitae augue in nulla vehicula porttitor sit amet quis sapien. Nam rutrum mollis ligula, et semper justo maximus accumsan. Integer scelerisque egestas arcu, ac laoreet odio aliquet at. Sed sed bibendum dolor. Vestibulum commodo sodales erat, ut placerat nulla vulputate eu. In hac habitasse platea dictumst. Cras interdum bibendum sapien a vehicula. Proin feugiat nulla sem. Phasellus consequat tellus a ex aliquet, quis convallis turpis blandit. Quisque auctor condimentum justo vitae pulvinar. Donec in dictum purus. Vivamus vitae aliquam ligula, at suscipit ipsum. Quisque in dolor auctor tortor facilisis maximus. Donec dapibus leo sed tincidunt aliquam. 
 ![image](https://github.com/user-attachments/assets/28de962e-4340-4a5f-b690-49565f81d3e1)
 
-![image](https://github.com/user-attachments/assets/f899012d-10e1-45f9-8437-236883fa67d7)
+
 
 ### 3. Resultados
 São surpreendentemente positivos os resultados da combinação de (i) dados públicos, utilizados para treinar os modelos fundacionais de larga escala, os (ii) dados pessoais, armazenados no banco de dados _passisdb_ e (iii) os dados em tempo real, recuperados no momento do uso da aplicação Passis. O assistente Passis foi utilizado experimentalmente  por cerca de um ano, enquanto aprimoramentos e novas funcionalidades foram sendo incorporadas.
