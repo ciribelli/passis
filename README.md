@@ -3,13 +3,13 @@
 ##### Orientador: Anderson Nascimento (https://github.com/insightds)
 
 Trabalho apresentado ao curso [BI MASTER](https://ica.puc-rio.ai/bi-master) como pré-requisito para conclusão de curso e obtenção de crédito na disciplina "Projetos de Sistemas Inteligentes de Apoio à Decisão". - [Link para o código](https://github.com/link_do_repositorio). - [Link para a monografia](https://link_da_monografia.com). - Trabalhos relacionados: - [Nome do Trabalho 1](https://link_do_trabalho.com). - [Nome do Trabalho 2](https://link_do_trabalho.com).
-### Resumo
+## Resumo
 Este trabalho visa apresentar uma abordagem inovadora para apropriação e uso dos dados gerados diariamente por cada indivíduo em múltiplos propósitos e contextos. Em contraste com o paradigma que grandes corporações comumente oferecem enquanto experiência para seus usuários, a proposta desta solução de Assistente Pessoal (Passis) se diferencia pelo gerenciamento das informações pessoais de forma segura e em formato aberto e flexível quanto à forma de consumo e utilização desses dados. Neste contexto, o Passis objetiva a promoção de uma rotina de maior produtividade para seus usuários por meio do aumento do conhecimento de suas próprias informações que são geradas e armazenadas pelo sistema. Com uma inovadora forma de combinação dos dados pessoais registrados com as informações do meio onde o indivíduo está inserido, a solução habilita que decisões sejam tomadas em tempo real com menor grau de subjetividade. O Assistente foi desenvolvido em um conjunto de implementações modeladas em formato de microsserviços com uma Interface Programável de Aplicação (API) que comunica com rotinas automatizadas e comandos do usuário que acontecem preferencialmente em linguagem natural pelo aplicativo de mensagem Whatsapp. Sendo seu código-fonte desenvolvido em formato aberto (*open source*), pode ser implementado em diferentes plataformas e conectado com os principais serviços de visualização de dados e plataformas de *Business Inteligence* disponíveis no mercado. 
-### Abstract
+## Abstract
 
 This work aims to present an innovative approach for the appropriation and use of data generated daily by each individual for multiple purposes and contexts. In contrast to the paradigm commonly offered by large corporations as a user experience, the proposed solution of a Personal Assistant (Passis) stands out for securely managing personal information in an open and flexible format regarding how the data is consumed and applied. In this context, Passis aims to promote a more productive routine for its users by increasing their awareness of their own information, which is generated and stored by the system. With an innovative way of combining recorded personal data with information from the environment in which the individual is embedded, the solution enables real-time decision-making with a lower degree of subjectivity. The Assistant was developed using a set of implementations modeled as microservices with an Application Programming Interface (API) that communicates with automated routines and user commands, preferably in natural language through the messaging app WhatsApp. As its source code is developed in an open-source format, it can be implemented on different platforms and connected to major data visualization services and Business Intelligence platforms available on the market.
-### 1. Introdução
-#### 1.1 Contextualização
+## 1. Introdução
+### 1.1 Contextualização
 Uma discussão importante que se intensificou na última década é a questão da soberania e uso dos dados pessoais. Não é incomum vermos ações judiciais entre grandes corporações globais e países que buscam esclarecimento sobre a propriedade e o uso não-consentido de dados de cidadãos e instituições, sejam governamentais ou não. No campo individual, pessoas se submetem à uma realidade aparentemente imutável onde o acesso à recursos e lugares se dá apenas e exclusivamente sob a condição de sessão de seus dados pessoais. Ao consentir diariamente com novas políticas de termos e condições, empresas privadas e autoridades públicas fazem uso de dados pessoais em uma escala sem precedentes para realizar suas atividades[^3].
 
 Para além da segurança dos dados, que certamente é o tópico de maior importância no contexto da discussão, existe uma segunda temática ligada ao uso efetivo das informações que são geradas diariamente por indivíduos. Diferentes fontes que podem ser encontradas na internet versam sobre o volume de dados que são gerados diariamente por pessoas. Um desses estudos, publicado pela empresa Edge Delta* que é especializada em estudos de tendência sobre geração de dados, afirma que o volume médio diário de dados produzidos por uma pessoa usuária de internet[^4] é da ordem de 146.880 MB.  
@@ -23,12 +23,12 @@ A mudança de paradigma é tamanha que, de acordo com o documento *Strategic Pla
 
 _Figura 01 - Aumento do interesse por soluções do tipo “AI Personal Assistant”, segundo informações do site Google Trends_
 
-#### 1.2 Motivação
+### 1.2 Motivação
 Suponhamos que alguém decida fazer uma promessa de ano novo comprometendo-se a dormir mais cedo no ano que se inicia, na busca por uma vida mais equilibrada e saudável. Ou ainda, uma pessoa se comprometa em fazer caminhadas diárias para melhorar seu desempenho cardiorespiratório. Ou por último, alguém busque por uma sugestão de programação para uma tarde de sábado de acordo com suas preferências e as condições climáticas daquele dia. Naturalmente, cada uma dessas pessoas poderia buscar um aplicativo de caminhadas, baixar um monitor de sono para seu _smartwatch_ ou fazer uma busca numa rede social ou portal de eventos para saber a programação de jogos naquela tarde. Acontece que todas essas são informações estão persistidas de forma estanque em suas origens, com pouca ou nenhuma personalização de conteúdo para atender a real necessidade desses indivíduos. O aplicativo de caminhadas irá calcular o ritmo de caminhada, apresentar o tempo e a velocidade média num _dashboard_. Um mapa também será exibido para que as pessoas interajam com sua caminhada. Em verdade, o que se desejava com o aplicativo era apenas saber se as caminhadas estão sendo mais frequentes neste ano quando comparadas ao ano anterior. Tal raciocínio vale para o aplicativo de sono e o site de busca por entretenimento. Eventualmente, num dia chuvoso e com um clássico de futebol exibido na TV aberta envolvendo seu time do coração, poderia ser essa a sugestão que mais agrada quem procura o que fazer com seu tempo.
 
 Muito provalvemente, a pergunta que se quer responder neste trabalho, em meio à vastidão de informações geradas diariamente por pessoas e sistemas, é: *qual o melhor recorte de dados que deve ser consultado para prover a resposta mais adequada para uma determinada necessidade*?
 
-#### 1.3 Proposição
+### 1.3 Proposição
 
 A proposta deste trabalho, neste contexto de altíssima disponibilidade de dados e recursos tecnológicos que permitem imensa agregação de informações de diferentes origens em modelos de liguagem de grande escala, consiste em propor um *assistente pessoal que forneça sugestões 
 em assuntos de domínio das memórias particulares, localização geográfica, compromissos (checkins), clima, trânsito e eventos externos*[^7]. 
@@ -59,7 +59,7 @@ Organizations in this future are trying to maximize the impact of their employee
 
 
 
-### 2. Modelagem
+## 2. Modelagem
 
 
 
@@ -68,6 +68,8 @@ A arquitetura do sistema é composta por um backend desenvolvido em Python por m
 
 ![image](https://github.com/user-attachments/assets/f899012d-10e1-45f9-8437-236883fa67d7)
 
+### Implementação do Backend
+As sessões a seguir resumem os arquivos `.py` e seus respectivos módulos que compõem a arquitetura do Passis.
 #### app.py
 - Este arquivo é a entrada principal do aplicativo Flask. Nele estão contidas as rotas e endpoints da API. Nele também está implementado um trecho importante do sistema que é uma estrutura tipicamente reconhecida como _webhook_. Este trecho do código funciona como um ponto de espera e conexão ativa com a API da Meta e seu aplicativo Whatsapp Business. Portanto, ainda que o conceito de arquitetura contemple a propriedade de agnosticidade à interface por usar exclusivamente as rotas e endpoints do arquivo app.py para seu funcionamento, neste webhook é onde acontece a implementação desta prova de conceito que foi feita utilizando o Whatsapp enquanto interface de usuário.
 - Uma lista completa das rotas e endpoints do arquivo app.py estão listadas na tabela a seguir:
@@ -91,6 +93,21 @@ A arquitetura do sistema é composta por um backend desenvolvido em Python por m
 | /atualizar_documento/<documento_id> | PUT         | Atualiza informações de um documento binário                    |
 | /memorias                     | POST, GET         | Cria (POST) ou lista (GET) memórias                            |
 | /threads                      | GET               | Obtém as últimas threads (conversas) registradas no Passis     |
+
+#### main.py
+- Este arquivo tem por objetivo implementar módulos de busca e manipulação de informações mais intensas, que podem envolver consulta à APIs externas ou atividades de _webscraping_ feitas para o propósito do Passis.
+- As funções do arquivo estão listadas na tabela abaixo. Cabe observar que o formato de retorno pode ser flexível para permitir diferentes abordagens nas consultas aos modelos de linguagem. Um ponto de atenção neste tipo de abordagem é que o desempenho dos modelos pode variar muito quando submetido a informações com diferentes formatações (`JSON`, texto livre, Pandas `DataFrame`, dentre outras)
+
+| Função                | Descrição                                                                                                                                                                                                 | Tipo de Retorno |
+|-----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------|
+| nucleo_jogos          | Busca e filtra informações sobre jogos de futebol em uma data específica, retornando um DataFrame com os dados dos jogos.                                                                                  | DataFrame       |
+| get_jogos             | Chama a função `nucleo_jogos` e retorna um DataFrame com colunas específicas dos jogos em formato JSON.                                                                                                    | JSON            |
+| get_jogos_df          | Chama a função `nucleo_jogos` e retorna uma string formatada com informações dos jogos e um DataFrame com colunas específicas dos jogos.                                                                    | Texto, JSON     |
+| get_time              | Filtra jogos de um time específico utilizando o DataFrame completo retornado pela função `nucleo_jogos`.                                                                                                   | JSON            |
+| filtro_jogao          | Retorna o número de jogos considerados "grandes jogos" (isBigGame) no DataFrame retornado pela função `nucleo_jogos`.                                                                                      | Inteiro         |
+| busca_X               | Utiliza a API do Google para buscar informações no Twitter sobre um perfil específico e retorna uma string formatada com os resultados e um dicionário com os dados dos tweets.                             | Texto, Dicionário|
+| busca_Clima           | Utiliza a API do Clima Tempo para buscar informações em tempo real sobre o clima na cidade do Rio de Janeiro e retorna uma string formatada com os dados do clima e a resposta da API em formato JSON.      | Texto, JSON     |
+
 
 
 #### chathub.py
@@ -116,41 +133,73 @@ A arquitetura do sistema é composta por um backend desenvolvido em Python por m
 
 #### context_gpt35turboFuncCalling.py
 
-Descrição Geral: Introduza o arquivo context_gpt35turboFuncCalling.py como o responsável por criar contextos e responder perguntas usando o modelo GPT-3.5 Turbo.
-Função create_context: Detalhe a função create_context, que cria um contexto relevante para uma pergunta específica.
-Função answer_question: Explique a função answer_question, que utiliza o contexto criado para gerar respostas.
-Função audio_transcription: Mencione a função audio_transcription para transcrição de áudios.
-embeddings_db.py
+- O arquivo context_gpt35turboFuncCalling.py é o responsável por criar contextos e responder perguntas usando os modelos de linguagem da OpenAI. 
+- A função _create_context_ é essencial para a criação de contextos relavantes para perguntas específicas com base nas informações pessoais de memórias e documentos. Além da ordenação com prioridade de menor distância vetorial implementada utilizando o modelo _text-embedding-ada-002_, o método também guarda as tabelas e respectivas posições de cada item do contexto para habilitar futuras consultadas e recuperação de documentos binários. Uma atenção especial é dada ao primeiro item da lista que é salvo na variável global _first_item_. O código de busca contextual está transcrito abaixo: 
+```python
+def create_context(question, df, max_len=1200, size="ada"):
+    load_dotenv()
+    client.api_key = os.getenv('OPENAI_API_KEY')
+    # Recupera os embeddings para a pergunta em formato dataFrame - função não documentada pela opeanAI
+    q_embeddings = client.embeddings.create(input=question, model='text-embedding-ada-002').data[0].embedding
+    df["distances"] = df["embeddings"].apply(lambda x: cosine(q_embeddings, x))
 
-Descrição Geral: Introduza o arquivo embeddings_db.py como o responsável pela atualização e gerenciamento de embeddings.
-Função update_embeddings_db: Detalhe a função update_embeddings_db, que atualiza os embeddings no banco de dados.
-Função atualiza_embedding: a função atualiza_embedding, que recupera dados de diferentes tabelas e atualiza os embeddings.
+    returns = []
+    links = []
+    cur_len = 0
+
+    # Ordena por distâncias e adiciona o texto para ao contexto respeitando o máximo tamanho configurado em max_len
+    for i, row in df.sort_values('distances', ascending=True).iterrows():
+        # Adiciona o tamanho do texto ao current length do contexto
+        cur_len += row['n_tokens'] + 4
+        # Interrompe se o contexto já é longo o suficiente
+        if cur_len > max_len:
+            break
+        # Adiciona o texto que será retornado / adiciona também informações da tabela e o índice correspondente para futura recuperação
+        returns.append(row["texto"])
+        links.append(str(row["tabela"])+'/'+str(row["index"]))
+
+    global first_item
+    # Guarda a posição do primeiro item de menor distância da pergunta
+    first_item = links[0]
+    # Retorna o contexto
+    return "\n🤖\n".join(returns)
+```
+- a função _answer_question_ é o principal componente deste módulo, integrando modelos de linguagem como núcleo inteligente e delegando a agentes especializados tarefas específicas, como buscar informações, executar ações e interagir com APIs, além das rotas definidas nos módulos app.py e main.py. Seu objetivo é oferecer respostas e soluções personalizadas, baseando-se no contexto pessoal construído pela função _create_context_. Para garantir um nível de qualidade satisfatório nas respostas, diferentes modelos podem ser chamados de forma recursiva dentro dessa função. 
+- a função _audio_transcription_ também é executada neste módulo, que após o recebimento e transcrição da mensagem de áudio, recebe o tratamento textual padrão previsto para as mensagens de texto.
+embeddings_db.py
+- Os agentes são considerados o estado da arte na implementação de modelos de larga escala. No contexto do Passis, a abordagem de agentes foi implementada utilizando a funcionalidade `functions` da OpenAI. A tabela abaixo resume os agentes disponíveis no Passis e suas respectivas funções:
+
+| Nome do Agente          | Descrição                                                                                                                         | Parâmetros Necessários                                          |
+|--------------------------|-------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------|
+| `busca_Jogos`           | Busca uma lista de jogos de futebol para uma data específica.                                                                      | `date` (formato `dd-mm-yyyy`)                                   |
+| `obter_cidade_atual_e_clima` | Retorna informações sobre a localização atual do usuário e o clima na região, considerando um intervalo entre uma data e a atual. | `date` (formato `dd-mm-yyyy`)                                   |
+| `busca_Checkin`         | Busca uma lista de checkins do usuário em um intervalo de datas. Checkins incluem atividades como acordar, academia, etc.           | `date` (formato `dd-mm-yyyy`)                                   |
+| `ultimo_Checkin`        | Retorna detalhes do último checkin realizado pelo usuário, como tipo, horário e direção.                                           | Nenhum                                                         |
+| `busca_Clima`           | Obtém informações em tempo real sobre o clima da cidade do Rio de Janeiro, como temperatura, precipitação e vento.                 | Nenhum                                                         |
+| `busca_Cidade`          | Fornece dados em tempo real sobre o trânsito e eventos na cidade do Rio de Janeiro, baseados no Centro de Operações Rio.            | Nenhum                                                         |
+| `registra_Memoria`      | Permite salvar informações personalizadas na memória persistente do sistema, conforme solicitado pelo usuário.                      | Nenhum                                                         |
+
+#### embeddings_db.py
+
+- trata-se de um módulo de suporte responsável pela atualização e gerenciamento de embeddings em articulação com o banco de dados Postgres.
+- as principais funções do módulo são `update_embeddings_db`, que atualiza os embeddings no banco de dados e `atualiza_embedding`, que recupera dados de diferentes tabelas e atualiza os embeddings.
 main.py
 
-Descrição Geral: Introduza o arquivo main.py como o responsável por funções específicas de busca e processamento de dados.
-Função nucleo_jogos: Detalhe a função nucleo_jogos, que busca informações sobre jogos de futebol.
-Função busca_X: Explique a função busca_X, que utiliza a API do Google para buscar informações no Twitter.
-Função busca_Clima: Mencione a função busca_Clima, que busca informações climáticas usando a API do Clima Tempo.
-send_msg.py
+#### send_msg.py
 
-Descrição Geral: Introduza o arquivo send_msg.py como o responsável pelo envio de mensagens via WhatsApp.
-Função send_wapp_msg: Detalhe a função send_wapp_msg, que envia mensagens de texto.
-Função send_wapp_question: Explique a função send_wapp_question, que envia perguntas interativas.
-Função send_wapp_audio_reply: Mencione a função send_wapp_audio_reply, que envia respostas de áudio.
-Falar do banco de dados passisdb
-Falar do text-to-query
-Mostrar como fico o contexto
+- trata-se de um módulo de mensageria responsável pelo envio de mensagens via WhatsApp.
+- as principais funções do módulo são: `send_wapp_msg`, que envia mensagens de texto; `send_wapp_question`, que envia perguntas interativas; `send_wapp_audio_reply`: gerencia as mensagens de áudio e responde com perguntas sugestivas para transcrever ou memorarizar as mensagens; `send_wapp_image`e `get_url_wapp_media`, que juntas permitem o envio de documentos para o usuário.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin pulvinar nisl vestibulum tortor fringilla, eget imperdiet neque condimentum. Proin vitae augue in nulla vehicula porttitor sit amet quis sapien. Nam rutrum mollis ligula, et semper justo maximus accumsan. Integer scelerisque egestas arcu, ac laoreet odio aliquet at. Sed sed bibendum dolor. Vestibulum commodo sodales erat, ut placerat nulla vulputate eu. In hac habitasse platea dictumst. Cras interdum bibendum sapien a vehicula. Proin feugiat nulla sem. Phasellus consequat tellus a ex aliquet, quis convallis turpis blandit. Quisque auctor condimentum justo vitae pulvinar. Donec in dictum purus. Vivamus vitae aliquam ligula, at suscipit ipsum. Quisque in dolor auctor tortor facilisis maximus. Donec dapibus leo sed tincidunt aliquam. 
-![image](https://github.com/user-attachments/assets/28de962e-4340-4a5f-b690-49565f81d3e1)
+### Entrada de dados
 
+A entrada de dados acontece majoritariamente via Whatsapp, uma vez que esta foi definida como a interface gráfica do sistema. No entando, para o funcionamento do assistente e captura dos dados na fonte, foi implementada uma abordagem via automaç
+![img_1.png](img/img_2.png)
 
-
-### 3. Resultados
+## 3. Resultados
 São surpreendentemente positivos os resultados da combinação de (i) dados públicos, utilizados para treinar os modelos fundacionais de larga escala, os (ii) dados pessoais, armazenados no banco de dados _passisdb_ e (iii) os dados em tempo real, recuperados no momento do uso da aplicação Passis. O assistente Passis foi utilizado experimentalmente  por cerca de um ano, enquanto aprimoramentos e novas funcionalidades foram sendo incorporadas.
 As demonstrações dos resultados que se apresentam foram feitas utilizando o Whatsapp enquanto forma de interface de consulta. Para diferentes tipos de entrada, os resultados foram agrupados pela natureza do benefício gerado para o usuário.
 
-#### 3.1 Ganhos de produtividade
+### 3.1 Ganhos de produtividade
 - *Situação*: para realizar uma reserva de hotel, informações diversas tais como: nome completo, CPF, e-mail, endereço, data de nascimento etc. são solicitadas ao usuário;
 - *Uso*: usuário insere as informações solicitadas no prompt de texto do Passis,  acrescidas de uma simples instrução que solicita o preenchimento dos campos;
 - *Resultado*: as informações demandadas são selecionadas por similaridade semântica à partir dos registros contidos no banco de dados Passisdb. A busca vetorizada carrega as informações de maior correspondência no contexto que é passado para o modelo conversacional. O retorno da função é o texto preenchido que então é apresentado na tela do usuário conforme abaixo. 
@@ -169,13 +218,13 @@ As demonstrações dos resultados que se apresentam foram feitas utilizando o Wh
 
 ![image](https://github.com/user-attachments/assets/8c4c24b0-ab28-4043-afdf-cc23ca7e79bc)
 
-#### 3.2 Ganhos de desempenho pessoal
+### 3.2 Ganhos de desempenho pessoal
 - *Situação*: usuário precisa saber se tem sido bem sucedido na sua meta de acordar mais cedo
 - *Uso*: usuário solicita ao assistente uma análise estatística sobre o horário que tem acordado indicando um horizonte de tempo determinado
 - *Resultado*: as informações demandadas são direcionadas para o agente que é capaz de lidar com informações do tipo 'checkin' do usuário (busca_Checkin). Com base no texto enviado, o agente é capaz de extrair as datas de início e fim do período indicado e passá-las como argumento para a função que recupera as informações do banco de dados passisdb (tabela 'checkins'). Então, as informações são passadas para o modelo conversacional juntamente com outras informações de contexto, para permitir uma resposta completa e direcionada ao propósito pretendido. O assistente Passis retorna para a tela de interface as informações desejadas.
 ![image](https://github.com/user-attachments/assets/43a87420-3a7f-4bae-8f00-34b93302457b)
 
-#### 3.3 Busca Geolocalizada em tempo real
+### 3.3 Busca Geolocalizada em tempo real
 - *Situação*: usuário precisa entender as oscilações térmicas pelas cidades por onde esteve cidades e temperaturas por onde estive
 - *Uso*: usuário solicita ao assistente uma análise estatística sobre o horário que tem acordado indicando um horizonte de tempo determinado
 - *Resultado*: as informações demandadas são direcionadas para o agente que é capaz de lidar com informações que envolvem clima e geolocalização (obter_cidade_atual_e_clima). Com base no texto enviado, o agente é capaz de extrair as datas de início e fim do período indicado e passá-las como argumento para a função que recupera as informações do banco de dados passisdb (tabela 'climas'). Então, as informações são passadas para o modelo conversacional juntamente com outras informações de contexto, para permitir uma resposta completa e direcionada ao propósito pretendido. O assistente Passis retorna para a tela de interface as informações desejadas.
@@ -185,13 +234,13 @@ As demonstrações dos resultados que se apresentam foram feitas utilizando o Wh
 - *Resultado*: as informações demandadas são direcionadas para o agente que é capaz de realizar buscas no X. Neste caso específico, é utilizado o perfil do Centro de Operações Rio (@OperacoesRio). Este agente retorna para a função uma lista com horários e acontecimentos ocorridos na cidade do Rio de Janeiro nas últimas horas. Com base nessas informações, o assistente Passis retorna, em forma de texto livre, uma mensagem correspondendo aos eventos solicitados.
 ![image](https://github.com/user-attachments/assets/3a641c20-3f75-4bbb-9eb4-30512733a08b)
 
-#### 3.4 Busca em tempo real com preferências pessoais
+### 3.4 Busca em tempo real com preferências pessoais
 Situação: usuário recebe informação em tempo real com base em suas preferências registradas em memória
 Uso: usuário solicita ao assistente informações sobre jogos de futebol do dia seguinte, informando o apelido do seu time de futebol
 Resultado: as informações demandadas são direcionadas para o agente _busca_Jogos_, que é capaz de buscar uma lista de jogos para um dia específico, além de saber inferir a data de interesse à partir do dia solicitado pelo usuário. Paralelamente, são ordenadas por similaridade as memórias relacionadas ao tema da pergunta; sendo neste caso um jogo de futebol, a primeira memória associada traz informações sobre o time de preferência do usuário. A função _main.get_jogos_ é então solicitada para a data de interesse e retorna a lista de jogos para a data informada enquanto argumento de entrada. Uma nova chamada é então realizada para o modelo de linguagem, que recebe a lista completa de jogos daquele dia, juntamente com as memórias relacionadas na primeira busca realizada neste processo. Com todas essas informações, o modelo retorna com as informações do jogo solicitado.
 ![image](https://github.com/user-attachments/assets/8cade159-71c8-4748-b33f-515a481ac719)
 
-### 4. Conclusões
+## 4. Conclusões
 Dizer que o trabalho está alinhado com as melhores práticas e tendências do mercado, seja para uso dos dados, seja para aplicação dos conceitos de LLM.
 - Assistentes LuzIA, Assistente Microsoft lançado no início de outubro...
 - 
@@ -199,7 +248,7 @@ Dizer que o trabalho está alinhado com as melhores práticas e tendências do m
 --- Matrícula: 123.456.789 Pontifícia Universidade Católica do Rio de Janeiro Curso de Pós Graduação *Business Intelligence Master*
 
 
-### 5. Referências
+## 5. Referências
 ##### Case Study: Human-Centric Generative AI Strategy - 15 May 2024 - ID G00811249 By Raf Gelders, Alicia Mullery, Sneha Ayyar - https://www.gartner.com/document/5431263?ref=solrResearch&refval=421781754&
 ##### The Future of Frontline Work: Collaborative Human-Machine Teams - 3 June 2024 - ID G00785847 By Emily Rose McRae, Manish Thigale, Kelsie Marian, Suzie Petrusic, Emily Potosky, Sam Grinter - https://www.gartner.com/document/4382299?ref=solrResearch&refval=421781754&
 ##### ([^3]) General Data Protection Regulation GDPR https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32016R0679

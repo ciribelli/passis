@@ -15,7 +15,7 @@ first_item = ""
 def create_context(question, df, max_len=1200, size="ada"):
     load_dotenv()
     client.api_key = os.getenv('OPENAI_API_KEY')
-    # Get the embeddings for the question // nao documentado pela opeanAI
+    # Recupera os embeddings para a pergunta em formato dataFrame - função não documentada pela opeanAI
     q_embeddings = client.embeddings.create(input=question, model='text-embedding-ada-002').data[0].embedding
     df["distances"] = df["embeddings"].apply(lambda x: cosine(q_embeddings, x))
 
@@ -23,20 +23,21 @@ def create_context(question, df, max_len=1200, size="ada"):
     links = []
     cur_len = 0
 
-    # Sort by distance and add the text to the context until the context is too long
+    # Ordena por distâncias e adiciona o texto para ao contexto respeitando o máximo tamanho configurado em max_len
     for i, row in df.sort_values('distances', ascending=True).iterrows():
-        # Add the length of the text to the current length
+        # Adiciona o tamanho do texto ao current length do contexto
         cur_len += row['n_tokens'] + 4
-        # If the context is too long, break
+        # Interrompe se o contexto já é longo o suficiente
         if cur_len > max_len:
             break
-        # Else add it to the text that is being returned
+        # Adiciona o texto que será retornado / adiciona também informações da tabela e o índice correspondente para futura recuperação
         returns.append(row["texto"])
         links.append(str(row["tabela"])+'/'+str(row["index"]))
 
     global first_item
+    # Guarda a posição do primeiro item de menor distância da pergunta
     first_item = links[0]
-    # Return the context
+    # Retorna o contexto
     return "\n🤖\n".join(returns)
 
 def remove_spec_char(sentence):
