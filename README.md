@@ -2,7 +2,7 @@
 ##### Aluno: Otávio Ciribelli Borges (https://github.com/ciribelli) 
 ##### Orientador: Anderson Nascimento (https://github.com/insightds)
 
-Trabalho apresentado ao curso [BI MASTER](https://ica.puc-rio.ai/bi-master) como pré-requisito para conclusão de curso e obtenção de crédito na disciplina "Projetos de Sistemas Inteligentes de Apoio à Decisão". - [Link para o código](https://github.com/link_do_repositorio). - [Link para a monografia](https://link_da_monografia.com). - Trabalhos relacionados: - [Nome do Trabalho 1](https://link_do_trabalho.com). - [Nome do Trabalho 2](https://link_do_trabalho.com).
+Trabalho apresentado ao curso [BI MASTER](https://ica.puc-rio.ai/bi-master) como pré-requisito para conclusão de curso e obtenção de crédito na disciplina "Projetos de Sistemas Inteligentes de Apoio à Decisão". - [Link para o código](https://github.com/link_do_repositorio). - [Link para a monografia](https://github.com/ciribelli/passis/tree/master). - Trabalhos relacionados: - [Nome do Trabalho 1](https://link_do_trabalho.com). - [Nome do Trabalho 2](https://link_do_trabalho.com).
 ## Resumo
 Este trabalho visa apresentar uma abordagem inovadora para apropriação e uso dos dados gerados diariamente por cada indivíduo em múltiplos propósitos e contextos. Em contraste com o paradigma que grandes corporações comumente oferecem enquanto experiência para seus usuários, a proposta desta solução de Assistente Pessoal (Passis) se diferencia pelo gerenciamento das informações pessoais de forma segura e em formato aberto e flexível quanto à forma de consumo e utilização desses dados. Neste contexto, o Passis objetiva a promoção de uma rotina de maior produtividade para seus usuários por meio do aumento do conhecimento de suas próprias informações que são geradas e armazenadas pelo sistema. Com uma inovadora forma de combinação dos dados pessoais registrados com as informações do meio onde o indivíduo está inserido, a solução habilita que decisões sejam tomadas em tempo real com menor grau de subjetividade. O Assistente foi desenvolvido em um conjunto de implementações modeladas em formato de microsserviços com uma Interface Programável de Aplicação (API) que comunica com rotinas automatizadas e comandos do usuário que acontecem preferencialmente em linguagem natural pelo aplicativo de mensagem Whatsapp. Sendo seu código-fonte desenvolvido em formato aberto (*open source*), pode ser implementado em diferentes plataformas e conectado com os principais serviços de visualização de dados e plataformas de *Business Inteligence* disponíveis no mercado. 
 ## Abstract
@@ -60,13 +60,27 @@ Organizations in this future are trying to maximize the impact of their employee
 
 
 ## 2. Modelagem
-
-
-
-
-A arquitetura do sistema é composta por um backend desenvolvido em Python por meio de um servidor web que implementa o _framework_ Flask que gerencia as rotas e endpoints, um conjunto de funções de processamento e busca, e um modelo de linguagem de larga escala (LLM) que gera as respostas contextuais. Esses elementos estão apresentados. Além do servidor principal, um banco de dados Postgres também suporta o funcionamento da aplicação guardando as informações do usuário relativamente a memórias, documentos, compromissos ("checkins") etc. A figura XXXX apresenta um panorama da visão funcional do sistema.
+A arquitetura do sistema é composta por um backend desenvolvido em Python por meio de um servidor web que implementa o _framework_ Flask que gerencia as rotas e endpoints, um conjunto de funções de processamento e busca, e um modelo de linguagem de larga escala (LLM) que gera as respostas contextuais. Além do servidor principal, um banco de dados Postgres também suporta o funcionamento da aplicação guardando as informações do usuário relativamente a memórias, documentos, compromissos ("checkins") etc. A figura XXXX apresenta um panorama da visão funcional do sistema.
 
 ![image](https://github.com/user-attachments/assets/f899012d-10e1-45f9-8437-236883fa67d7)
+
+### Interface de entrada e saída
+
+Por ser um sistema baseado em API, a interface para entrada e saída de dados pode ser agnóstica à plataformas ou tecnologias específicas. Três diferentes modalidades de interação com o sistema podem ser destacadas:
+- **Entrada manual**: realizada por meio de chamadas aos endpoints da API, utilizando um navegador, ferramentas de gerenciamento de APIs (como o Postman, entre outras disponíveis no mercado), ou componentes que utilizem o protocolo HTTP. Nesta modalidade, os argumentos de entrada podem ser definidos livremente pelo usuário que manipula a API.
+- **Entrada estática**: realizada por meio de comandos pré-definidos no contato Passis do Whatsapp. Nesta modalidade, os argumentos de entrada das funções da API são pré-definidos e imutáveis.
+- **Entrada dinâmica**: realizada por meio de comandos de texto livre ou mensagens de áudio no contato Passis do Whatsapp. Nesta modalidade, o modelo de linguagem interpreta a entrada do usuário e define os argumentos da API de forma dinâmica.
+
+Cabe destacar que a _Entrada dinâmica_ vale-se do conceito de **Agentes** que será melhor detalhada na sessão `Implementação do Backend`.
+
+Além das interações de natureza intencional, existem também comandos programáticas previsotos para cumprir com o objetivo de utilizar os dados do usuário de forma transparente. São três tipos de entradas programáticas implementadas no Passis utilizando a função `Atalhos` disponível no iOS:
+- **Entrada agendada**: automação que regularmente e em horários pré-definidos insere informações no sistema. Um exemplo é a localização e as informações climáticas do usuário em determinado instante.
+- **Entrada geolocalizada**: automação que, baseada na localização do usuário, insere informações no sistema. Um exemplo é a inserção de um `checkin` no momento em que o usuário chega ao seu escritório para trabalhar.
+- **Entrada via botão**: automação que, baseado no clique de um botão, insere informações no sistema. Um exemplo é alguém que queira acompanhar o número de vezes em que vai ao banheiro por dia.
+
+
+![img.png](img/img.png)
+_Figura XXX - Entrada via botão para usuário que monitora o número de vezes em que pratica atividade física_
 
 ### Implementação do Backend
 As sessões a seguir resumem os arquivos `.py` e seus respectivos módulos que compõem a arquitetura do Passis.
@@ -74,39 +88,39 @@ As sessões a seguir resumem os arquivos `.py` e seus respectivos módulos que c
 - Este arquivo é a entrada principal do aplicativo Flask. Nele estão contidas as rotas e endpoints da API. Nele também está implementado um trecho importante do sistema que é uma estrutura tipicamente reconhecida como _webhook_. Este trecho do código funciona como um ponto de espera e conexão ativa com a API da Meta e seu aplicativo Whatsapp Business. Portanto, ainda que o conceito de arquitetura contemple a propriedade de agnosticidade à interface por usar exclusivamente as rotas e endpoints do arquivo app.py para seu funcionamento, neste webhook é onde acontece a implementação desta prova de conceito que foi feita utilizando o Whatsapp enquanto interface de usuário.
 - Uma lista completa das rotas e endpoints do arquivo app.py estão listadas na tabela a seguir:
 
-| Rota                          | Métodos           | Descrição                                                       |
-|-------------------------------|-------------------|-----------------------------------------------------------------|
-| /                             | GET               | Página inicial do servidor                                       |
-| /v1/jogos/<data_hora>         | GET               | Obtém jogos para uma data/hora específica (Central de jogos UOL) |
-| /v1/time/<nome_time>          | GET               | Obtém informações sobre um time específico (Central de jogos UOL) |
-| /v1/x/                        | GET               | Busca informações de um perfil no X (antigo Twitter)           |
-| /v1/clima                     | GET               | Obtém informações climáticas (API Clima Tempo)                 |
-| /webhook                      | POST, GET         | Webhook para interações (POST) e verificações (GET) com a Meta |
-| /checkin                      | POST, GET         | Cria (POST) ou lista (GET) check-ins                           |
-| /checkin/<checkin_id>         | GET, PUT, DELETE  | Obtém, atualiza ou deleta um check-in específico                |
-| /adicionar_clima              | POST              | Adiciona dados climáticos                                       |
-| /deletar_clima/<clima_id>     | DELETE            | Deleta um registro climático específico                          |
-| /criar_documento              | POST              | Cria um novo documento binário                                   |
-| /recuperar_documento/<documento_id> | GET         | Recupera um documento binário específico                        |
-| /recuperar_lista_documentos   | GET               | Lista todos os documentos binários                               |
-| /excluir_documento/<documento_id> | DELETE        | Exclui um documento binário específico                          |
-| /atualizar_documento/<documento_id> | PUT         | Atualiza informações de um documento binário                    |
-| /memorias                     | POST, GET         | Cria (POST) ou lista (GET) memórias                            |
-| /threads                      | GET               | Obtém as últimas threads (conversas) registradas no Passis     |
+| Rota                                | Métodos          | Descrição                                                         |
+|-------------------------------------|------------------|-------------------------------------------------------------------|
+| /                                   | GET              | Página inicial do servidor                                        |
+| /v1/jogos/<data_hora>               | GET              | Obtém jogos para uma data/hora específica (Central de jogos UOL)  |
+| /v1/time/<nome_time>                | GET              | Obtém informações sobre um time específico (Central de jogos UOL) |
+| /v1/x/                              | GET              | Busca informações de um perfil no X (antigo Twitter)              |
+| /v1/clima                           | GET              | Obtém informações climáticas (API Clima Tempo)                    |
+| /webhook                            | POST, GET        | Webhook para interações (POST) e verificações (GET) com a Meta    |
+| /checkin                            | POST, GET        | Cria (POST) ou lista (GET) check-ins                              |
+| /checkin/<checkin_id>               | GET, PUT, DELETE | Obtém, atualiza ou deleta um check-in específico                  |
+| /adicionar_clima                    | POST             | Adiciona dados climáticos                                         |
+| /deletar_clima/<clima_id>           | DELETE           | Deleta um registro climático específico                           |
+| /criar_documento                    | POST             | Cria um novo documento binário                                    |
+| /recuperar_documento/<documento_id> | GET              | Recupera um documento binário específico                          |
+| /recuperar_lista_documentos         | GET              | Lista todos os documentos binários                                |
+| /excluir_documento/<documento_id>   | DELETE           | Exclui um documento binário específico                            |
+| /atualizar_documento/<documento_id> | PUT              | Atualiza informações de um documento binário                      |
+| /memorias                           | POST, GET        | Cria (POST) ou lista (GET) memórias                               |
+| /threads                            | GET              | Obtém as últimas threads (conversas) registradas no Passis        |
 
 #### main.py
 - Este arquivo tem por objetivo implementar módulos de busca e manipulação de informações mais intensas, que podem envolver consulta à APIs externas ou atividades de _webscraping_ feitas para o propósito do Passis.
 - As funções do arquivo estão listadas na tabela abaixo. Cabe observar que o formato de retorno pode ser flexível para permitir diferentes abordagens nas consultas aos modelos de linguagem. Um ponto de atenção neste tipo de abordagem é que o desempenho dos modelos pode variar muito quando submetido a informações com diferentes formatações (`JSON`, texto livre, Pandas `DataFrame`, dentre outras)
 
-| Função                | Descrição                                                                                                                                                                                                 | Tipo de Retorno |
-|-----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------|
-| nucleo_jogos          | Busca e filtra informações sobre jogos de futebol em uma data específica, retornando um DataFrame com os dados dos jogos.                                                                                  | DataFrame       |
-| get_jogos             | Chama a função `nucleo_jogos` e retorna um DataFrame com colunas específicas dos jogos em formato JSON.                                                                                                    | JSON            |
-| get_jogos_df          | Chama a função `nucleo_jogos` e retorna uma string formatada com informações dos jogos e um DataFrame com colunas específicas dos jogos.                                                                    | Texto, JSON     |
-| get_time              | Filtra jogos de um time específico utilizando o DataFrame completo retornado pela função `nucleo_jogos`.                                                                                                   | JSON            |
-| filtro_jogao          | Retorna o número de jogos considerados "grandes jogos" (isBigGame) no DataFrame retornado pela função `nucleo_jogos`.                                                                                      | Inteiro         |
-| busca_X               | Utiliza a API do Google para buscar informações no Twitter sobre um perfil específico e retorna uma string formatada com os resultados e um dicionário com os dados dos tweets.                             | Texto, Dicionário|
-| busca_Clima           | Utiliza a API do Clima Tempo para buscar informações em tempo real sobre o clima na cidade do Rio de Janeiro e retorna uma string formatada com os dados do clima e a resposta da API em formato JSON.      | Texto, JSON     |
+| Função       | Descrição                                                                                                                                                                                              | Tipo de Retorno   |
+|--------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------|
+| nucleo_jogos | Busca e filtra informações sobre jogos de futebol em uma data específica, retornando um DataFrame com os dados dos jogos.                                                                              | DataFrame         |
+| get_jogos    | Chama a função `nucleo_jogos` e retorna um DataFrame com colunas específicas dos jogos em formato JSON.                                                                                                | JSON              |
+| get_jogos_df | Chama a função `nucleo_jogos` e retorna uma string formatada com informações dos jogos e um DataFrame com colunas específicas dos jogos.                                                               | Texto, JSON       |
+| get_time     | Filtra jogos de um time específico utilizando o DataFrame completo retornado pela função `nucleo_jogos`.                                                                                               | JSON              |
+| filtro_jogao | Retorna o número de jogos considerados "grandes jogos" (isBigGame) no DataFrame retornado pela função `nucleo_jogos`.                                                                                  | Inteiro           |
+| busca_X      | Utiliza a API do Google para buscar informações no Twitter sobre um perfil específico e retorna uma string formatada com os resultados e um dicionário com os dados dos tweets.                        | Texto, Dicionário |
+| busca_Clima  | Utiliza a API do Clima Tempo para buscar informações em tempo real sobre o clima na cidade do Rio de Janeiro e retorna uma string formatada com os dados do clima e a resposta da API em formato JSON. | Texto, JSON       |
 
 
 
@@ -114,20 +128,20 @@ As sessões a seguir resumem os arquivos `.py` e seus respectivos módulos que c
 
 - Este arquivo é responsável pelo fluxo de comunicação e interação do usuário, gerenciando as informações recebidas e indicando as ações a serem tomadas com base no conteúdo da mensagem.
 - O termo 'hub' se refere às múltiplas interações que este módulo do sistema realiza desde o recebimento das mensagens do _Webhook_, triagem das informações para entender a natureza do conteúdo (se áudio ou texto, por exemplo) e conexões com o modelo de linguagem e funções de mensageria. Pode-se dizer que sua função é também garantir que o usuário receba alguma resposta para toda e qualquer interação.
-- Existem comandos textuais específicos que são funcionais e permitem atuar diretamente no sistema, conforme listagem na tabela abaixo:
+- Existem comandos textuais específicos (Entrada estática) que são funcionais e permitem atuar diretamente no sistema, conforme listagem na tabela abaixo:
 
 
-| Comando/Texto                              | Explicação                                                                           |
-|--------------------------------------------|--------------------------------------------------------------------------------------|
-| "jogos" ou "jogo"                          | Obtém informações sobre jogos para a data atual                                      |
-| "cidade", "cidades" ou "transito"         | Busca informações sobre a cidade e trânsito no X (antigo Twitter)                    |
-| "Clima", "Climas", "clima" ou "climas"    | Busca informações sobre o clima                                                      |
-| "checkin"                                  | Obtém informações de check-ins dos últimos 4 dias até a data atual                   |
-| "localização" ou "localizacao"            | Obtém a cidade atual e informações sobre o clima dos últimos 4 dias até a data atual |
-| "📝"                                       | Salva na memória as informações contidas na mensagem                                 |
-| "🔄"                                       | Força a atualização dos vetores de embeddings                                        |
-| "responder"                                | Ativa o modo de pergunta, enviando uma questão ao usuário                            |
-| "✅"                                       | Mensagem reservada do sistema para evitar o envio do prompt para a API OpenAI        |
+| Comando/Texto                          | Explicação                                                                           |
+|----------------------------------------|--------------------------------------------------------------------------------------|
+| "jogos" ou "jogo"                      | Obtém informações sobre jogos para a data atual                                      |
+| "cidade", "cidades" ou "transito"      | Busca informações sobre a cidade e trânsito no X (antigo Twitter)                    |
+| "Clima", "Climas", "clima" ou "climas" | Busca informações sobre o clima                                                      |
+| "checkin"                              | Obtém informações de check-ins dos últimos 4 dias até a data atual                   |
+| "localização" ou "localizacao"         | Obtém a cidade atual e informações sobre o clima dos últimos 4 dias até a data atual |
+| "📝"                                   | Salva na memória as informações contidas na mensagem                                 |
+| "🔄"                                   | Força a atualização dos vetores de embeddings                                        |
+| "responder"                            | Ativa o modo de pergunta, enviando uma questão ao usuário                            |
+| "✅"                                    | Mensagem reservada do sistema para evitar o envio do prompt para a API OpenAI        |
 
 - Para o caso de comandos via linguagem natural, sejam estes recebidos via texto ou áudio, o chathub.py faz com que estes comandos cheguem ao módulo da API da OpenAI via comando 'envia_prompt_api'.
 
@@ -190,10 +204,6 @@ main.py
 - trata-se de um módulo de mensageria responsável pelo envio de mensagens via WhatsApp.
 - as principais funções do módulo são: `send_wapp_msg`, que envia mensagens de texto; `send_wapp_question`, que envia perguntas interativas; `send_wapp_audio_reply`: gerencia as mensagens de áudio e responde com perguntas sugestivas para transcrever ou memorarizar as mensagens; `send_wapp_image`e `get_url_wapp_media`, que juntas permitem o envio de documentos para o usuário.
 
-### Entrada de dados
-
-A entrada de dados acontece majoritariamente via Whatsapp, uma vez que esta foi definida como a interface gráfica do sistema. No entando, para o funcionamento do assistente e captura dos dados na fonte, foi implementada uma abordagem via automaç
-![img_1.png](img/img_2.png)
 
 ## 3. Resultados
 São surpreendentemente positivos os resultados da combinação de (i) dados públicos, utilizados para treinar os modelos fundacionais de larga escala, os (ii) dados pessoais, armazenados no banco de dados _passisdb_ e (iii) os dados em tempo real, recuperados no momento do uso da aplicação Passis. O assistente Passis foi utilizado experimentalmente  por cerca de um ano, enquanto aprimoramentos e novas funcionalidades foram sendo incorporadas.
@@ -227,7 +237,7 @@ As demonstrações dos resultados que se apresentam foram feitas utilizando o Wh
 ### 3.3 Busca Geolocalizada em tempo real
 - *Situação*: usuário precisa entender as oscilações térmicas pelas cidades por onde esteve cidades e temperaturas por onde estive
 - *Uso*: usuário solicita ao assistente uma análise estatística sobre o horário que tem acordado indicando um horizonte de tempo determinado
-- *Resultado*: as informações demandadas são direcionadas para o agente que é capaz de lidar com informações que envolvem clima e geolocalização (obter_cidade_atual_e_clima). Com base no texto enviado, o agente é capaz de extrair as datas de início e fim do período indicado e passá-las como argumento para a função que recupera as informações do banco de dados passisdb (tabela 'climas'). Então, as informações são passadas para o modelo conversacional juntamente com outras informações de contexto, para permitir uma resposta completa e direcionada ao propósito pretendido. O assistente Passis retorna para a tela de interface as informações desejadas.
+- *Resultado*: as informações demandadas são direcionadas para o agente que é capaz de lidar com informações que envolvem clima e geolocalização (obter_cidade_atual_e_clima). Com base no texto enviado, o agente é capaz de extrair as datas de início e fim do período indicado e passá-las como argumento para a função que recupera as informações do banco de dados passisdb (tabela 'climas'). Então, as informações são passadas para o modelo conversacional juntamente com outras informações de contexto, para permitir uma resposta completa e direcionada ao propósito pretendido. O assistente Passis retorna para a tela de informações desejadas.
 ![image](https://github.com/user-attachments/assets/dca56cf9-ec62-4bfc-8e14-cd7b9de22d19)
 - *Situação*: usuário evita uma rota em razão de acidente ou evento acontecendo na cidade 
 - *Uso*: usuário solicita ao assistente informações específicas sobre um local da cidade (túnel Rebouças no Rio de Janeiro)
@@ -245,7 +255,7 @@ Dizer que o trabalho está alinhado com as melhores práticas e tendências do m
 - Assistentes LuzIA, Assistente Microsoft lançado no início de outubro...
 - 
 
---- Matrícula: 123.456.789 Pontifícia Universidade Católica do Rio de Janeiro Curso de Pós Graduação *Business Intelligence Master*
+--- Matrícula: 123.456.789 Pontifícia Universidade Católica do Rio de Janeiro Curso de Pós-Graduação *Business Intelligence Master*
 
 
 ## 5. Referências
