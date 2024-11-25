@@ -2,10 +2,15 @@
 ##### Aluno: Otávio Ciribelli Borges (https://github.com/ciribelli) 
 ##### Orientador: Anderson Nascimento (https://github.com/insightds)
 
-Trabalho apresentado ao curso [BI MASTER](https://ica.puc-rio.ai/bi-master) como pré-requisito para conclusão de curso e obtenção de crédito na disciplina "Projetos de Sistemas Inteligentes de Apoio à Decisão". - [Link para o código](https://github.com/link_do_repositorio). - [Link para a monografia](https://github.com/ciribelli/passis/tree/master). - Trabalhos relacionados: - [Nome do Trabalho 1](https://link_do_trabalho.com). - [Nome do Trabalho 2](https://link_do_trabalho.com).
+Matrícula: 221101073 Pontifícia Universidade Católica do Rio de Janeiro Curso de Pós-Graduação *Business Intelligence Master*
+
+
 ## Resumo
-Este trabalho visa apresentar uma abordagem inovadora para apropriação e uso dos dados gerados diariamente por cada indivíduo em múltiplos propósitos e contextos. Em contraste com o paradigma que grandes corporações comumente oferecem enquanto experiência para seus usuários, a proposta desta solução de Assistente Pessoal (Passis) se diferencia pelo gerenciamento das informações pessoais de forma segura e em formato aberto e flexível quanto à forma de consumo e utilização desses dados. Neste contexto, o Passis objetiva a promoção de uma rotina de maior produtividade para seus usuários por meio do aumento do conhecimento de suas próprias informações que são geradas e armazenadas pelo sistema. Com uma inovadora forma de combinação dos dados pessoais registrados com as informações do meio onde o indivíduo está inserido, a solução habilita que decisões sejam tomadas em tempo real com menor grau de subjetividade. O Assistente foi desenvolvido em um conjunto de implementações modeladas em formato de microsserviços com uma Interface Programável de Aplicação (API) que comunica com rotinas automatizadas e comandos do usuário que acontecem preferencialmente em linguagem natural pelo aplicativo de mensagem Whatsapp. Sendo seu código-fonte desenvolvido em formato aberto (*open source*), pode ser implementado em diferentes plataformas e conectado com os principais serviços de visualização de dados e plataformas de *Business Inteligence* disponíveis no mercado. 
+Este trabalho visa apresentar uma abordagem inovadora para apropriação e uso dos dados gerados diariamente por cada indivíduo em múltiplos propósitos e contextos. Em contraste com o paradigma que grandes corporações comumente oferecem enquanto experiência para seus usuários, a proposta desta solução de Assistente Pessoal (Passis) se diferencia pelo gerenciamento das informações pessoais de forma segura e em formato aberto e flexível quanto à forma de consumo e utilização desses dados. Neste contexto, o Passis objetiva uma rotina de maior produtividade para seus usuários por meio do aumento do conhecimento de suas próprias informações que são geradas e armazenadas pelo sistema. Com uma inovadora forma de combinação dos dados pessoais registrados com as informações do meio onde o indivíduo está inserido, a solução habilita que decisões sejam tomadas em tempo real com menor grau de subjetividade. O Assistente foi desenvolvido em um conjunto de implementações modeladas em formato de microsserviços com uma Interface Programável de Aplicação (API) que comunica com rotinas automatizadas e comandos do usuário que acontecem preferencialmente em linguagem natural pelo aplicativo de mensagem Whatsapp. Sendo seu código-fonte desenvolvido em formato aberto (*open source*), pode ser implementado em diferentes plataformas e conectado com os principais serviços de visualização de dados e plataformas de *Business Inteligence* disponíveis no mercado. 
+
+
 ## Abstract
+
 
 This work aims to present an innovative approach for the appropriation and use of data generated daily by each individual for multiple purposes and contexts. In contrast to the paradigm commonly offered by large corporations as a user experience, the proposed solution of a Personal Assistant (Passis) stands out for securely managing personal information in an open and flexible format regarding how the data is consumed and applied. In this context, Passis aims to promote a more productive routine for its users by increasing their awareness of their own information, which is generated and stored by the system. With an innovative way of combining recorded personal data with information from the environment in which the individual is embedded, the solution enables real-time decision-making with a lower degree of subjectivity. The Assistant was developed using a set of implementations modeled as microservices with an Application Programming Interface (API) that communicates with automated routines and user commands, preferably in natural language through the messaging app WhatsApp. As its source code is developed in an open-source format, it can be implemented on different platforms and connected to major data visualization services and Business Intelligence platforms available on the market.
 ## 1. Introdução
@@ -26,58 +31,39 @@ _Figura 01 - Aumento do interesse por soluções do tipo “AI Personal Assistan
 ### 1.2 Motivação
 Suponhamos que alguém decida fazer uma promessa de ano novo comprometendo-se a dormir mais cedo no ano que se inicia, na busca por uma vida mais equilibrada e saudável. Ou ainda, uma pessoa se comprometa em fazer caminhadas diárias para melhorar seu desempenho cardiorespiratório. Ou por último, alguém busque por uma sugestão de programação para uma tarde de sábado de acordo com suas preferências e as condições climáticas daquele dia. Naturalmente, cada uma dessas pessoas poderia buscar um aplicativo de caminhadas, baixar um monitor de sono para seu _smartwatch_ ou fazer uma busca numa rede social ou portal de eventos para saber a programação de jogos naquela tarde. Acontece que todas essas são informações estão persistidas de forma estanque em suas origens, com pouca ou nenhuma personalização de conteúdo para atender a real necessidade desses indivíduos. O aplicativo de caminhadas irá calcular o ritmo de caminhada, apresentar o tempo e a velocidade média num _dashboard_. Um mapa também será exibido para que as pessoas interajam com sua caminhada. Em verdade, o que se desejava com o aplicativo era apenas saber se as caminhadas estão sendo mais frequentes neste ano quando comparadas ao ano anterior. Tal raciocínio vale para o aplicativo de sono e o site de busca por entretenimento. Eventualmente, num dia chuvoso e com um clássico de futebol exibido na TV aberta envolvendo seu time do coração, poderia ser essa a sugestão que mais agrada quem procura o que fazer com seu tempo.
 
-Muito provalvemente, a pergunta que se quer responder neste trabalho, em meio à vastidão de informações geradas diariamente por pessoas e sistemas, é: *qual o melhor recorte de dados que deve ser consultado para prover a resposta mais adequada para uma determinada necessidade*?
+Muito provavelmente, a pergunta que se quer responder neste trabalho, em meio à vastidão de informações geradas diariamente por pessoas e sistemas, é: *qual o melhor recorte de dados que deve ser consultado para prover a resposta mais adequada para uma determinada necessidade*?
 
 ### 1.3 Proposição
 
-A proposta deste trabalho, neste contexto de altíssima disponibilidade de dados e recursos tecnológicos que permitem imensa agregação de informações de diferentes origens em modelos de liguagem de grande escala, consiste em propor um *assistente pessoal que forneça sugestões 
-em assuntos de domínio das memórias particulares, localização geográfica, compromissos (checkins), clima, trânsito e eventos externos*[^7]. 
+A proposta deste trabalho, neste contexto de altíssima disponibilidade de dados e recursos tecnológicos que permitem imensa agregação de informações de diferentes origens em modelos de linguagem de grande escala, consiste em propor um assistente pessoal que forneça sugestões em assuntos de domínio das memórias particulares, localização geográfica, compromissos (checkins), clima, trânsito e eventos externos*[^7]. 
 
-Para o assistente Passis, contrariando a estatística da montanha de dados que se estima que seja gerada por pessoas diariamentes, destinou-se apenas 11kB por dia, em média, para a geração de sua base de dados.
+Para o assistente Passis, contrariando a estatística da montanha de dados que se estima que seja gerada por pessoas diariamente, destinou-se apenas 11kB por dia, em média, para a geração de sua base de dados.
 
-************************************************ estamos agora na hora de falar da UX ************************
-O uso 
-Insights:
--Assistente pessoal em código aberto que se propõe a entender a rotina pessoal ou profissional do usuário e sugerir aperfeiçoamentos com base na observação e/ou métricas propostas pelo usuário
--Investir em UX “transparente” ao usuário
--Permitir classificação de dados
+Em linha com o objetivo de garantir maior produtividade ao usuário, a interface gráfica definida para este assistente é um contato de Whatsapp que permitirá um foco mais contínuo às atividades, evitando alternâncias demasiadas de telas e emulando uma pessoa como outra qualquer de sua lista de contatos.
 
-Strategic Planning Assumptions
-By 2025, generative AI will be a workforce partner for 90% of companies globally.
-
-Organizations in this future are trying to maximize the impact of their employees,by focusing on taking tasks that are rote, repetitive, or rapidly produce feedback and moving them to machines and technology. This reduces their rate of attrition and allows them to get more out of their existing employees.
-
-
-
-
-
-- motivação ligada à crescente demanda por assistentes pessoais, principalmente após o advento da genAI
-- gráfico do google
-- referencia do gartner
-- soberania dos dados pessoais
-- tentar lembrar do termo do professor
-
-
+![img_1.png](img_1.png)
+*Figura XXX - Visualização da interface como um contato pessoal no aplicativo Whatsapp da Meta*
 
 ## 2. Modelagem
 A arquitetura do sistema é composta por um backend desenvolvido em Python por meio de um servidor web que implementa o _framework_ Flask que gerencia as rotas e endpoints, um conjunto de funções de processamento e busca, e um modelo de linguagem de larga escala (LLM) que gera as respostas contextuais. Além do servidor principal, um banco de dados Postgres também suporta o funcionamento da aplicação guardando as informações do usuário relativamente a memórias, documentos, compromissos ("checkins") etc. A figura XXXX apresenta um panorama da visão funcional do sistema.
 
 ![image](https://github.com/user-attachments/assets/f899012d-10e1-45f9-8437-236883fa67d7)
 
-### Interface de entrada e saída
+### Interface de comunicação
 
-Por ser um sistema baseado em API, a interface para entrada e saída de dados pode ser agnóstica à plataformas ou tecnologias específicas. Três diferentes modalidades de interação com o sistema podem ser destacadas:
+Por ser um sistema baseado em API, a interface para entrada e saída de dados pode ser agnóstica à plataformas ou tecnologias específicas. Quatro diferentes modalidades de interação intencional com o sistema podem ser destacadas:
 - **Entrada manual**: realizada por meio de chamadas aos endpoints da API, utilizando um navegador, ferramentas de gerenciamento de APIs (como o Postman, entre outras disponíveis no mercado), ou componentes que utilizem o protocolo HTTP. Nesta modalidade, os argumentos de entrada podem ser definidos livremente pelo usuário que manipula a API.
 - **Entrada estática**: realizada por meio de comandos pré-definidos no contato Passis do Whatsapp. Nesta modalidade, os argumentos de entrada das funções da API são pré-definidos e imutáveis.
 - **Entrada dinâmica**: realizada por meio de comandos de texto livre ou mensagens de áudio no contato Passis do Whatsapp. Nesta modalidade, o modelo de linguagem interpreta a entrada do usuário e define os argumentos da API de forma dinâmica.
+- **Entrada via botão**: automação que, baseada no clique de um botão, insere informações no sistema. Um exemplo é alguém que queira acompanhar o número de vezes que vai à academia por semana, ou bebe água durante o dia.
 
 Cabe destacar que a _Entrada dinâmica_ vale-se do conceito de **Agentes** que será melhor detalhada na sessão `Implementação do Backend`.
 
-Além das interações de natureza intencional, existem também comandos programáticas previsotos para cumprir com o objetivo de utilizar os dados do usuário de forma transparente. São três tipos de entradas programáticas implementadas no Passis utilizando a função `Atalhos` disponível no iOS:
-- **Entrada agendada**: automação que regularmente e em horários pré-definidos insere informações no sistema. Um exemplo é a localização e as informações climáticas do usuário em determinado instante.
+Além das interações de natureza intencional, existem também comandos programáticos previstos para cumprir com o objetivo de utilizar os dados do usuário de forma transparente. São dois tipos de entradas programáticas implementadas no Passis utilizando a função `Atalhos` disponível no iOS:
+- **Entrada agendada**: automação que regularmente e, em horários pré-definidos, insere informações no sistema. Um exemplo é a localização e as informações climáticas do usuário em determinado instante.
 - **Entrada geolocalizada**: automação que, baseada na localização do usuário, insere informações no sistema. Um exemplo é a inserção de um `checkin` no momento em que o usuário chega ao seu escritório para trabalhar.
-- **Entrada via botão**: automação que, baseado no clique de um botão, insere informações no sistema. Um exemplo é alguém que queira acompanhar o número de vezes em que vai ao banheiro por dia.
 
+Entradas agendadas ou geolocalizadas também poderiam ser implementadas em diferentes sistemas operacionais.
 
 ![img.png](img/img.png)
 _Figura XXX - Entrada via botão para usuário que monitora o número de vezes em que pratica atividade física_
@@ -206,9 +192,9 @@ main.py
 
 
 ## 3. Resultados
-São surpreendentemente positivos os resultados da combinação de (i) dados públicos, utilizados para treinar os modelos fundacionais de larga escala, os (ii) dados pessoais, armazenados no banco de dados _passisdb_ e (iii) os dados em tempo real, recuperados no momento do uso da aplicação Passis. O assistente Passis foi utilizado experimentalmente  por cerca de um ano, enquanto aprimoramentos e novas funcionalidades foram sendo incorporadas.
-As demonstrações dos resultados que se apresentam foram feitas utilizando o Whatsapp enquanto forma de interface de consulta. Para diferentes tipos de entrada, os resultados foram agrupados pela natureza do benefício gerado para o usuário.
+Os resultados da combinação de (i) dados públicos, utilizados para treinar os modelos fundacionais de larga escala, (ii) dados pessoais, armazenados no banco de dados passisdb e (iii) dados em tempo real, recuperados no momento do uso da aplicação Passis, indicam potencial de integração eficiente entre essas fontes de informação. O assistente Passis foi utilizado experimentalmente por cerca de um ano, durante o qual aprimoramentos e novas funcionalidades foram gradualmente incorporados.
 
+As demonstrações dos resultados foram realizadas utilizando o WhatsApp como interface de consulta. Para diferentes tipos de entrada, os resultados foram agrupados de acordo com a natureza do benefício gerado para o usuário, permitindo uma análise estruturada dos impactos observados.
 ### 3.1 Ganhos de produtividade
 - *Situação*: para realizar uma reserva de hotel, informações diversas tais como: nome completo, CPF, e-mail, endereço, data de nascimento etc. são solicitadas ao usuário;
 - *Uso*: usuário insere as informações solicitadas no prompt de texto do Passis,  acrescidas de uma simples instrução que solicita o preenchimento dos campos;
@@ -224,12 +210,12 @@ As demonstrações dos resultados que se apresentam foram feitas utilizando o Wh
 
 - *Situação*: usuário dispõe de informação em formato de áudio (mp3, mp4, wav ou similar)
 - *Uso*: usuário pode enviar diretamente ou encaminhar uma mensagem com conteúdo de áudio para o assistente
-- *Resultado*: assistente recebe a mensagem e inicia a transcrição do áudio, que pode acontecer de forma multilíngue. Assistente retorna mensagem transcrita com duas opções: (i) memorizar aquela informação na memória de longo prazo ou tomar uma ação com o trecho de texto transcrito. Na sequência, o usuário pode selecionar no próprio assitente qual caminho deve ser seguido, dando continuidade a interação de forma escrita ou falada.
+- *Resultado*: assistente recebe a mensagem e inicia a transcrição do áudio, que pode acontecer de forma multilíngue. Assistente retorna mensagem transcrita com duas opções: (i) memorizar aquela informação na memória de longo prazo ou tomar uma ação com o trecho de texto transcrito. Na sequência, o usuário pode selecionar no próprio assistente qual caminho deve ser seguido, dando continuidade a interação de forma escrita ou falada.
 
 ![image](https://github.com/user-attachments/assets/8c4c24b0-ab28-4043-afdf-cc23ca7e79bc)
 
 ### 3.2 Ganhos de desempenho pessoal
-- *Situação*: usuário precisa saber se tem sido bem sucedido na sua meta de acordar mais cedo
+- *Situação*: usuário precisa saber se tem sido bem-sucedido na sua meta de acordar mais cedo
 - *Uso*: usuário solicita ao assistente uma análise estatística sobre o horário que tem acordado indicando um horizonte de tempo determinado
 - *Resultado*: as informações demandadas são direcionadas para o agente que é capaz de lidar com informações do tipo 'checkin' do usuário (busca_Checkin). Com base no texto enviado, o agente é capaz de extrair as datas de início e fim do período indicado e passá-las como argumento para a função que recupera as informações do banco de dados passisdb (tabela 'checkins'). Então, as informações são passadas para o modelo conversacional juntamente com outras informações de contexto, para permitir uma resposta completa e direcionada ao propósito pretendido. O assistente Passis retorna para a tela de interface as informações desejadas.
 ![image](https://github.com/user-attachments/assets/43a87420-3a7f-4bae-8f00-34b93302457b)
@@ -251,11 +237,15 @@ Resultado: as informações demandadas são direcionadas para o agente _busca_Jo
 ![image](https://github.com/user-attachments/assets/8cade159-71c8-4748-b33f-515a481ac719)
 
 ## 4. Conclusões
-Dizer que o trabalho está alinhado com as melhores práticas e tendências do mercado, seja para uso dos dados, seja para aplicação dos conceitos de LLM.
-- Assistentes LuzIA, Assistente Microsoft lançado no início de outubro...
-- 
+O desenvolvimento do **Passis** - Meu Assistente Pessoal - demonstrou ser uma solução inovadora e eficaz para a gestão de dados pessoais de forma segura e personalizada. Ao longo deste projeto, foi possível observar que a combinação de dados públicos, pessoais e em tempo real pode proporcionar ganhos significativos em produtividade e desempenho pessoal. A utilização de uma interface amigável, como o WhatsApp, e a implementação de microserviços e APIs abertas, permitiram uma interação fluida e eficiente com o usuário.
 
---- Matrícula: 123.456.789 Pontifícia Universidade Católica do Rio de Janeiro Curso de Pós-Graduação *Business Intelligence Master*
+Os resultados obtidos durante o período experimental indicam que o Passis pode ser uma ferramenta valiosa para auxiliar na tomada de decisões diárias, oferecendo sugestões personalizadas e relevantes com base nas informações armazenadas e no contexto atual do usuário. A capacidade de integrar dados de diferentes fontes e apresentar respostas contextuais em tempo real destaca o potencial do Passis frente a outros assistentes pessoais disponíveis no mercado.
+
+Em suma, o Passis representa um avanço significativo na forma como os dados pessoais podem ser gerenciados 
+e utilizados para melhorar a qualidade de vida dos indivíduos. 
+A continuidade deste projeto pode abrir novas possibilidades para a aplicação de inteligência artificial em assistentes pessoais 
+também no ambiente profissional, seja automatizando tarefas manuais ou estendendo a capacidade da força de trabalho atual de empresas ao redor do mundo.
+
 
 
 ## 5. Referências
