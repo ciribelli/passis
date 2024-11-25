@@ -56,7 +56,7 @@ Por ser um sistema baseado em API, a interface para entrada e saída de dados po
 - **Entrada dinâmica**: realizada por meio de comandos de texto livre ou mensagens de áudio no contato Passis do Whatsapp. Nesta modalidade, o modelo de linguagem interpreta a entrada do usuário e define os argumentos da API de forma dinâmica.
 - **Entrada via botão**: automação que, baseada no clique de um botão, insere informações no sistema.
 
-Cabe destacar que a _Entrada dinâmica_ vale-se do conceito de **Agentes** que será melhor detalhada na sessão [Implementação do Backend](#implementação -do-backend).
+Cabe destacar que a _Entrada dinâmica_ vale-se do conceito de **Agentes** que será melhor detalhada na sessão [Implementação do Backend](#implementação-do-backend).
 
 Além das interações de natureza intencional, existem também comandos programáticos previstos para cumprir com o objetivo de utilizar os dados do usuário de forma transparente. São dois tipos de entradas programáticas implementadas no Passis utilizando a função `Atalhos` disponível no iOS:
 - **Entrada agendada**: automação que regularmente e, em horários pré-definidos, insere informações no sistema. Um exemplo é a localização e as informações climáticas do usuário em determinado instante.
