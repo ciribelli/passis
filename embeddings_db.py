@@ -119,5 +119,4 @@ def atualiza_embedding():
     saida = update_embeddings_db(df)
     return saida
 
-#atualiza_embedding()
 

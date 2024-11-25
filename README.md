@@ -70,7 +70,7 @@ _Figura XXX - Entrada via botão para usuário que monitora o número de vezes e
 ### Implementação do Backend
 As sessões a seguir resumem os arquivos `.py` e seus respectivos módulos que compõem a arquitetura do Passis.
 #### app.py
-- Este arquivo é a entrada principal do aplicativo Flask. Nele estão contidas as rotas e endpoints da API. Nele também está implementado um trecho importante do sistema que é uma estrutura tipicamente reconhecida como _webhook_. Este trecho do código funciona como um ponto de espera e conexão ativa com a API da Meta e seu aplicativo Whatsapp Business. Portanto, ainda que o conceito de arquitetura contemple a propriedade de agnosticidade à interface por usar exclusivamente as rotas e endpoints do arquivo app.py para seu funcionamento, neste webhook é onde acontece a implementação desta prova de conceito que foi feita utilizando o Whatsapp enquanto interface de usuário.
+- Este arquivo é a entrada principal do aplicativo Flask. Nele estão contidas as rotas e endpoints da API e é onde estão definidas as classes e respectivos métodos do banco de dados Postgres desta solução. Há uma implementação de importante destaque do sistema que é uma estrutura tipicamente reconhecida como _webhook_. Este trecho do código funciona como um ponto de espera e conexão ativa com a API da Meta e seu aplicativo Whatsapp Business. Portanto, ainda que o conceito de arquitetura contemple a propriedade de agnosticidade à interface por usar exclusivamente as rotas e endpoints do arquivo app.py para seu funcionamento, neste webhook é onde acontece a implementação desta prova de conceito que foi feita utilizando o Whatsapp enquanto interface de usuário.
 - Uma lista completa das rotas e endpoints do arquivo app.py estão listadas na tabela a seguir:
 
 | Rota                                | Métodos          | Descrição                                                         |
@@ -95,7 +95,7 @@ As sessões a seguir resumem os arquivos `.py` e seus respectivos módulos que c
 
 #### main.py
 - Este arquivo tem por objetivo implementar módulos de busca e manipulação de informações mais intensas, que podem envolver consulta à APIs externas ou atividades de _webscraping_ feitas para o propósito do Passis.
-- As funções do arquivo estão listadas na tabela abaixo. Cabe observar que o formato de retorno pode ser flexível para permitir diferentes abordagens nas consultas aos modelos de linguagem. Um ponto de atenção neste tipo de abordagem é que o desempenho dos modelos pode variar muito quando submetido a informações com diferentes formatações (`JSON`, texto livre, Pandas `DataFrame`, dentre outras)
+- As funções do arquivo estão listadas na tabela abaixo. Cabe observar que o formato de retorno pode ser flexível para permitir diferentes abordagens nas consultas aos modelos de linguagem. Um ponto de atenção neste tipo de abordagem é que o desempenho dos modelos de linguagem pode variar muito quando submetido a informações com diferentes formatações (`JSON`, texto livre, Pandas `DataFrame`, dentre outras). Por esta razão, alguns métodos são implementados retornando a mesma informação em formatos diferentes.
 
 | Função       | Descrição                                                                                                                                                                                              | Tipo de Retorno   |
 |--------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------|
@@ -113,20 +113,20 @@ As sessões a seguir resumem os arquivos `.py` e seus respectivos módulos que c
 
 - Este arquivo é responsável pelo fluxo de comunicação e interação do usuário, gerenciando as informações recebidas e indicando as ações a serem tomadas com base no conteúdo da mensagem.
 - O termo 'hub' se refere às múltiplas interações que este módulo do sistema realiza desde o recebimento das mensagens do _Webhook_, triagem das informações para entender a natureza do conteúdo (se áudio ou texto, por exemplo) e conexões com o modelo de linguagem e funções de mensageria. Pode-se dizer que sua função é também garantir que o usuário receba alguma resposta para toda e qualquer interação.
-- Existem comandos textuais específicos (Entrada estática) que são funcionais e permitem atuar diretamente no sistema, conforme listagem na tabela abaixo:
+- Existem comandos textuais específicos (`Entrada estática`) que são funcionais e permitem atuar diretamente no sistema, conforme listagem na tabela abaixo:
 
 
-| Comando/Texto                          | Explicação                                                                           |
-|----------------------------------------|--------------------------------------------------------------------------------------|
-| "jogos" ou "jogo"                      | Obtém informações sobre jogos para a data atual                                      |
-| "cidade", "cidades" ou "transito"      | Busca informações sobre a cidade e trânsito no X (antigo Twitter)                    |
-| "Clima", "Climas", "clima" ou "climas" | Busca informações sobre o clima                                                      |
-| "checkin"                              | Obtém informações de check-ins dos últimos 4 dias até a data atual                   |
-| "localização" ou "localizacao"         | Obtém a cidade atual e informações sobre o clima dos últimos 4 dias até a data atual |
-| "📝"                                   | Salva na memória as informações contidas na mensagem                                 |
-| "🔄"                                   | Força a atualização dos vetores de embeddings                                        |
-| "responder"                            | Ativa o modo de pergunta, enviando uma questão ao usuário                            |
-| "✅"                                    | Mensagem reservada do sistema para evitar o envio do prompt para a API OpenAI        |
+| Comando/Texto                    | Explicação                                                                           |
+|----------------------------------|--------------------------------------------------------------------------------------|
+| `jogos` ou `jogo`                | Obtém informações sobre jogos para a data atual                                      |
+| `cidade`, `cidades` ou `transito` | Busca informações sobre a cidade e trânsito no X (antigo Twitter)                    |
+| `Clima`, `Climas`, `clima` ou `climas` | Busca informações sobre o clima                                                      |
+| `checkin`                        | Obtém informações de check-ins dos últimos 4 dias até a data atual                   |
+| `localização` ou `localizacao`   | Obtém a cidade atual e informações sobre o clima dos últimos 4 dias até a data atual |
+| `📝`                             | Salva na memória as informações contidas na mensagem                                 |
+| `🔄`                             | Força a atualização dos vetores de embeddings                                        |
+| `responder`                      | Ativa o modo de pergunta, enviando uma questão ao usuário                            |
+| `✅`                               | Mensagem reservada do sistema para evitar o envio do prompt para a API OpenAI        |
 
 - Para o caso de comandos via linguagem natural, sejam estes recebidos via texto ou áudio, o chathub.py faz com que estes comandos cheguem ao módulo da API da OpenAI via comando 'envia_prompt_api'.
 
@@ -165,7 +165,7 @@ def create_context(question, df, max_len=1200, size="ada"):
 ```
 - a função _answer_question_ é o principal componente deste módulo, integrando modelos de linguagem como núcleo inteligente e delegando a agentes especializados tarefas específicas, como buscar informações, executar ações e interagir com APIs, além das rotas definidas nos módulos app.py e main.py. Seu objetivo é oferecer respostas e soluções personalizadas, baseando-se no contexto pessoal construído pela função _create_context_. Para garantir um nível de qualidade satisfatório nas respostas, diferentes modelos podem ser chamados de forma recursiva dentro dessa função. 
 - a função _audio_transcription_ também é executada neste módulo, que após o recebimento e transcrição da mensagem de áudio, recebe o tratamento textual padrão previsto para as mensagens de texto.
-embeddings_db.py
+embeddings_db.py.
 - Os agentes são considerados o estado da arte na implementação de modelos de larga escala. No contexto do Passis, a abordagem de agentes foi implementada utilizando a funcionalidade `functions` da OpenAI. A tabela abaixo resume os agentes disponíveis no Passis e suas respectivas funções:
 
 | Nome do Agente          | Descrição                                                                                                                         | Parâmetros Necessários                                          |
@@ -181,8 +181,7 @@ embeddings_db.py
 #### embeddings_db.py
 
 - trata-se de um módulo de suporte responsável pela atualização e gerenciamento de embeddings em articulação com o banco de dados Postgres.
-- as principais funções do módulo são `update_embeddings_db`, que atualiza os embeddings no banco de dados e `atualiza_embedding`, que recupera dados de diferentes tabelas e atualiza os embeddings.
-main.py
+- as principais funções do módulo são o `update_embeddings_db`, que calcula efetivamente os vetores de _embeddings_ para os registros das informações em banco de dados e a função `atualiza_embedding`, que recupera as informações atualizadas das tabelas de interesse do banco de dados em formato _Data Frame_.
 
 #### send_msg.py
 
