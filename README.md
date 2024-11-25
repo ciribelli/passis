@@ -1,8 +1,7 @@
 ## Passis - Meu Assistente Pessoal
 ##### Aluno: Otávio Ciribelli Borges (https://github.com/ciribelli) 
 ##### Orientador: Anderson Nascimento (https://github.com/insightds)
-
-Matrícula: 221101073 Pontifícia Universidade Católica do Rio de Janeiro Curso de Pós-Graduação *Business Intelligence Master*
+##### Matrícula: `221101073` Pontifícia Universidade Católica do Rio de Janeiro Curso de Pós-Graduação *Business Intelligence Master*
 
 
 ## Resumo
@@ -41,7 +40,7 @@ Para o assistente Passis, contrariando a estatística da montanha de dados que s
 
 Em linha com o objetivo de garantir maior produtividade ao usuário, a interface gráfica definida para este assistente é um contato de Whatsapp que permitirá um foco mais contínuo às atividades, evitando alternâncias demasiadas de telas e emulando uma pessoa como outra qualquer de sua lista de contatos.
 
-![img_1.png](img_1.png)
+![img_1.png](img/passis_ide.png)
 *Figura XXX - Visualização da interface como um contato pessoal no aplicativo Whatsapp da Meta*
 
 ## 2. Modelagem
