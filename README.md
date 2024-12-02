@@ -41,13 +41,13 @@ Para o assistente Passis, contrariando a estatística da montanha de dados que s
 Em linha com o objetivo de garantir maior produtividade ao usuário, a interface gráfica definida para este assistente é um contato de Whatsapp que permitirá um foco mais contínuo às atividades, evitando alternâncias demasiadas de telas e emulando uma pessoa como outra qualquer de sua lista de contatos.
 
 ![img_1.png](img/passis_ide.png)
-*Figura XXX - Visualização da interface como um contato pessoal no aplicativo Whatsapp da Meta*
+_Figura 02 - Visualização da interface como um contato pessoal no aplicativo Whatsapp da Meta._
 
 ## 2. Modelagem
-A arquitetura do sistema é composta por um _backend_ desenvolvido em Python por meio de um servidor web que implementa o _framework_ Flask que gerencia as rotas e _endpoints_, um conjunto de funções de processamento e busca, e um modelo de linguagem de larga escala (LLM) que gera as respostas contextuais. Além do servidor principal, um banco de dados Postgres também suporta o funcionamento da aplicação guardando as informações do usuário relativamente a memórias, documentos, compromissos ("checkins") etc. A figura XXXX apresenta um panorama da visão funcional do sistema.
+A arquitetura do sistema é composta por um _backend_ desenvolvido em Python por meio de um servidor web que implementa o _framework_ Flask que gerencia as rotas e _endpoints_, um conjunto de funções de processamento e busca, e um modelo de linguagem de larga escala (LLM) que gera as respostas contextuais. Além do servidor principal, um banco de dados Postgres também suporta o funcionamento da aplicação guardando as informações do usuário relativamente a memórias, documentos, compromissos ("checkins") etc. A *Figura 03* apresenta um panorama da visão funcional do sistema.
 
 ![image](https://github.com/user-attachments/assets/f899012d-10e1-45f9-8437-236883fa67d7)
-
+_Figura 03 - Diagrama funcional do Passis._
 ### Interface de comunicação
 
 Por ser um sistema baseado em API, a interface para entrada e saída de dados pode ser agnóstica à plataformas ou tecnologias específicas. Quatro diferentes modalidades de interação intencional com o sistema podem ser destacadas:
@@ -65,7 +65,7 @@ Além das interações de natureza intencional, existem também comandos program
 Entradas agendadas ou geolocalizadas também poderiam ser implementadas em diferentes sistemas operacionais.
 
 ![img.png](img/img.png)
-_Figura XXX - Entrada via botão para usuário que monitora o número de vezes em que pratica atividade física_
+_Figura 04 - Entrada via botão: exemplo de um usuário que monitora o número de vezes em que pratica atividade física._
 
 ### Implementação do Backend
 As sessões a seguir resumem os arquivos `.py` e seus respectivos módulos que compõem a arquitetura do Passis.
@@ -242,7 +242,7 @@ Os resultados obtidos durante o período experimental indicam que o Passis pode 
 Em suma, o Passis representa um avanço significativo na forma como os dados pessoais podem ser gerenciados 
 e utilizados para melhorar a qualidade de vida dos indivíduos. 
 A continuidade deste projeto pode abrir novas possibilidades para a aplicação de inteligência artificial em assistentes pessoais 
-também no ambiente profissional, seja automatizando tarefas manuais ou estendendo a capacidade da força de trabalho atual de empresas ao redor do mundo.
+também no ambiente profissional [[5]](#5-referências), seja automatizando tarefas manuais ou estendendo a capacidade da força de trabalho atual de empresas ao redor do mundo.
 
 
 
@@ -258,5 +258,3 @@ também no ambiente profissional, seja automatizando tarefas manuais ou estenden
 
 [5] [The Future of Frontline Work: Collaborative Human-Machine Teams - 3 June 2024 - ID G00785847 By Emily Rose McRae et al](https://www.gartner.com/document/4382299?ref=solrResearch&refval=421781754&)  
 
-
-[6] [Case Study: Human-Centric Generative AI Strategy - 15 May 2024 - ID G00811249 By Raf Gelders, Alicia Mullery, Sneha Ayyar.](https://www.gartner.com/document/5431263?ref=solrResearch&refval=421781754&)
