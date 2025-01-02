@@ -16,7 +16,7 @@ load_dotenv()
 
 app = Flask(__name__)
 # configuracao do url db postgres externo ou local (arquivo ..env deve estar na raiz do projeto)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL_EXTERNA')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL_AZURE')
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
