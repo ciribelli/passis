@@ -194,7 +194,7 @@ def answer_question(
                     print("\nSaida para busca_Jogos:\n", function_output, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
                 if function_name == 'busca_Cidade':
                     token = os.getenv('token_X')
-                    function_output, datajson = main.busca_X("operacoesrio", token)
+                    function_output, datajson = main.busca_X2(token)
                     print("\nSaida para busca_Cidade:\n", function_output)
                 if function_name == 'obter_cidade_atual_e_clima':
                     print('estou na função obter cidade e clima')

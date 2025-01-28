@@ -42,7 +42,7 @@ def get_time(nome_time):
 @app.route('/v1/x/<perfil>', methods=['GET'])
 def get_X(perfil):
     token = os.getenv('token_X')
-    info_from_X = main.busca_X(perfil, token)
+    info_from_X = main.busca_X2(token)
     return Response(response=info_from_X, status=200, mimetype='application/json')
 
 @app.route('/v1/clima', methods=['GET'])

@@ -89,7 +89,7 @@ def chatflow(entry):
             # para CIDADE e TRANSITO
             elif content.lower() == "cidade" or content.lower() == "cidades" or content.lower() == "transito":
                 token = os.getenv('token_X')
-                coletor, datajson = main.busca_X("operacoesrio", token)
+                coletor, datajson = main.busca_X2(token)
             # para CLIMA
             elif content.lower() == "Clima" or content.lower() == "Climas" or content.lower() == "clima" or content.lower() == "climas":
                 token = os.getenv('token_clima')

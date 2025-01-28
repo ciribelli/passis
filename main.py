@@ -122,39 +122,30 @@ def filtro_jogao():
 print(filtro_jogao())
 
 ################### funcao X ################
-from serpapi import GoogleSearch
 
-def busca_X(perfil, token):
-    params = {
-    "api_key": token,
-    "engine": "google",
-    "q": "Twitter " + perfil,
-    "location": "Brazil",
-    "google_domain": "google.com.br",
-    "gl": "br",
-    "hl": "pt"
+def busca_X2(x_token):
+    url = "https://api.twitter.com/2/users/226409689/tweets"
+    querystring = {"tweet.fields":"created_at","max_results":"5"}
+    headers = {
+        "Authorization": f"Bearer {x_token}"
     }
 
-    search = GoogleSearch(params)
-    results = search.get_dict()
-
-    # # Create an empty dictionary to store the Twitter results
-    twitter_results_dict = {}
-    saida = ""
-    print(results, "~~~~~~~~~~~~~~")
-    # Extract information from each tweet and store it in the dictionary
-    for result in results['organic_results']:
-        tweet_info = {
-            'link': result['link'],
-            'snippet': result.get('snippet', ''),
-            'published_date': result.get('date', '')  # Use 'date' instead of 'published_date' if available
-        }
-        saida = f"✖️ {result['snippet']} ⏰ {result.get('date', '')}\n"
-        twitter_results_dict[result['link']] = tweet_info
-
-    # fazer o dump da variavel abaixo para colocar na API fora do HUB (caso se deseje gravar em db)
-    twitter_results_dict 
-    return saida, twitter_results_dict
+    response = requests.request("GET", url, headers=headers, params=querystring, verify=False)
+    # Verifica o status da resposta
+    if response.status_code == 200:
+        response_data = response.json()
+        if "data" in response_data:
+            # Gera o texto em formato plain_text
+            plain_text = "; ".join(
+                [f"created_at: {tweet['created_at']} - {tweet['text']}" for tweet in response_data["data"]]
+            )
+            return plain_text, response.text
+        else:
+            return "Resposta válida, mas sem o campo 'data'."
+    elif response.status_code == 429:
+        return "Erro 429: Too Many Requests. Aguarde antes de tentar novamente.", response.text
+    else:
+        return f"Erro: {response.status_code} - {response.text}", response.text
 
 def busca_Clima(token):
     # utiliza a API do Clima Tempo para fazer consultas para o Rio de Janeiro
