@@ -139,6 +139,14 @@ def answer_question(
                 "parameters": {},
             },
         },
+                {
+            "type": "function",
+            "function": {
+                "name": "musk_knows",
+                "description": "Essa função simplesmente entende quando o usuário quer saber algo sobre Elon Musk. Uma vez que isso seja detectado, a função busca os últimos 5 twittes do Elon Musk no X.",
+                "parameters": {},
+            },
+        },
         {
             "type": "function",
             "function": {
@@ -193,8 +201,14 @@ def answer_question(
                     function_output = main.get_jogos(function_args.get("date"))
                     print("\nSaida para busca_Jogos:\n", function_output, "\nData alvo sugerida pela funcao:\n", function_args.get("date"))
                 if function_name == 'busca_Cidade':
+                    # 226409689 id Operacoes Rio
                     token = os.getenv('token_X')
-                    function_output, datajson = main.busca_X2(token)
+                    function_output, datajson = main.busca_X2(token, '226409689')
+                    print("\nSaida para busca_Cidade:\n", function_output)
+                if function_name == 'musk_knows':
+                    # 44196397 id Elon Musk
+                    token = os.getenv('token_X')
+                    function_output, datajson = main.busca_X2(token, '44196397')
                     print("\nSaida para busca_Cidade:\n", function_output)
                 if function_name == 'obter_cidade_atual_e_clima':
                     print('estou na função obter cidade e clima')

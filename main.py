@@ -123,8 +123,8 @@ print(filtro_jogao())
 
 ################### funcao X ################
 
-def busca_X2(x_token):
-    url = "https://api.twitter.com/2/users/226409689/tweets"
+def busca_X2(x_token, id_X):
+    url = f"https://api.twitter.com/2/users/{id_X}/tweets"
     querystring = {"tweet.fields":"created_at","max_results":"5"}
     headers = {
         "Authorization": f"Bearer {x_token}"
