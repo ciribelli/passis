@@ -203,13 +203,13 @@ def answer_question(
                 if function_name == 'busca_Cidade':
                     # 226409689 id Operacoes Rio
                     token = os.getenv('token_X')
-                    function_output, datajson = main.busca_X2(token, '226409689')
+                    function_output, datajson = main.busca_X2(token, "226409689")
                     print("\nSaida para busca_Cidade:\n", function_output)
                 if function_name == 'musk_knows':
                     # 44196397 id Elon Musk
                     token = os.getenv('token_X')
-                    function_output, datajson = main.busca_X2(token, '44196397')
-                    print("\nSaida para busca_Cidade:\n", function_output)
+                    function_output, datajson = main.busca_X2(token, "44196397")
+                    print("\nSaida para Musk:\n", function_output)
                 if function_name == 'obter_cidade_atual_e_clima':
                     print('estou na função obter cidade e clima')
                     print('data alvo:')
