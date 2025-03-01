@@ -246,7 +246,6 @@ def answer_question(
                 reasoning_effort="low",
                 messages=messages,
                 temperature=0.1  # Valor baixo para respostas mais determinísticas
-                    model="o3-mini",
 
             )
 
