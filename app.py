@@ -6,7 +6,7 @@ from flask_migrate import Migrate
 from dotenv import load_dotenv
 import os
 import pandas as pd
-import context_gpt35turboFuncCalling
+import context_FuncCalling
 import main, chathub
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
@@ -28,6 +28,13 @@ verify_token = os.environ.get('VERIFY_TOKEN')
 @app.route('/')
 def index():
     return "Servidor ativo"
+
+
+@app.route('/log')
+def log():
+    with open("logs.txt", "r") as file:
+        logs = file.readlines()
+    return Response(logs, mimetype="text/plain")
 
 @app.route('/v1/jogos/<data_hora>', methods=['GET'])
 def get_jogos(data_hora):
@@ -600,7 +607,7 @@ def fazer_perguntas(pergunta, data_atual, hora_atual, phone_number_id, from_numb
         threads = Thread.query.with_entities(Thread.content).order_by(Thread.date_created.desc()).limit(10).all()
         # deprecated:
         #saida, first_item = context_gpt35turbo.responde_emb(pergunta, dados, threads, data_atual, hora_atual)
-        saida, first_item, tipo_pergunta = context_gpt35turboFuncCalling.responde_emb(pergunta, dados, threads, data_atual, hora_atual, phone_number_id, from_number)
+        saida, first_item, tipo_pergunta = context_FuncCalling.responde_emb(pergunta, dados, threads, data_atual, hora_atual, phone_number_id, from_number)
         return saida, first_item, tipo_pergunta
     except Exception as e:
         return str(e), 400

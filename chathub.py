@@ -1,4 +1,4 @@
-import context_gpt35turboFuncCalling
+import context_FuncCalling
 import main
 import send_msg
 import requests
@@ -154,7 +154,7 @@ def chatflow(entry):
                     # Baixar a mídia
                     send_msg.download_media(media_url_response)
                     # Realizar a transcrição do áudio
-                    transcricao = context_gpt35turboFuncCalling.audio_transcription()
+                    transcricao = context_FuncCalling.audio_transcription()
                     # Enviar a transcrição de volta ao usuário
                     wapp_response = send_msg.send_wapp_audio_reply(phone_number_id, from_number, transcricao)
                     # 📅 registra transcrição gerada pelo sistema em threads📅
