@@ -160,7 +160,7 @@ def answer_question(
     messages = [
         {
             "role": "system",
-            "content": "Você é meu assistente pessoal e seus assuntos de domínio são minhas memórias, localização, compromissos (checkins), clima e o trânsito. Receba abaixo minhas informações pessoais:" + "\n" + context + "Saiba que hoje é " + data_atual + " e agora são " + hora_atual + "\n"
+            "content": "Você é meu assistente pessoal e seus assuntos de domínio são minhas memórias, localização, compromissos (checkins), clima e o trânsito." + "Saiba que hoje é " + data_atual + " e agora são " + hora_atual + "\n"  "Receba abaixo minhas informações pessoais:" + "\n\n\n << >> \n\n\n" + context + "\n"
         }
     ]
 
