@@ -519,6 +519,7 @@ def apagar_threads():
 # Rota para registrar Prompts com o Assistente
 
 class Prompt(db.Model):
+    __tablename__ = 'prompts'  
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String(10000), nullable=False)
     wapp_id = db.Column(db.String(100), nullable=True)
