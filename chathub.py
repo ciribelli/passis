@@ -25,6 +25,7 @@ def envia_prompt_api(content, data_atual, hora_atual, phone_number_id, from_numb
         # 📅 registra mensagem recebida de usuario em threads📅
         input_data = '{"role": "user", "content":"' + content.replace('"', ' ') + '"}'
         app.salvar_thread(input_data, wapp_id)
+        app.salvar_prompt("teste", wapp_id)
         return coletor, link, tipo_pergunta
 def responde_usuario_salva_thread(phone_number_id, from_number, coletor):
     # envia a resposta texto openAI

@@ -514,6 +514,49 @@ def apagar_threads():
         db.session.rollback()
         return f"Erro ao apagar itens da tabela Thread: {str(e)}", 500
 
+# Prompts -------------------
+
+# Rota para registrar Prompts com o Assistente
+
+class Prompt(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.String(10000), nullable=False)
+    wapp_id = db.Column(db.String(100), nullable=True)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __init__(self, content, wapp_id):
+        self.content = content
+        self.wapp_id = wapp_id
+
+# salvando prompt diretamente sem uso da API
+def salvar_prompt(content, wapp_id):
+    prompt = Prompt(content=content, wapp_id=wapp_id)
+    db.session.add(prompt)
+    db.session.commit()
+    return "Prompt registrado ✅"
+
+@app.route('/prompts', methods=['GET'])
+def get_prompts():
+    if request.method == 'GET':
+        prompts = Prompt.query.order_by(Prompt.date_created.desc()).limit(6).all()
+        serialized_prompts = [prompt.content for prompt in prompts]
+        return serialized_prompts, 200
+
+def get_prompt_content_by_wapp_id(wapp_id):
+    prompt = Prompt.query.filter_by(wapp_id=wapp_id).first()
+    if prompt:
+        try:
+            content_json = json.loads(prompt.content)
+            return content_json['content']
+        except (json.JSONDecodeError, KeyError) as e:
+            return None
+    return None
+
+def get_ultimo_prompt():
+    prompt = Prompt.query.order_by(Prompt.date_created.desc()).first()
+    if prompt:
+        return prompt.content
+    return None
 
 # Embeddings ----------------
 class VectorEmbedding(db.Model):
