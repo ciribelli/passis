@@ -247,18 +247,18 @@ def answer_question(
                 temperature=0.1  # Valor baixo para respostas mais determinísticas
             )
 
-            print('\n\n\n **_dentro do if que chama funcao_** \n\n\n')
-            print("mensagens: \n", messages)
+            # print('\n\n\n **_dentro do if que chama funcao_** \n\n\n')
+            # print("mensagens: \n", messages)
             return second_response.choices[0].message.content.strip(), eh_pergunta
         else:
-            print('\n\n\n **_fora do if que chama funcao_** \n\n\n')
-            print("mensagens: \n", messages)
-            return completion.choices[0].message.content.strip(), eh_pergunta
+            # print('\n\n\n **_fora do if que chama funcao_** \n\n\n')
+            # print("mensagens: \n", messages)
+            return completion.choices[0].message.content.strip(), eh_pergunta, messages
 
     except Exception as e:
         print('Erro no método completions: ', e)
         send_msg.send_wapp_msg(phone_number_id, from_number, "Aconteceu algo errado 🫤")
-        return "", eh_pergunta
+        return "", eh_pergunta, messages
 
 
 def audio_transcription():
@@ -275,7 +275,7 @@ def audio_transcription():
 def responde_emb(pergunta, dados, threads, data_atual, hora_atual, phone_number_id, from_number):
     df = pd.DataFrame(dados)
     df['embeddings'] = df['embeddings'].apply(np.array)
-    resposta, tipo = answer_question(df, data_atual, hora_atual, phone_number_id, from_number, question=pergunta, lista_threads=threads, )
-    print('------------------>>>>>>>>>>>>>>>>>>>>>>>>>', tipo)
+    resposta, tipo, prompt_final = answer_question(df, data_atual, hora_atual, phone_number_id, from_number, question=pergunta, lista_threads=threads, )
+    print('------------------>>>>>>>>>>>>>>>>>>>>>>>>> prompt final \n', prompt_final)
     global first_item
     return resposta, first_item, tipo
