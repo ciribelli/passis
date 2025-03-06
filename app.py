@@ -651,7 +651,8 @@ def fazer_perguntas(pergunta, data_atual, hora_atual, phone_number_id, from_numb
         threads = Thread.query.with_entities(Thread.content).order_by(Thread.date_created.desc()).limit(10).all()
         # deprecated:
         #saida, first_item = context_gpt35turbo.responde_emb(pergunta, dados, threads, data_atual, hora_atual)
-        saida, first_item, tipo_pergunta = context_FuncCalling.responde_emb(pergunta, dados, threads, data_atual, hora_atual, phone_number_id, from_number)
+        saida, first_item, tipo_pergunta, prompt_final = context_FuncCalling.responde_emb(pergunta, dados, threads, data_atual, hora_atual, phone_number_id, from_number)
+        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> \n\n ', prompt_final)
         return saida, first_item, tipo_pergunta
     except Exception as e:
         return str(e), 400

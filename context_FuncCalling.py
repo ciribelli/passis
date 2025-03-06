@@ -276,6 +276,5 @@ def responde_emb(pergunta, dados, threads, data_atual, hora_atual, phone_number_
     df = pd.DataFrame(dados)
     df['embeddings'] = df['embeddings'].apply(np.array)
     resposta, tipo, prompt_final = answer_question(df, data_atual, hora_atual, phone_number_id, from_number, question=pergunta, lista_threads=threads, )
-    print('------------------>>>>>>>>>>>>>>>>>>>>>>>>> prompt final \n', prompt_final)
     global first_item
-    return resposta, first_item, tipo
+    return resposta, first_item, tipo, prompt_final
