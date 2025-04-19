@@ -521,7 +521,7 @@ def apagar_threads():
 class Prompt(db.Model):
     __tablename__ = 'prompts'  
     id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.String(10000), nullable=False)
+    content = db.Column(db.String(50000), nullable=False)
     wapp_id = db.Column(db.String(100), nullable=True)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
