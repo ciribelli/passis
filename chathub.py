@@ -33,10 +33,13 @@ def responde_usuario_salva_thread(phone_number_id, from_number, coletor):
     # envia a resposta texto openAI
     wapp_response = send_msg.send_wapp_msg(phone_number_id, from_number, coletor)
     response_dict = wapp_response.json()
-    wapp_id = response_dict["messages"][0]["id"]
-    # 📅 registra mensagem gerada pelo sistema em threads 📅
-    input_data = '{"role": "assistant", "content":"' + coletor.replace('"', ' ') + '"}'
-    app.salvar_thread(input_data, wapp_id)
+    if "messages" in response_dict and response_dict["messages"]:
+        wapp_id = response_dict["messages"][0]["id"]
+        # 📅 registra mensagem gerada pelo sistema em threads 📅
+        input_data = '{"role": "assistant", "content":"' + coletor.replace('"', ' ') + '"}'
+        app.salvar_thread(input_data, wapp_id)
+    else:
+        print("Resposta sem mensagens. Nada salvo em thread.")
 
 def chatflow(entry):
     # Verifica se há mensagens na solicitação
