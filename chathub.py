@@ -32,21 +32,11 @@ def envia_prompt_api(content, data_atual, hora_atual, phone_number_id, from_numb
 def responde_usuario_salva_thread(phone_number_id, from_number, coletor):
     # envia a resposta texto openAI
     wapp_response = send_msg.send_wapp_msg(phone_number_id, from_number, coletor)
-
-    try:
-        response_dict = wapp_response.json()
-        # Verifica se 'messages' existe e não está vazio
-        if "messages" in response_dict and len(response_dict["messages"]) > 0:
-            wapp_id = response_dict["messages"][0]["id"]
-            # 📅 registra mensagem gerada pelo sistema em threads 📅
-            input_data = '{"role": "assistant", "content":"' + coletor.replace('"', ' ') + '"}'
-            app.salvar_thread(input_data, wapp_id)
-        else:
-            print("Resposta sem mensagens. Nada salvo em thread.")
-
-    except Exception as e:
-        print(f"Erro ao processar resposta do WhatsApp: {e}")
-        send_msg.send_wapp_msg(phone_number_id, from_number, "⚠️ Desculpe, algo deu errado ao registrar nossa conversa. Pode tentar de novo?")
+    response_dict = wapp_response.json()
+    wapp_id = response_dict["messages"][0]["id"]
+    # 📅 registra mensagem gerada pelo sistema em threads 📅
+    input_data = '{"role": "assistant", "content":"' + coletor.replace('"', ' ') + '"}'
+    app.salvar_thread(input_data, wapp_id)
 
 def chatflow(entry):
     # Verifica se há mensagens na solicitação
