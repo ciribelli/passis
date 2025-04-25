@@ -20,7 +20,7 @@ def hora_e_data(timestamp, user_timezone='America/Sao_Paulo'):
         return None, f"Error: {e}"
 
 def envia_prompt_api(content, data_atual, hora_atual, phone_number_id, from_number, wapp_id):
-    if not "✅" in content.lower():
+    if "✅" not in content:
         # envia mensagem para API openAI
         coletor, link, tipo_pergunta, prompt_final = app.fazer_perguntas(content, data_atual, hora_atual, phone_number_id, from_number)
         # 📅 registra mensagem recebida de usuario em threads📅
@@ -28,7 +28,10 @@ def envia_prompt_api(content, data_atual, hora_atual, phone_number_id, from_numb
         app.salvar_thread(input_data, wapp_id)
         app.salvar_prompt(json.dumps(prompt_final, ensure_ascii=False), wapp_id)
         print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> \n\n ', prompt_final)
-        return coletor, link, tipo_pergunta
+        return coletor, link, tipo_pergunta  
+    # se tiver "✅", não faz nada e retorna valores nulos
+    return None, None, None
+
 def responde_usuario_salva_thread(phone_number_id, from_number, coletor):
     # envia a resposta texto openAI
     wapp_response = send_msg.send_wapp_msg(phone_number_id, from_number, coletor)
@@ -125,7 +128,9 @@ def chatflow(entry):
                 tipo_pergunta = True
             else:
                 ##### avalia se a mensagem nao eh feedback dos recursos de automacao #####
-                coletor, link, tipo_pergunta = envia_prompt_api(content, data_atual, hora_atual, phone_number_id, from_number, wapp_id)
+                # avalia se a mensagem não é feedback dos recursos de automação
+                if "✅" not in content:
+                    coletor, link, tipo_pergunta = envia_prompt_api(content, data_atual, hora_atual, phone_number_id, from_number, wapp_id)
                     
             # envia a mensagem de retorno para o whatsapp
             try:
