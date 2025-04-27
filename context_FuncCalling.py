@@ -160,7 +160,7 @@ def answer_question(
     messages = [
         {
             "role": "system",
-            "content": "Você é meu assistente pessoal e seus assuntos de domínio são minhas memórias, localização, compromissos (checkins), clima e o trânsito." + "Saiba que hoje é " + data_atual + " e agora são " + hora_atual + "\n"  "Receba abaixo minhas informações pessoais:" + "\n\n\n << >> \n\n\n" + context + "\n"
+            "content": "Você é meu assistente pessoal e seus assuntos de domínio são minhas memórias, localização, compromissos (checkins), clima e o trânsito." + "Saiba que hoje é " + data_atual + " e agora são " + hora_atual + "\n" + "Formate todas as respostas para o WhatsApp usando: asteriscos para negrito, underscores para itálico, - para bullets, 1. 2. 3. para listas numeradas, e mantenha frases curtas para boa leitura. Não use HTML nem Markdown." + "Receba abaixo minhas informações pessoais:" + "\n\n\n << >> \n\n\n" + context + "\n"
         }
     ]
 
