@@ -155,6 +155,14 @@ def answer_question(
                 "parameters": {},
             },
         },
+                {
+            "type": "function",
+            "function": {
+                "name": "real_time",
+                "description": "Essa função aciona o modelo Grok para consultas em tempo real ao X e Web.",
+                "parameters": {},
+            },
+        },
     ]
 
     messages = [
@@ -232,6 +240,10 @@ def answer_question(
                     eh_pergunta = True
                     function_output = "pergunte ao usuário se ele quer salvar essas informações. Apresente as informações que ele pediu e confirme se ele quer mesmo."
                     print("\nSaida para registra_Memoria, pois isso claramente é um pedido para salvar na memória:\n", function_output)
+                if function_name == 'real_time':
+                    function_output = main.real_time(question)
+                    print("\nSaida para real_time:\n", function_output)
+
                 messages.append(
                     {
                         "tool_call_id": resposta.id,

@@ -4,6 +4,8 @@ import json
 import datetime
 import pandas as pd
 import json
+import os
+
 def nucleo_jogos(data_hora):
     # busca a data do dia do sistema
     hoje = data_hora
@@ -173,5 +175,31 @@ def busca_Clima(token):
     print(output)
     return output, response
 
+# busca em tempo real utilizando a API do X com modelo Grok
+def real_time(prompt):
+    
+    url = "https://api.x.ai/v1/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {os.getenv('XAI_API_KEY')}"
+    }
+    payload = {
+        "model": "grok-3-latest",
+        "search_parameters": {
+            "mode": "auto"
+        },
+        "messages": [
+            {
+                "role": "system",
+                "content": "Você é um buscador de informações em tempo real, seja no X ou Web. Colete as fontes e retorne de forma objetiva. Forneça a fonte de onde você coletou as informações."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ]
+    }
+    response = requests.post(url, headers=headers, json=payload)
+    return (response.json()['choices'][0]['message']['content'])
 
 
