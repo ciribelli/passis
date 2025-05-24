@@ -270,7 +270,7 @@ def answer_question(
             # print('\n\n\n **_fora do if que chama funcao_** \n\n\n')
             # print("mensagens: \n", messages)
             saida = second_response.choices[0].message.content
-            return ≈ saida, eh_pergunta, messages
+            return saida, eh_pergunta, messages
 
     except Exception as e:
         print('Erro no método completions: ', e)
