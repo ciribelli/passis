@@ -242,6 +242,7 @@ def answer_question(
                     })
 
             client.base_url="https://api.x.ai/v1"
+            client.api_key = os.getenv('api_key_grok')
             second_response = client.chat.completions.create(
                 model="grok-3-latest",
                 messages=messages,
