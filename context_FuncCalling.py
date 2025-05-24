@@ -251,7 +251,9 @@ def answer_question(
                         "name": function_name,
                         "content": function_output,
                     })
+                print("-------------------------- \n function output --------------------------- \n ", function_output)
             second_response = client.chat.completions.create(
+                print("-------------------------- \n messages --------------------------- \n ", messages)
                 model="gpt-4o-mini",
                 messages=messages,
                 temperature=0.1  # Valor baixo para respostas mais determinísticas
@@ -259,11 +261,16 @@ def answer_question(
 
             # print('\n\n\n **_dentro do if que chama funcao_** \n\n\n')
             # print("mensagens: \n", messages)
-            return second_response.choices[0].message.content, eh_pergunta, messages
+
+            saida = second_response.choices[0].message.content
+            print('-00-------------------')
+            print(saida)
+            return saida, eh_pergunta, messages
         else:
             # print('\n\n\n **_fora do if que chama funcao_** \n\n\n')
             # print("mensagens: \n", messages)
-            return completion.choices[0].message.content, eh_pergunta, messages
+            saida = second_response.choices[0].message.content
+            return ≈ saida, eh_pergunta, messages
 
     except Exception as e:
         print('Erro no método completions: ', e)

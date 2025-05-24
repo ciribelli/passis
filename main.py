@@ -178,31 +178,32 @@ def busca_Clima(token):
 # busca em tempo real utilizando a API do X com modelo Grok
 def real_time(prompt):
     
-    url = "https://api.x.ai/v1/chat/completions"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {os.getenv('XAI_API_KEY')}"
-    }
-    payload = {
-        "model": "grok-3-latest",
-        "search_parameters": {
-            "mode": "auto",
-            "max_search_results": 3,
-            "return_citations": True
-        },
-        "messages": [
-            {
-                "role": "system",
-                "content": "Você é um buscador de informações em tempo real, seja no X ou Web. Colete as fontes e retorne de forma resumida. Forneça a fonte de onde você coletou as informações."
-            },
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ]
-    }
-    response = requests.post(url, headers=headers, json=payload)
-    return response.json()['choices'][0]['message']['content']
+    # url = "https://api.x.ai/v1/chat/completions"
+    # headers = {
+    #     "Content-Type": "application/json",
+    #     "Authorization": f"Bearer {os.getenv('XAI_API_KEY')}"
+    # }
+    # payload = {
+    #     "model": "grok-3-latest",
+    #     "search_parameters": {
+    #         "mode": "auto",
+    #         "max_search_results": 3,
+    #         "return_citations": True
+    #     },
+    #     "messages": [
+    #         {
+    #             "role": "system",
+    #             "content": "Você é um buscador de informações em tempo real, seja no X ou Web. Colete as fontes e retorne de forma resumida. Forneça a fonte de onde você coletou as informações."
+    #         },
+    #         {
+    #             "role": "user",
+    #             "content": prompt
+    #         }
+    #     ]
+    # }
+    # response = requests.post(url, headers=headers, json=payload)
+    # return response.json()['choices'][0]['message']['content']
+    return("jogo do atletico mineiro está 1x0")
 
 
 
