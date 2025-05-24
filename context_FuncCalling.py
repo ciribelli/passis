@@ -247,8 +247,7 @@ def answer_question(
                 messages.append(
                     {
                         "tool_call_id": resposta.id,
-                        "role": "assistant",
-                        "name": function_name,
+                        "role": "tool",
                         "content": function_output,
                     })
             second_response = client.chat.completions.create(
