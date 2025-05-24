@@ -248,6 +248,7 @@ def answer_question(
                     {
                         "tool_call_id": resposta.id,
                         "role": "tool",
+                        "name": function_name,
                         "content": function_output,
                     })
             second_response = client.chat.completions.create(
