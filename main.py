@@ -186,12 +186,14 @@ def real_time(prompt):
     payload = {
         "model": "grok-3-latest",
         "search_parameters": {
-            "mode": "auto"
+            "mode": "auto",
+            "max_search_results": 3,
+            "return_citations": True
         },
         "messages": [
             {
                 "role": "system",
-                "content": "Você é um buscador de informações em tempo real, seja no X ou Web. Colete as fontes e retorne de forma objetiva. Forneça a fonte de onde você coletou as informações."
+                "content": "Você é um buscador de informações em tempo real, seja no X ou Web. Colete as fontes e retorne de forma resumida. Forneça a fonte de onde você coletou as informações."
             },
             {
                 "role": "user",
@@ -200,7 +202,7 @@ def real_time(prompt):
         ]
     }
     response = requests.post(url, headers=headers, json=payload)
-    return response.json()#['choices'][0]['message']['content'], response.json()
+    return response.json()['choices'][0]['message']['content']
 
 
 
