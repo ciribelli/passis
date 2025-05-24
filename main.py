@@ -187,7 +187,7 @@ def real_time(prompt):
         "model": "grok-3-latest",
         "search_parameters": {
             "mode": "auto",
-            "max_search_results": 3,
+            "max_search_results": 8,
             "return_citations": True
         },
         "messages": [
