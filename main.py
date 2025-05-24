@@ -200,6 +200,7 @@ def real_time(prompt):
         ]
     }
     response = requests.post(url, headers=headers, json=payload)
-    return (response.json()['choices'][0]['message']['content'])
+    return response.json()#['choices'][0]['message']['content'], response.json()
+
 
 
