@@ -256,17 +256,14 @@ def answer_question(
                 messages=messages,
                 temperature=0.1  # Valor baixo para respostas mais determinísticas
             )
+
             # print('\n\n\n **_dentro do if que chama funcao_** \n\n\n')
             # print("mensagens: \n", messages)
-
-            saida = second_response.choices[0].message.content
-            print(saida)
-            return saida, eh_pergunta, messages
+            return second_response.choices[0].message.content, eh_pergunta, messages
         else:
             # print('\n\n\n **_fora do if que chama funcao_** \n\n\n')
             # print("mensagens: \n", messages)
-            saida = second_response.choices[0].message.content
-            return saida, eh_pergunta, messages
+            return completion.choices[0].message.content, eh_pergunta, messages
 
     except Exception as e:
         print('Erro no método completions: ', e)
