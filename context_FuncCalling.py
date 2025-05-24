@@ -247,7 +247,7 @@ def answer_question(
                 messages.append(
                     {
                         "tool_call_id": resposta.id,
-                        "role": "tool",
+                        "role": "assistant",
                         "name": function_name,
                         "content": function_output,
                     })
