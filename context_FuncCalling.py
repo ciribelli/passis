@@ -259,11 +259,11 @@ def answer_question(
 
             # print('\n\n\n **_dentro do if que chama funcao_** \n\n\n')
             # print("mensagens: \n", messages)
-            return second_response.choices[0].message.content.strip(), eh_pergunta, messages
+            return second_response.choices[0].message.content, eh_pergunta, messages
         else:
             # print('\n\n\n **_fora do if que chama funcao_** \n\n\n')
             # print("mensagens: \n", messages)
-            return completion.choices[0].message.content.strip(), eh_pergunta, messages
+            return completion.choices[0].message.content, eh_pergunta, messages
 
     except Exception as e:
         print('Erro no método completions: ', e)
