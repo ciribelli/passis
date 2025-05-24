@@ -253,12 +253,12 @@ def answer_question(
                     })
             second_response = client.chat.completions.create(
                 model="gpt-4o-mini",
-                messages=messages
-                # temperature=0.1  # Valor baixo para respostas mais determinísticas
+                messages=messages,
+                temperature=0.2  # Valor baixo para respostas mais determinísticas
             )
 
-            # print('\n\n\n **_dentro do if que chama funcao_** \n\n\n')
-            # print("mensagens: \n", messages)
+            print('\n\n\n **_dentro do if que chama funcao_** \n\n\n')
+            print("mensagens: \n", messages)
             return second_response.choices[0].message.content, eh_pergunta, messages
         else:
             # print('\n\n\n **_fora do if que chama funcao_** \n\n\n')
@@ -286,5 +286,6 @@ def responde_emb(pergunta, dados, threads, data_atual, hora_atual, phone_number_
     df = pd.DataFrame(dados)
     df['embeddings'] = df['embeddings'].apply(np.array)
     resposta, tipo, prompt_final = answer_question(df, data_atual, hora_atual, phone_number_id, from_number, question=pergunta, lista_threads=threads, )
+    print("resposta: ", resposta)
     global first_item
     return resposta, first_item, tipo, prompt_final
