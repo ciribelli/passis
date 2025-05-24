@@ -253,12 +253,11 @@ def answer_question(
                     })
                 print("-------------------------- \n function output --------------------------- \n ", function_output)
             second_response = client.chat.completions.create(
-                print("-------------------------- \n messages --------------------------- \n ", messages)
                 model="gpt-4o-mini",
                 messages=messages,
                 temperature=0.1  # Valor baixo para respostas mais determinísticas
             )
-
+            print("-------------------------- \n messages --------------------------- \n ", messages)
             # print('\n\n\n **_dentro do if que chama funcao_** \n\n\n')
             # print("mensagens: \n", messages)
 
