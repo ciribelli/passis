@@ -175,7 +175,6 @@ def answer_question(
         print("mensagens: \n", messages)
 
         completion = client.chat.completions.create(
-            #model="gpt-3.5-turbo-0125",
             model="gpt-4o",
             messages=messages,
             tools=tools, # para chamada da funcao
@@ -240,11 +239,8 @@ def answer_question(
                         "name": function_name,
                         "content": function_output,
                     })
-
-            client.base_url="https://api.x.ai/v1"
-            client.api_key = os.getenv('api_key_grok')
             second_response = client.chat.completions.create(
-                model="grok-3-latest",
+                model="gpt-4o-mini",
                 messages=messages,
                 temperature=0.1  # Valor baixo para respostas mais determinísticas
             )
