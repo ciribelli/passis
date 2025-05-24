@@ -241,8 +241,9 @@ def answer_question(
                         "content": function_output,
                     })
 
+            client.base_url="https://api.x.ai/v1"
             second_response = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="grok-3-latest",
                 messages=messages,
                 temperature=0.1  # Valor baixo para respostas mais determinísticas
             )
