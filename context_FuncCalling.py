@@ -241,7 +241,7 @@ def answer_question(
                     function_output = "pergunte ao usuário se ele quer salvar essas informações. Apresente as informações que ele pediu e confirme se ele quer mesmo."
                     print("\nSaida para registra_Memoria, pois isso claramente é um pedido para salvar na memória:\n", function_output)
                 if function_name == 'real_time':
-                    function_output = main.real_time(question)
+                    function_output = main.real_time(question, context)
                     print("\nSaida para real_time:\n", function_output)
 
                 messages.append(

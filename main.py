@@ -176,7 +176,7 @@ def busca_Clima(token):
     return output, response
 
 # busca em tempo real utilizando a API do X com modelo Grok
-def real_time(prompt):
+def real_time(prompt, context):
     
     url = "https://api.x.ai/v1/chat/completions"
     headers = {
@@ -193,7 +193,7 @@ def real_time(prompt):
         "messages": [
             {
                 "role": "system",
-                "content": "Você é um buscador de informações em tempo real, seja no X ou Web. Colete as fontes e retorne de forma resumida. Forneça a fonte de onde você coletou as informações."
+                "content": "Você é um buscador de informações em tempo real, seja no X ou Web. Colete as fontes e retorne de forma resumida. Forneça a fonte de onde você coletou as informações. Receba abaixo minhas informações pessoais como importante referência:" + "\n\n\n << >> \n\n\n" + context + "\n"
             },
             {
                 "role": "user",
