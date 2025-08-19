@@ -252,7 +252,7 @@ def answer_question(
                         "content": function_output,
                     })
             second_response = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-5",
                 messages=messages,
                 temperature=0.2  # Valor baixo para respostas mais determinísticas
             )
