@@ -65,6 +65,7 @@ def webhook():
     data = request.json
     print('-------------------------')
     print(data)
+    print(processed_messages)
     print('-------------------------')
 
     if 'object' in data:
