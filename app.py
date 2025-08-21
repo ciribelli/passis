@@ -11,6 +11,7 @@ import main, chathub
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 import requests
+import threading
 
 load_dotenv()
 
@@ -58,6 +59,9 @@ def get_clima():
     coletor, resposta = main.busca_Clima(token)
     return Response(response=resposta, status=200, mimetype='application/json')
 
+def process_message(entry):
+    chathub.chatflow(entry)
+
 @app.route('/webhook', methods=['POST'])
 def webhook():
     data = request.json
@@ -72,7 +76,8 @@ def webhook():
 
         # Processa apenas se houver 'messages'
         if "messages" in value:
-            chathub.chatflow(entry)
+            # Passa somente a entrada que contém a mensagem
+            threading.Thread(target=process_message, args=(entry,)).start()
 
     return '', 200
 
