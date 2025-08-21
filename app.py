@@ -1,5 +1,5 @@
 import io
-from flask import Flask, request, Response, json, send_file
+from flask import Flask, request, Response, json, send_file, current_app
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import JSONB
 from flask_migrate import Migrate
@@ -60,7 +60,9 @@ def get_clima():
     return Response(response=resposta, status=200, mimetype='application/json')
 
 def process_message(entry):
-    chathub.chatflow(entry)
+    # Cria um contexto da app dentro da thread
+    with app.app_context():
+        chathub.chatflow(entry)  # agora sua função pode acessar db.session
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
