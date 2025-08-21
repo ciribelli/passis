@@ -58,27 +58,21 @@ def get_clima():
     coletor, resposta = main.busca_Clima(token)
     return Response(response=resposta, status=200, mimetype='application/json')
 
-processed_messages = set()
-
 @app.route('/webhook', methods=['POST'])
 def webhook():
     data = request.json
     print('-------------------------')
     print(data)
-    print(processed_messages)
     print('-------------------------')
 
     if 'object' in data:
         entry = data.get('entry', [])[0]
-        messages = entry.get("changes", [{}])[0].get("value", {}).get("messages", [])
-        if messages:
-            message_id = messages[0].get("id")
-            if message_id in processed_messages:
-                print(f"Mensagem {message_id} já processada, ignorando.")
-                return '', 200
-            processed_messages.add(message_id)
+        changes = entry.get("changes", [{}])[0]
+        value = changes.get("value", {})
 
-        chathub.chatflow(entry)
+        # Processa apenas se houver 'messages'
+        if "messages" in value:
+            chathub.chatflow(entry)
 
     return '', 200
 
