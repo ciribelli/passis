@@ -57,7 +57,7 @@ def answer_question(
     debug=True,
     eh_pergunta=False,
 ):
-
+    print(f"--> Entrou em answer_question às {hora_atual} com pergunta: {question}")
     context = create_context(question, df, max_len=max_len, size=size,)
 
     if debug:
@@ -190,7 +190,7 @@ def answer_question(
         )
         
         respostas = completion.choices[0].message.tool_calls
-
+        print("Tool calls detectadas: ", respostas)
         if respostas:
             # Para cada objeto na lista, extrair as informações relevantes e chamar a função
             # Envio uma mensagem para reduzir ansiedade
