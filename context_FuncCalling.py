@@ -183,7 +183,7 @@ def answer_question(
         print("mensagens: \n", messages)
 
         completion = client.chat.completions.create(
-            model="gpt-5-mini",
+            model="gpt-5-nano",
             messages=messages,
             tools=tools, # para chamada da funcao
             tool_choice="auto", # para chamada da funcao
