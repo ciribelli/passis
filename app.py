@@ -670,7 +670,7 @@ def fazer_perguntas(pergunta, data_atual, hora_atual, phone_number_id, from_numb
     except Exception as e:
         return str(e), 400
 
-@app.route('/get_last_checkin_detais', methods=['GET'])
+@app.route('/get_last_checkin_details', methods=['GET'])
 def get_last_checkin_details():
     last_checkin = Checkin.query.order_by(Checkin.id.desc()).first()
 
