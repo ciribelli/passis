@@ -702,7 +702,11 @@ def get_last_checkin_details_ML():
     except ValueError:
         return {"error": "Formato inválido. Use YYYY-MM-DD HH:MM:SS"}, 400
 
-    last_checkin = Checkin.query.order_by(Checkin.id.desc()).first()
+    last_checkin = Checkin.query \
+        .filter(Checkin.data < input_data) \
+        .order_by(Checkin.data.desc()) \
+        .first()
+
 
     if not last_checkin:
         return {"message": "Nenhum check-in encontrado no banco."}, 404
