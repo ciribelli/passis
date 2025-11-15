@@ -328,7 +328,7 @@ def obter_cidade_atual_e_clima(start_date=None, end_date=None):
     return result_string, json_result
 
 @app.route("/get_last_weather_ML", methods=["GET"])
-def get_last_weather():
+def get_last_weather_ML():
     input_data_str = request.args.get("data")
 
     if not input_data_str:
