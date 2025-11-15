@@ -692,24 +692,22 @@ def get_last_checkin_details():
 
 @app.route('/get_last_checkin_details_ML', methods=['GET'])
 def get_last_checkin_details_ML():
-    # Obtém a data/hora enviada na URL
     input_data_str = request.args.get("data")
     if not input_data_str:
         return {"error": "Parâmetro 'data' é obrigatório no formato YYYY-MM-DD HH:MM:SS"}, 400
 
+    # Parse simples sem microsegundos
     try:
         input_data = datetime.strptime(input_data_str, "%Y-%m-%d %H:%M:%S")
     except ValueError:
         return {"error": "Formato inválido. Use YYYY-MM-DD HH:MM:SS"}, 400
 
-    last_checkin = Checkin.query \
-        .filter(Checkin.data < input_data) \
-        .order_by(Checkin.data.desc()) \
-        .first()
-
+    last_checkin = Checkin.query.filter(Checkin.data < input_data) \
+                                .order_by(Checkin.data.desc()) \
+                                .first()
 
     if not last_checkin:
-        return {"message": "Nenhum check-in encontrado no banco."}, 404
+        return {"message": "Nenhum check-in anterior encontrado."}, 404
 
     delta = input_data - last_checkin.data
     delta_minutos = round(delta.total_seconds() / 60, 2)
@@ -717,17 +715,22 @@ def get_last_checkin_details_ML():
     resposta_json = {
         "input_data": input_data_str,
         "ultimo_checkin": last_checkin.data.strftime("%Y-%m-%d %H:%M:%S"),
+        "checkin": last_checkin.checkin,
+        "direction": last_checkin.direction,
         "delta_tempo_minutos": delta_minutos
     }
 
     resposta_texto = (
         "🧪 Simulação de Delta de Check-in\n"
         f"Data informada: {input_data_str}\n"
-        f"Último check-in real: {last_checkin.data.strftime('%Y-%m-%d %H:%M:%S')}\n"
+        f"Último check-in real: {last_checkin.data}\n"
+        f"Tipo de evento: {last_checkin.checkin}\n"
+        f"Direção: {last_checkin.direction}\n"
         f"⏱️ Diferença: {delta_minutos} minutos"
     )
 
     return {"texto": resposta_texto, "json": resposta_json}
+
 
 def delete_checkin_by_id(checkin_id):
     checkin = Checkin.query.get(checkin_id)
