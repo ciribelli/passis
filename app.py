@@ -327,6 +327,51 @@ def obter_cidade_atual_e_clima(start_date=None, end_date=None):
             result_string += f'🧭 {entry["hour"]}  {entry["cidade"]} {entry["temperatura"]} {entry["umidade"]} {entry["velvento"]}\n'
     return result_string, json_result
 
+@app.route("/get_last_weather_ML", methods=["GET"])
+def get_last_weather():
+    input_data_str = request.args.get("data")
+
+    if not input_data_str:
+        return {"error": "Parâmetro ?data=YYYY-MM-DD HH:MM:SS é obrigatório"}, 400
+
+    try:
+        input_data = datetime.strptime(input_data_str, "%Y-%m-%d %H:%M:%S")
+    except ValueError:
+        return {"error": "Formato inválido. Use YYYY-MM-DD HH:MM:SS"}, 400
+
+    # pegar o último clima antes ou igual da data informada
+    clima = (
+        Clima.query
+        .filter(Clima.data <= input_data)
+        .order_by(Clima.data.desc())
+        .first()
+    )
+
+    if not clima:
+        return {"error": "Nenhum dado climático encontrado antes da data informada"}, 404
+
+    # construir JSON estruturado
+    json_result = {
+        "ultimo_clima": str(clima.data),
+        "temperatura": clima.temperatura,
+        "umidade": clima.umidade,
+        "velvento": clima.velvento,
+        "probabilidade": clima.probabilidade,
+        "condicao": clima.condicao,
+        "cidade": clima.cidade
+    }
+
+    # construir texto bonito
+    texto = (
+        "🌦 Última medição climática\n"
+        f"Data: {clima.data}\n"
+        f"Condição: {clima.condicao}\n"
+        f"🌡️ {clima.temperatura}°C  💧 {clima.umidade}%  💨 {clima.velvento}km/h\n"
+        f"Cidade: {clima.cidade}"
+    )
+
+    return {"json": json_result, "texto": texto}
+
 if __name__ == '__main__':
     app.run(debug=True)
 
