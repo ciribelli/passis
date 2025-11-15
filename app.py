@@ -692,49 +692,38 @@ def get_last_checkin_details():
 
 @app.route('/get_last_checkin_details_ML', methods=['GET'])
 def get_last_checkin_details_ML():
+    # Obtém a data/hora enviada na URL
+    input_data_str = request.args.get("data")
+    if not input_data_str:
+        return {"error": "Parâmetro 'data' é obrigatório no formato YYYY-MM-DD HH:MM:SS"}, 400
+
+    try:
+        input_data = datetime.strptime(input_data_str, "%Y-%m-%d %H:%M:%S")
+    except ValueError:
+        return {"error": "Formato inválido. Use YYYY-MM-DD HH:MM:SS"}, 400
+
     last_checkin = Checkin.query.order_by(Checkin.id.desc()).first()
 
-    if last_checkin:
-        # --- Cálculo do delta tempo em minutos ---
-        tz_sp = pytz.timezone("America/Sao_Paulo")
+    if not last_checkin:
+        return {"message": "Nenhum check-in encontrado no banco."}, 404
 
-        evento_time = last_checkin.data
-        if evento_time.tzinfo is None:
-            evento_time = tz_sp.localize(evento_time)  # garante timezone
+    delta = input_data - last_checkin.data
+    delta_minutos = round(delta.total_seconds() / 60, 2)
 
-        agora = datetime.now(tz_sp)
-        delta_minutos = round((agora - evento_time).total_seconds() / 60, 2)
+    resposta_json = {
+        "input_data": input_data_str,
+        "ultimo_checkin": last_checkin.data.strftime("%Y-%m-%d %H:%M:%S"),
+        "delta_tempo_minutos": delta_minutos
+    }
 
-        # --- JSON estruturado ---
-        response_json = {
-            "id": last_checkin.id,
-            "direction": last_checkin.direction,
-            "checkin": last_checkin.checkin,
-            "data": str(last_checkin.data),
-            "delta_tempo_minutos": delta_minutos
-        }
+    resposta_texto = (
+        "🧪 Simulação de Delta de Check-in\n"
+        f"Data informada: {input_data_str}\n"
+        f"Último check-in real: {last_checkin.data.strftime('%Y-%m-%d %H:%M:%S')}\n"
+        f"⏱️ Diferença: {delta_minutos} minutos"
+    )
 
-        # --- Texto plano formatado ---
-        texto_plano = (
-            f"🔓 Último check-in encontrado\n"
-            f"Check-in: {last_checkin.checkin}\n"
-            f"Data: {last_checkin.data}\n"
-            f"Direção: {last_checkin.direction}\n"
-            f"ID: {last_checkin.id}\n"
-            f"⏱️ Tempo desde o último check-in: {delta_minutos} minutos"
-        )
-
-        # Retorna os dois formatos
-        return {
-            "texto": texto_plano,
-            "json": response_json
-        }
-
-    else:
-        return {
-            "texto": "Nenhum check-in encontrado.",
-            "json": {"message": "No checkins found."}
-        }
+    return {"texto": resposta_texto, "json": resposta_json}
 
 def delete_checkin_by_id(checkin_id):
     checkin = Checkin.query.get(checkin_id)
