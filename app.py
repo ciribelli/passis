@@ -353,20 +353,22 @@ def get_last_weather_ML():
     # construir JSON estruturado
     json_result = {
         "ultimo_clima": str(clima.data),
-        "temperatura": clima.temperatura,
+        "temperatura": clima.temperatura.replace("°C", ""),
         "umidade": clima.umidade,
-        "velvento": clima.velvento,
         "probabilidade": clima.probabilidade,
-        "condicao": clima.condicao,
+        "velvento": float(clima.velvento.replace(",", ".")),
+        "condicao": cond,
         "cidade": clima.cidade
     }
 
-    # construir texto bonito
+    cond = clima.condicao.replace(clima.temperatura, "").strip().strip(",")
+    vel = str(clima.velvento).replace(",", ".")  # normaliza decimal
+
     texto = (
         "🌦 Última medição climática\n"
         f"Data: {clima.data}\n"
-        f"Condição: {clima.condicao}\n"
-        f"🌡️ {clima.temperatura}°C  💧 {clima.umidade}%  💨 {clima.velvento}km/h\n"
+        f"Condição: {cond}\n"
+        f"🌡️ {clima.temperatura}  💧 {clima.umidade}%  💨 {vel} km/h\n"
         f"Cidade: {clima.cidade}"
     )
 
