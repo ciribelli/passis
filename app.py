@@ -349,13 +349,26 @@ def get_last_weather_ML():
     if not clima:
         return {"error": "Nenhum dado climático encontrado antes da data informada"}, 404
 
-    # processa strings
-    cond = clima.condicao.replace(clima.temperatura, "").strip().strip(",")
-    vel = float(str(clima.velvento).replace(",", "."))
+    # Sanitização segura
+    temp_clean = clima.temperatura.replace("°C", "").strip()
+    cond = (
+        clima.condicao.replace(clima.temperatura, "")
+        .replace("°C", "")
+        .strip()
+        .strip(",")
+    )
+
+    vel = float(
+        str(clima.velvento)
+        .lower()
+        .replace("km/h", "")
+        .replace(" ", "")
+        .replace(",", ".")
+    )
 
     json_result = {
         "ultimo_clima": str(clima.data),
-        "temperatura": clima.temperatura.replace("°C", ""),
+        "temperatura": temp_clean,
         "umidade": clima.umidade,
         "probabilidade": clima.probabilidade,
         "velvento": vel,
