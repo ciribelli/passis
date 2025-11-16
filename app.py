@@ -339,7 +339,6 @@ def get_last_weather_ML():
     except ValueError:
         return {"error": "Formato inválido. Use YYYY-MM-DD HH:MM:SS"}, 400
 
-    # pegar o último clima antes ou igual da data informada
     clima = (
         Clima.query
         .filter(Clima.data <= input_data)
@@ -350,19 +349,19 @@ def get_last_weather_ML():
     if not clima:
         return {"error": "Nenhum dado climático encontrado antes da data informada"}, 404
 
-    # construir JSON estruturado
+    # processa strings
+    cond = clima.condicao.replace(clima.temperatura, "").strip().strip(",")
+    vel = float(str(clima.velvento).replace(",", "."))
+
     json_result = {
         "ultimo_clima": str(clima.data),
         "temperatura": clima.temperatura.replace("°C", ""),
         "umidade": clima.umidade,
         "probabilidade": clima.probabilidade,
-        "velvento": float(clima.velvento.replace(",", ".")),
+        "velvento": vel,
         "condicao": cond,
         "cidade": clima.cidade
     }
-
-    cond = clima.condicao.replace(clima.temperatura, "").strip().strip(",")
-    vel = str(clima.velvento).replace(",", ".")  # normaliza decimal
 
     texto = (
         "🌦 Última medição climática\n"
@@ -373,6 +372,7 @@ def get_last_weather_ML():
     )
 
     return {"json": json_result, "texto": texto}
+
 
 if __name__ == '__main__':
     app.run(debug=True)
