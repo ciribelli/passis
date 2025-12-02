@@ -44,7 +44,7 @@ tiktoken==0.5.1
 
 # Dependências Críticas de Machine Learning 
 joblib==1.5.2
-# xgboost==3.1.2
+xgboost==3.1.2
 holidays==0.75
 numpy==2.3.1
 pandas==2.3.0
