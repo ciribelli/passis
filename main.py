@@ -5,6 +5,40 @@ import datetime
 import pandas as pd
 import json
 import os
+from pathlib import Path
+import sys
+import joblib
+
+# ==============================================================================
+# 1. CONFIGURAÇÃO E CARREGAMENTO DE ARTEFATOS DE MODELO MACHINE LEARNING
+# ==============================================================================
+
+# O nome do evento alvo DEVE ser o mesmo usado no script de treinamento
+TIPO_EVENTO_ALVO = 'academia_in'
+NOME_ARQUIVO_ARTEFATOS = f"modelo_artifacts_{TIPO_EVENTO_ALVO}.joblib"
+
+# Diretório onde o arquivo .joblib foi salvo
+modelo_dir = Path(__file__).resolve().parent / "modelo"
+
+def _load_artifacts(filename):
+    """
+    Carrega o dicionário completo de artefatos (modelo e encoders) salvo pelo joblib.
+    """
+    p = modelo_dir / filename
+    if not p.exists():
+        print(f"ERRO: Arquivo de artefatos não encontrado: {p}")
+        print("Certifique-se de que o script de treinamento foi executado e salvou o arquivo .joblib.")
+        sys.exit(1)
+    
+    # joblib carrega o objeto (dicionário) completo
+    return joblib.load(str(p))
+
+# Carrega o dicionário único e extrai os componentes
+artifacts = _load_artifacts(NOME_ARQUIVO_ARTEFATOS)
+modelo = artifacts["model"]
+encoder_cidade = artifacts["le_cidade"]
+encoder_evento = artifacts["le_evento"]
+
 
 def nucleo_jogos(data_hora):
     # busca a data do dia do sistema
