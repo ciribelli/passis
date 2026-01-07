@@ -13,9 +13,11 @@ from datetime import datetime, timedelta
 import requests
 import threading
 import pytz
+from flask_cors import CORS
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app) # Habilita CORS para todas as rotas para viabilizar request da web
 # configuracao do url db postgres externo ou local (arquivo ..env deve estar na raiz do projeto)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL_AZURE')
 db = SQLAlchemy(app)

@@ -49,4 +49,4 @@ matplotlib==3.8.0
 scikit-learn==1.3.1
 scipy==1.11.3
 plotly==5.17.0
-# xgboost==3.1.2
+flask-cors==4.0.0
