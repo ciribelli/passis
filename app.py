@@ -592,6 +592,17 @@ def get_memorias():
 
         return Response(json.dumps(serialized_memorias), status=200, content_type='application/json')
 
+@app.route('/memorias/<int:memoria_id>', methods=['DELETE'])
+def delete_memoria(memoria_id):
+    memoria = Memoria.query.get(memoria_id)
+
+    if not memoria:
+        return Response(json.dumps({'message': f'Memória com ID {memoria_id} não encontrada'}), status=404, content_type='application/json')
+
+    db.session.delete(memoria)
+    db.session.commit()
+
+    return Response(json.dumps({'message': f'Memória {memoria_id} deletada com sucesso!'}), status=200, content_type='application/json')
 
 # Rota para registrar Threads com o Assistente
 class Thread(db.Model):
