@@ -376,6 +376,68 @@ def get_last_weather_ML():
 
     return {"json": json_result, "texto": texto}
 
+@app.route('/predicoes', methods=['GET'])
+def get_predicoes():
+    data_param = request.args.get('data')
+    model_name = request.args.get('model_name')
+    
+    if not data_param:
+        return Response(json.dumps({'error': 'Parâmetro ?data=YYYY-MM-DD é obrigatório'}), 
+                       status=400, content_type='application/json')
+    
+    try:
+        # Parse da data
+        data_param_formatted = datetime.strptime(data_param, '%Y-%m-%d').date()
+        
+        # Query base - note: ml.inference_log (schema.tabela)
+        query = """
+            SELECT id, model_name, model_version, inference_datetime, 
+                   prediction, evento_anterior_int, hora_decimal, 
+                   delta_tempo, cidade_int, dia_semana, context_features, created_at
+            FROM ml.inference_log
+            WHERE DATE(inference_datetime) = :data
+        """
+        
+        params = {"data": data_param_formatted}
+        
+        # Se filtrar por model_name
+        if model_name:
+            query += " AND model_name = :model_name"
+            params["model_name"] = model_name
+        
+        query += " ORDER BY inference_datetime DESC"
+        
+        predicoes = db.session.execute(
+            db.text(query),
+            params
+        ).fetchall()
+        
+        # Serializar resultados
+        resultado = []
+        for pred in predicoes:
+            resultado.append({
+                'id': pred[0],
+                'model_name': pred[1],
+                'model_version': pred[2],
+                'inference_datetime': pred[3].isoformat() if pred[3] else None,
+                'prediction': float(pred[4]),
+                'evento_anterior_int': pred[5],
+                'hora_decimal': float(pred[6]),
+                'delta_tempo': float(pred[7]) if pred[7] else None,
+                'cidade_int': pred[8],
+                'dia_semana': pred[9],
+                'context_features': pred[10],
+                'created_at': pred[11].isoformat() if pred[11] else None
+            })
+        
+        return Response(json.dumps(resultado), status=200, content_type='application/json')
+    
+    except ValueError:
+        return Response(json.dumps({'error': 'Formato de data inválido. Use YYYY-MM-DD'}), 
+                       status=400, content_type='application/json')
+    except Exception as e:
+        return Response(json.dumps({'error': str(e)}), status=500, content_type='application/json')
+
 
 if __name__ == '__main__':
     app.run(debug=True)
