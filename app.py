@@ -14,6 +14,7 @@ import requests
 import threading
 import pytz
 from flask_cors import CORS
+from sqlalchemy import text # necessidade para o endpoint de predicoes
 load_dotenv()
 
 app = Flask(__name__)
