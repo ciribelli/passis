@@ -389,7 +389,7 @@ def get_predicoes():
         # Parse da data
         data_param_formatted = datetime.strptime(data_param, '%Y-%m-%d').date()
         
-        # Query base - note: ml.inference_log (schema.tabela)
+        # Query base
         query = """
             SELECT id, model_name, model_version, inference_datetime, 
                    prediction, evento_anterior_int, hora_decimal, 
@@ -400,7 +400,6 @@ def get_predicoes():
         
         params = {"data": data_param_formatted}
         
-        # Se filtrar por model_name
         if model_name:
             query += " AND model_name = :model_name"
             params["model_name"] = model_name
@@ -419,7 +418,7 @@ def get_predicoes():
                 'id': pred[0],
                 'model_name': pred[1],
                 'model_version': pred[2],
-                'inference_datetime': pred[3].isoformat() if pred[3] else None,
+                'inference_datetime': pred[3].strftime('%Y-%m-%d %H:%M:%S') if pred[3] else None,
                 'prediction': float(pred[4]),
                 'evento_anterior_int': pred[5],
                 'hora_decimal': float(pred[6]),
@@ -427,7 +426,7 @@ def get_predicoes():
                 'cidade_int': pred[8],
                 'dia_semana': pred[9],
                 'context_features': pred[10],
-                'created_at': pred[11].isoformat() if pred[11] else None
+                'created_at': pred[11].strftime('%Y-%m-%d %H:%M:%S') if pred[11] else None
             })
         
         return Response(json.dumps(resultado), status=200, content_type='application/json')
@@ -437,7 +436,6 @@ def get_predicoes():
                        status=400, content_type='application/json')
     except Exception as e:
         return Response(json.dumps({'error': str(e)}), status=500, content_type='application/json')
-
 
 if __name__ == '__main__':
     app.run(debug=True)
