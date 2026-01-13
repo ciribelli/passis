@@ -418,7 +418,7 @@ def get_predicoes():
                 'id': pred[0],
                 'model_name': pred[1],
                 'model_version': pred[2],
-                'inference_datetime': pred[3].strftime('%Y-%m-%d %H:%M:%S %z') if pred[3] else None,
+                'inference_datetime': pred[3].strftime('%Y-%m-%d %H:%M:%S') if pred[3] else None,
                 'prediction': float(pred[4]),
                 'evento_anterior_int': pred[5],
                 'hora_decimal': float(pred[6]),
