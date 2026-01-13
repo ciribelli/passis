@@ -463,15 +463,29 @@ def get_predicoes():
         
         # Serializar resultados
         resultado = []
+        # Timezone pra conversão de saída (default: UTC)
+        output_tz = pytz.timezone(request.args.get('return_timezone', 'UTC'))
+        
         for pred in predicoes:
             # JSONB do PostgreSQL já vem como dict/parsed
             context_features = pred.context_features
+            
+            # Converter timestamp pra timezone desejado
+            inference_dt = pred.inference_datetime
+            if inference_dt.tzinfo is None:
+                inference_dt = pytz.UTC.localize(inference_dt)
+            inference_dt_local = inference_dt.astimezone(output_tz)
+            
+            created_at_dt = pred.created_at
+            if created_at_dt and created_at_dt.tzinfo is None:
+                created_at_dt = pytz.UTC.localize(created_at_dt)
+            created_at_local = created_at_dt.astimezone(output_tz) if created_at_dt else None
             
             resultado.append({
                 'id': pred.id,
                 'model_name': pred.model_name,
                 'model_version': pred.model_version,
-                'inference_datetime': pred.inference_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],
+                'inference_datetime': inference_dt_local.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],
                 'prediction': float(pred.prediction),
                 'evento_anterior_int': int(pred.evento_anterior_int),
                 'hora_decimal': float(pred.hora_decimal),
@@ -479,7 +493,7 @@ def get_predicoes():
                 'cidade_int': int(pred.cidade_int) if pred.cidade_int else None,
                 'dia_semana': int(pred.dia_semana) if pred.dia_semana else None,
                 'context_features': context_features,
-                'created_at': pred.created_at.strftime('%Y-%m-%d %H:%M:%S') if pred.created_at else None
+                'created_at': created_at_local.strftime('%Y-%m-%d %H:%M:%S') if created_at_local else None
             })
         
         # Total count para paginação
