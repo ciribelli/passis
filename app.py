@@ -390,6 +390,7 @@ def get_predicoes():
     """
     data_param = request.args.get('data')
     model_name = request.args.get('model_name')
+    timezone_param = request.args.get('timezone', os.getenv('APP_TIMEZONE', 'America/Sao_Paulo'))
     
     # Validação de data
     if not data_param:
@@ -400,7 +401,15 @@ def get_predicoes():
         )
     
     try:
-        data_param_formatted = datetime.strptime(data_param, '%Y-%m-%d').date()
+        # Parse data em horário local
+        data_local = datetime.strptime(data_param, '%Y-%m-%d').date()
+        
+        # Converter pra UTC usando timezone do usuário
+        user_timezone = pytz.timezone(timezone_param)
+        start_local = user_timezone.localize(datetime.combine(data_local, datetime.min.time()))
+        start_utc = start_local.astimezone(pytz.UTC)
+        
+        data_param_formatted = start_utc.date()
     except ValueError:
         return Response(
             json.dumps({'error': 'Formato de data inválido. Use YYYY-MM-DD'}),
@@ -455,10 +464,8 @@ def get_predicoes():
         # Serializar resultados
         resultado = []
         for pred in predicoes:
-            # Decodificar JSONB (PostgreSQL já retorna como dict)
+            # JSONB do PostgreSQL já vem como dict/parsed
             context_features = pred.context_features
-            if isinstance(context_features, str):
-                context_features = json.loads(context_features)
             
             resultado.append({
                 'id': pred.id,
@@ -510,6 +517,7 @@ def get_predicoes():
         )
     
     except Exception as e:
+        current_app.logger.error(f"Erro em /predicoes: {str(e)}", exc_info=True)
         return Response(
             json.dumps({'error': f'Erro ao processar requisição: {str(e)}'}),
             status=500,
