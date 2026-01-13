@@ -378,64 +378,143 @@ def get_last_weather_ML():
 
 @app.route('/predicoes', methods=['GET'])
 def get_predicoes():
+    """
+    Retorna logs de inference filtrados por data e opcionalmente por model_name.
+    
+    Query params:
+    - data: YYYY-MM-DD (obrigatório)
+    - model_name: string (opcional)
+    - limit: int (default: 100, max: 1000)
+    - offset: int (default: 0)
+    """
     data_param = request.args.get('data')
     model_name = request.args.get('model_name')
     
+    # Validação de data
     if not data_param:
-        return Response(json.dumps({'error': 'Parâmetro ?data=YYYY-MM-DD é obrigatório'}), 
-                       status=400, content_type='application/json')
+        return Response(
+            json.dumps({'error': 'Parâmetro ?data=YYYY-MM-DD é obrigatório'}),
+            status=400,
+            content_type='application/json'
+        )
     
     try:
-        # Parse da data
         data_param_formatted = datetime.strptime(data_param, '%Y-%m-%d').date()
+    except ValueError:
+        return Response(
+            json.dumps({'error': 'Formato de data inválido. Use YYYY-MM-DD'}),
+            status=400,
+            content_type='application/json'
+        )
+    
+    # Paginação
+    try:
+        limit = min(int(request.args.get('limit', 100)), 1000)  # Max 1000
+        offset = int(request.args.get('offset', 0))
+    except ValueError:
+        return Response(
+            json.dumps({'error': 'limit e offset devem ser números inteiros'}),
+            status=400,
+            content_type='application/json'
+        )
+    
+    try:
+        # Range da data (usando timestamptz)
+        start_of_day = datetime.combine(data_param_formatted, datetime.min.time())
+        end_of_day = start_of_day + timedelta(days=1)
         
         # Query base
         query = """
-            SELECT id, model_name, model_version, inference_datetime, 
-                   prediction, evento_anterior_int, hora_decimal, 
-                   delta_tempo, cidade_int, dia_semana, context_features, created_at
+            SELECT 
+                id, model_name, model_version, inference_datetime, 
+                prediction, evento_anterior_int, hora_decimal, 
+                delta_tempo, cidade_int, dia_semana, context_features, created_at
             FROM ml.inference_log
-            WHERE DATE(inference_datetime) = :data
+            WHERE inference_datetime >= :start AND inference_datetime < :end
         """
         
-        params = {"data": data_param_formatted}
+        params = {"start": start_of_day, "end": end_of_day}
         
+        # Filtro opcional por model_name
         if model_name:
             query += " AND model_name = :model_name"
             params["model_name"] = model_name
         
-        query += " ORDER BY inference_datetime DESC"
+        # Ordenação e paginação
+        query += " ORDER BY inference_datetime DESC LIMIT :limit OFFSET :offset"
+        params["limit"] = limit
+        params["offset"] = offset
         
+        # Executar query
         predicoes = db.session.execute(
-            db.text(query),
+            text(query),
             params
         ).fetchall()
         
         # Serializar resultados
         resultado = []
         for pred in predicoes:
+            # Decodificar JSONB (PostgreSQL já retorna como dict)
+            context_features = pred.context_features
+            if isinstance(context_features, str):
+                context_features = json.loads(context_features)
+            
             resultado.append({
-                'id': pred[0],
-                'model_name': pred[1],
-                'model_version': pred[2],
-                'inference_datetime': pred[3].strftime('%Y-%m-%d %H:%M:%S') if pred[3] else None,
-                'prediction': float(pred[4]),
-                'evento_anterior_int': pred[5],
-                'hora_decimal': float(pred[6]),
-                'delta_tempo': float(pred[7]) if pred[7] else None,
-                'cidade_int': pred[8],
-                'dia_semana': pred[9],
-                'context_features': pred[10],
-                'created_at': pred[11].strftime('%Y-%m-%d %H:%M:%S') if pred[11] else None
+                'id': pred.id,
+                'model_name': pred.model_name,
+                'model_version': pred.model_version,
+                'inference_datetime': pred.inference_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],
+                'prediction': float(pred.prediction),
+                'evento_anterior_int': int(pred.evento_anterior_int),
+                'hora_decimal': float(pred.hora_decimal),
+                'delta_tempo': float(pred.delta_tempo) if pred.delta_tempo else None,
+                'cidade_int': int(pred.cidade_int) if pred.cidade_int else None,
+                'dia_semana': int(pred.dia_semana) if pred.dia_semana else None,
+                'context_features': context_features,
+                'created_at': pred.created_at.strftime('%Y-%m-%d %H:%M:%S') if pred.created_at else None
             })
         
-        return Response(json.dumps(resultado), status=200, content_type='application/json')
+        # Total count para paginação
+        count_query = """
+            SELECT COUNT(*) as total
+            FROM ml.inference_log
+            WHERE inference_datetime >= :start AND inference_datetime < :end
+        """
+        
+        count_params = {"start": start_of_day, "end": end_of_day}
+        if model_name:
+            count_query += " AND model_name = :model_name"
+            count_params["model_name"] = model_name
+        
+        total = db.session.execute(
+            text(count_query),
+            count_params
+        ).scalar()
+        
+        # Response com metadata
+        response_data = {
+            'data': resultado,
+            'pagination': {
+                'total': total,
+                'limit': limit,
+                'offset': offset,
+                'returned': len(resultado)
+            }
+        }
+        
+        return Response(
+            json.dumps(response_data),
+            status=200,
+            content_type='application/json'
+        )
     
-    except ValueError:
-        return Response(json.dumps({'error': 'Formato de data inválido. Use YYYY-MM-DD'}), 
-                       status=400, content_type='application/json')
     except Exception as e:
-        return Response(json.dumps({'error': str(e)}), status=500, content_type='application/json')
+        return Response(
+            json.dumps({'error': f'Erro ao processar requisição: {str(e)}'}),
+            status=500,
+            content_type='application/json'
+        )
+    # --- fim predicoes ---
 
 if __name__ == '__main__':
     app.run(debug=True)
