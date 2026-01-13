@@ -377,6 +377,7 @@ def get_last_weather_ML():
 
     return {"json": json_result, "texto": texto}
 
+# ------- predicoes ---
 @app.route('/predicoes', methods=['GET'])
 def get_predicoes():
     """
@@ -466,20 +467,44 @@ def get_predicoes():
         # Timezone pra conversão de saída (default: UTC)
         output_tz = pytz.timezone(request.args.get('return_timezone', 'UTC'))
         
-        for pred in predicoes:
+        for idx, pred in enumerate(predicoes):
             # JSONB do PostgreSQL já vem como dict/parsed
             context_features = pred.context_features
             
             # Converter timestamp pra timezone desejado
             inference_dt = pred.inference_datetime
+            
+            # DEBUG: primeiros 3 registros
+            if idx < 3:
+                current_app.logger.info(f"=== PRED {idx} ===")
+                current_app.logger.info(f"inference_dt raw: {inference_dt}")
+                current_app.logger.info(f"inference_dt type: {type(inference_dt)}")
+                current_app.logger.info(f"inference_dt tzinfo: {inference_dt.tzinfo}")
+                current_app.logger.info(f"inference_dt utcoffset: {inference_dt.utcoffset()}")
+            
+            # timestamptz do PostgreSQL já vem com timezone info
             if inference_dt.tzinfo is None:
+                # Se não tiver tzinfo, assume UTC
                 inference_dt = pytz.UTC.localize(inference_dt)
+            else:
+                # Converte pra UTC primeiro
+                inference_dt = inference_dt.astimezone(pytz.UTC)
+            
+            # Agora converte pra timezone desejado
             inference_dt_local = inference_dt.astimezone(output_tz)
             
+            if idx < 3:
+                current_app.logger.info(f"inference_dt_local: {inference_dt_local}")
+                current_app.logger.info(f"inference_dt_local str: {inference_dt_local.strftime('%Y-%m-%d %H:%M:%S')}")
+            
+            # Mesmo pra created_at (que é timestamp sem tz)
             created_at_dt = pred.created_at
-            if created_at_dt and created_at_dt.tzinfo is None:
-                created_at_dt = pytz.UTC.localize(created_at_dt)
-            created_at_local = created_at_dt.astimezone(output_tz) if created_at_dt else None
+            if created_at_dt:
+                if created_at_dt.tzinfo is None:
+                    created_at_dt = pytz.UTC.localize(created_at_dt)
+                created_at_local = created_at_dt.astimezone(output_tz)
+            else:
+                created_at_local = None
             
             resultado.append({
                 'id': pred.id,
@@ -537,7 +562,7 @@ def get_predicoes():
             status=500,
             content_type='application/json'
         )
-    # --- fim predicoes ---
+# --- fim predicoes ---
 
 if __name__ == '__main__':
     app.run(debug=True)
