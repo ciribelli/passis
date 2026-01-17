@@ -1,5 +1,5 @@
 import io
-from flask import Flask, request, Response, json, send_file, current_app
+from flask import Flask, request, Response, json, send_file, current_app,jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import JSONB
 from flask_migrate import Migrate
@@ -134,23 +134,67 @@ def handle_checkin():
             new_checkin = Checkin(checkin=dados['checkin'], direction=dados['direction'], data=dados['data'])
             db.session.add(new_checkin)
             db.session.commit()
-            return {"message": f"checkin em {new_checkin.checkin} foi criado com sucesso."}
+            return {"message": f"checkin em {new_checkin.checkin} foi criado com sucesso.", "id": new_checkin.id}, 201
         else:
-            return {"error": "Formato diferente de JSON"}
+            return {"error": "Formato diferente de JSON"}, 400
 
     elif request.method == 'GET':
-        checkins = Checkin.query.all()
+        # Paginação
+        try:
+            limit = min(int(request.args.get('limit', 50)), 200)  # Default 50, max 200
+            offset = int(request.args.get('offset', 0))
+        except ValueError:
+            return {"error": "limit e offset devem ser números inteiros"}, 400
+        
+        # Filtros opcionais
+        direction = request.args.get('direction')  # 'in' ou 'out'
+        start_date = request.args.get('start_date')  # formato: YYYY-MM-DD
+        end_date = request.args.get('end_date')  # formato: YYYY-MM-DD
+        
+        # Query base ordenada por data decrescente
+        query = Checkin.query.order_by(Checkin.data.desc())
+        
+        # Aplicar filtros se fornecidos
+        if direction:
+            query = query.filter(Checkin.direction == direction)
+        
+        if start_date:
+            try:
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                query = query.filter(Checkin.data >= start_dt)
+            except ValueError:
+                return {"error": "start_date deve estar no formato YYYY-MM-DD"}, 400
+        
+        if end_date:
+            try:
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)
+                query = query.filter(Checkin.data < end_dt)
+            except ValueError:
+                return {"error": "end_date deve estar no formato YYYY-MM-DD"}, 400
+        
+        # Total count para paginação
+        total = query.count()
+        
+        # Aplicar paginação
+        checkins = query.limit(limit).offset(offset).all()
+        
         results = [
             {
                 "id": checkin.id,
-                "data": checkin.data,
+                "data": checkin.data.strftime('%Y-%m-%d %H:%M:%S') if checkin.data else None,
                 "direction": checkin.direction,
                 "checkin": checkin.checkin
             } for checkin in checkins]
 
-        return {"count": len(results), "checkins": results}
+        return {
+            "count": len(results),
+            "total": total,
+            "limit": limit,
+            "offset": offset,
+            "checkins": results
+        }
 
-@app.route('/checkin/<checkin_id>', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/checkin/<int:checkin_id>', methods=['GET', 'PUT', 'DELETE'])
 def handle_checkin_id(checkin_id):
     checkin = Checkin.query.get_or_404(checkin_id)
 
@@ -159,16 +203,23 @@ def handle_checkin_id(checkin_id):
             "id": checkin.id,
             "direction": checkin.direction,
             "checkin": checkin.checkin,
-            "data": checkin.data
+            "data": checkin.data.strftime('%Y-%m-%d %H:%M:%S') if checkin.data else None
         }
         return {"message": "success", "checkin": response}
 
     elif request.method == 'PUT':
+        if not request.is_json:
+            return {"error": "Formato diferente de JSON"}, 400
+            
         dados = request.get_json()
-        checkin.direction = dados['direction']
-        checkin.checkin = dados['checkin']
-        checkin.data = dados['data']
-        db.session.add(checkin)
+        
+        if 'direction' in dados:
+            checkin.direction = dados['direction']
+        if 'checkin' in dados:
+            checkin.checkin = dados['checkin']
+        if 'data' in dados:
+            checkin.data = dados['data']
+            
         db.session.commit()
         return {"message": f"checkin {checkin.checkin} successfully updated"}
 
