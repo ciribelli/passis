@@ -68,7 +68,7 @@ def register_tool(openai_params=None):
         }
         # Registra no FastMCP se disponível
         if _HAS_FASTMCP and mcp is not None:
-            mcp.tool(fn)
+            mcp.tool()(fn)
         return fn
 
     return decorator
