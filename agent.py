@@ -167,7 +167,7 @@ def responde_mcp(
         )
 
         # Adiciona mensagem do assistente com as tool_calls (obrigatório pela API)
-        messages.append(completion.choices[0].message)
+        messages.append(completion.choices[0].message.model_dump(exclude_unset=True))
 
         # Despacha cada tool call
         for tc in tool_calls:
