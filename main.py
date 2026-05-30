@@ -177,33 +177,54 @@ def busca_Clima(token):
 
 # busca em tempo real utilizando a API do X com modelo Grok
 def real_time(prompt, context):
-    
-    url = "https://api.x.ai/v1/chat/completions"
+    url = "https://api.x.ai/v1/responses"
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {os.getenv('XAI_API_KEY')}"
     }
+
+    system_content = (
+        "Você é um buscador de informações em tempo real, seja no X ou Web. "
+        "Colete as fontes e retorne de forma resumida. "
+        "Forneça a fonte de onde você coletou as informações."
+    )
+    if context:
+        system_content += (
+            "\n\nInformações pessoais do usuário como referência:\n"
+            + context
+        )
+
     payload = {
-        "model": "grok-3-latest",
-        "search_parameters": {
-            "mode": "auto",
-            "max_search_results": 8,
-            "return_citations": True
-        },
-        "messages": [
+        "model": os.getenv("GROK_MODEL", "grok-4-latest"),
+        "tools": [
             {
-                "role": "system",
-                "content": "Você é um buscador de informações em tempo real, seja no X ou Web. Colete as fontes e retorne de forma resumida. Forneça a fonte de onde você coletou as informações. Receba abaixo minhas informações pessoais como importante referência:" + "\n\n\n << >> \n\n\n" + context + "\n"
-            },
-            {
-                "role": "user",
-                "content": prompt
+                "type": "web_search",
+                "max_results": 8
             }
+        ],
+        "input": [
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": prompt}
         ]
     }
-    response = requests.post(url, headers=headers, json=payload)
-    return response.json()['choices'][0]['message']['content']
-    # return("jogo do atletico mineiro está 1x0")
 
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=60)
+        response.raise_for_status()
+        data = response.json()
+        for item in data.get("output", []):
+            if item.get("type") == "message" and "content" in item:
+                return item["content"][0]["text"]
+        print(f"[real_time] Resposta sem mensagem: {str(data)[:200]}")
+        return "Erro: resposta da API não contém mensagem."
+    except requests.exceptions.Timeout:
+        print("[real_time] Timeout na API do Grok")
+        return "Erro: timeout ao consultar a API do Grok."
+    except requests.exceptions.RequestException as e:
+        print(f"[real_time] Erro de requisição: {e}")
+        return f"Erro ao conectar com a API do Grok: {e}"
+    except (KeyError, IndexError) as e:
+        print(f"[real_time] Resposta inesperada: {response.text[:200]}")
+        return f"Erro ao processar resposta da API: {e}"
 
 
