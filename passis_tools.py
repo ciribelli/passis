@@ -192,10 +192,19 @@ def registra_Memoria() -> str:
     return "__REGISTRAR_MEMORIA__"
 
 
-@register_tool()
-def real_time() -> str:
+@register_tool({
+    "type": "object",
+    "properties": {
+        "query": {
+            "type": "string",
+            "description": "A query de busca otimizada para o X ou Web. Extraia a intenção real do usuário baseada no histórico.",
+        }
+    }
+})
+def real_time(query: str = None) -> str:
     """Aciona o modelo Grok para consultas em tempo real ao X (Twitter) e Web.
     Use quando o usuário perguntar sobre notícias, eventos recentes, tendências,
     assuntos do momento ou qualquer tema que exija informação atualizada.
     Cobre buscas temáticas no X sem precisar de um perfil específico."""
-    return main.real_time(_ctx["question"], _ctx["context"])
+    prompt = query if query else _ctx["question"]
+    return main.real_time(prompt, _ctx["context"])
