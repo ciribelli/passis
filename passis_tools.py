@@ -194,5 +194,8 @@ def registra_Memoria() -> str:
 
 @register_tool()
 def real_time() -> str:
-    """Aciona o modelo Grok para consultas em tempo real ao X e Web."""
+    """Aciona o modelo Grok para consultas em tempo real ao X (Twitter) e Web.
+    Use quando o usuário perguntar sobre notícias, eventos recentes, tendências,
+    assuntos do momento ou qualquer tema que exija informação atualizada.
+    Cobre buscas temáticas no X sem precisar de um perfil específico."""
     return main.real_time(_ctx["question"], _ctx["context"])
