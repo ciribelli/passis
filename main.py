@@ -221,8 +221,9 @@ def real_time(prompt, context):
         print("[real_time] Timeout na API do Grok")
         return "Erro: timeout ao consultar a API do Grok."
     except requests.exceptions.RequestException as e:
-        print(f"[real_time] Erro de requisição: {e}")
-        return f"Erro ao conectar com a API do Grok: {e}"
+        error_details = e.response.text if getattr(e, 'response', None) is not None else "Sem detalhes"
+        print(f"[real_time] Erro de requisição: {e} | Detalhes: {error_details}")
+        return f"Erro ao conectar com a API do Grok. Status: {e}"
     except (KeyError, IndexError) as e:
         print(f"[real_time] Resposta inesperada: {response.text[:200]}")
         return f"Erro ao processar resposta da API: {e}"
