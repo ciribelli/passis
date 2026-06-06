@@ -223,7 +223,6 @@ def chatflow(entry):
                         response_dict = wapp_response.json()
                         if "messages" in response_dict and response_dict["messages"]:
                             wapp_id = response_dict["messages"][0]["id"]
-                            import json
                             input_dict = {"role": "assistant", "content": analysis_with_id}
                             input_data = json.dumps(input_dict, ensure_ascii=False)
                             app.salvar_thread(input_data, wapp_id)
