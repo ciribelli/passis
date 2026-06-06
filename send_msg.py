@@ -109,7 +109,7 @@ def send_wapp_audio_reply(phone_number_id, from_number, coletor):
     response = requests.post(fb_url, json=payload, headers=headers)
     return (response)
 
-def send_wapp_image_reply(phone_number_id, from_number, coletor):
+def send_wapp_image_reply(phone_number_id, from_number, coletor, header_text="Análise da Imagem 🖼️"):
     wapp_token = os.getenv('WHATSAPP_TOKEN')
     fb_url = f"https://graph.facebook.com/v20.0/{phone_number_id}/messages?access_token={wapp_token}"
     payload = {
@@ -120,7 +120,7 @@ def send_wapp_image_reply(phone_number_id, from_number, coletor):
         "interactive": {
             "header": {
                 "type": "text",
-                "text": "Análise da Imagem 🖼️"
+                "text": header_text
             },
             "type": "button",
             "body": {
@@ -206,6 +206,8 @@ def download_media(url, filename="arquivo"):
             file_extension = 'jpg'
         elif 'audio' in content_type:
             file_extension = 'mp3'
+        elif 'pdf' in content_type:
+            file_extension = 'pdf'
         else:
             file_extension = 'bin'
 

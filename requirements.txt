@@ -51,3 +51,4 @@ scipy==1.11.3
 plotly==5.17.0
 flask-cors==4.0.0
 fastmcp>=2.0
+PyPDF2==3.0.1

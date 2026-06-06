@@ -111,13 +111,20 @@ def chatflow(entry):
                 if m_id:
                     image_id = m_id.group(1).strip()
                     
-                if image_id and os.path.exists(f"{image_id}.jpg"):
-                    with open(f"{image_id}.jpg", "rb") as f:
+                file_ext = None
+                if image_id:
+                    if os.path.exists(f"{image_id}.jpg"):
+                        file_ext = "jpg"
+                    elif os.path.exists(f"{image_id}.pdf"):
+                        file_ext = "pdf"
+                        
+                if file_ext:
+                    with open(f"{image_id}.{file_ext}", "rb") as f:
                         binario = f.read()
                     app.salvar_documento_direto(titulo, descricao, binario)
                     send_msg.send_wapp_msg(phone_number_id, from_number, f"✅ Documento '{titulo}' salvo com sucesso no repositório!")
                 else:
-                    send_msg.send_wapp_msg(phone_number_id, from_number, "❌ Erro: Arquivo da imagem não encontrado localmente.")
+                    send_msg.send_wapp_msg(phone_number_id, from_number, "❌ Erro: Arquivo da mídia não encontrado localmente.")
             elif button_id == "cancel_img":
                 send_msg.send_wapp_msg(phone_number_id, from_number, "Ok, a imagem foi descartada.")
         elif msg_body:
@@ -228,6 +235,27 @@ def chatflow(entry):
                             app.salvar_thread(input_data, wapp_id)
                     else:
                         send_msg.send_wapp_msg(phone_number_id, from_number, "❌ Erro ao baixar a imagem.")
+                elif media_type == 'document':
+                    document_id = entry['changes'][0]['value']['messages'][0]['document']['id']
+                    send_msg.send_wapp_msg(phone_number_id, from_number, "📄 _lendo documento_ 🔎")
+                    
+                    media_url = send_msg.get_url_wapp_media(document_id)
+                    file_path = send_msg.download_media(media_url, filename=document_id)
+                    
+                    if file_path:
+                        analysis = agent.analyze_pdf(file_path)
+                        analysis_with_id = f"{analysis}\n[ID: {document_id}]"
+                        
+                        wapp_response = send_msg.send_wapp_image_reply(phone_number_id, from_number, analysis_with_id, header_text="Análise de Arquivo 📄")
+                        
+                        response_dict = wapp_response.json()
+                        if "messages" in response_dict and response_dict["messages"]:
+                            wapp_id = response_dict["messages"][0]["id"]
+                            input_dict = {"role": "assistant", "content": analysis_with_id}
+                            input_data = json.dumps(input_dict, ensure_ascii=False)
+                            app.salvar_thread(input_data, wapp_id)
+                    else:
+                        send_msg.send_wapp_msg(phone_number_id, from_number, "❌ Erro ao baixar o documento.")
                 else:
                     print(f"Tipo de mídia não suportado: {media_type}")
                     send_msg.send_wapp_msg(phone_number_id, from_number, "Tipo de mídia não suportado. Por favor, envie um áudio ou imagem.")

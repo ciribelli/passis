@@ -16,6 +16,7 @@ import os
 import send_msg
 import passis_tools
 import base64
+import PyPDF2
 
 load_dotenv()
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
@@ -254,3 +255,28 @@ def analyze_image(image_path):
     except Exception as e:
         print("Erro na analise de imagem:", e)
         return "Título: Imagem recebida\nDescrição: Erro ao analisar imagem."
+
+def analyze_pdf(pdf_path):
+    try:
+        texto_extraido = ""
+        with open(pdf_path, "rb") as f:
+            leitor = PyPDF2.PdfReader(f)
+            for i in range(min(5, len(leitor.pages))):
+                texto = leitor.pages[i].extract_text()
+                if texto:
+                    texto_extraido += texto + "\n"
+                
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"Analise o seguinte texto extraído das primeiras páginas de um arquivo PDF. Sugira um título (curto) e uma descrição detalhada para que ele possa ser salvo em um repositório de documentos. Responda estritamente neste formato:\nTítulo: [seu titulo]\nDescrição: [sua descricao]\n\nTexto do PDF:\n{texto_extraido[:3000]}"
+                }
+            ],
+            max_tokens=300
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        print("Erro na analise de PDF:", e)
+        return "Título: Documento PDF\nDescrição: Erro ao analisar conteúdo do PDF."
