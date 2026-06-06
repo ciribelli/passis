@@ -86,6 +86,40 @@ def chatflow(entry):
                 print(content)
                 coletor, link, tipo_pergunta = envia_prompt_api(content, data_atual, hora_atual, phone_number_id, from_number, wapp_id)
                 responde_usuario_salva_thread(phone_number_id, from_number, coletor)
+            elif button_id == "save_img":
+                content = app.get_thread_content_by_wapp_id(wapp_id)
+                try:
+                    content_json = json.loads(content)
+                    text = content_json.get("content", "")
+                except json.JSONDecodeError:
+                    text = content
+                
+                import re
+                titulo = "Imagem Documento"
+                descricao = text
+                image_id = None
+                
+                m_titulo = re.search(r'Título:\s*(.*?)\\n', text) or re.search(r'Título:\s*(.*?)\n', text)
+                if m_titulo:
+                    titulo = m_titulo.group(1).strip()
+                    
+                m_desc = re.search(r'Descrição:\s*(.*?)\\n\[ID:', text, re.DOTALL) or re.search(r'Descrição:\s*(.*?)\n\[ID:', text, re.DOTALL)
+                if m_desc:
+                    descricao = m_desc.group(1).strip()
+                    
+                m_id = re.search(r'\[ID:\s*([^\]]+)\]', text)
+                if m_id:
+                    image_id = m_id.group(1).strip()
+                    
+                if image_id and os.path.exists(f"{image_id}.jpg"):
+                    with open(f"{image_id}.jpg", "rb") as f:
+                        binario = f.read()
+                    app.salvar_documento_direto(titulo, descricao, binario)
+                    send_msg.send_wapp_msg(phone_number_id, from_number, f"✅ Documento '{titulo}' salvo com sucesso no repositório!")
+                else:
+                    send_msg.send_wapp_msg(phone_number_id, from_number, "❌ Erro: Arquivo da imagem não encontrado localmente.")
+            elif button_id == "cancel_img":
+                send_msg.send_wapp_msg(phone_number_id, from_number, "Ok, a imagem foi descartada.")
         elif msg_body:
             print("msg_body:", msg_body)
             tipo_pergunta = False
@@ -173,9 +207,31 @@ def chatflow(entry):
                     wapp_id = response_dict["messages"][0]["id"]
                     input_data = '{"role": "assistant", "content":"' + transcricao.replace('"', ' ') + '"}'
                     app.salvar_thread(input_data, wapp_id)
+                elif media_type == 'image':
+                    image_id = entry['changes'][0]['value']['messages'][0]['image']['id']
+                    send_msg.send_wapp_msg(phone_number_id, from_number, "👁 _analisando imagem_ 🖼")
+                    
+                    media_url = send_msg.get_url_wapp_media(image_id)
+                    file_path = send_msg.download_media(media_url, filename=image_id)
+                    
+                    if file_path:
+                        analysis = agent.analyze_image(file_path)
+                        analysis_with_id = f"{analysis}\n[ID: {image_id}]"
+                        
+                        wapp_response = send_msg.send_wapp_image_reply(phone_number_id, from_number, analysis_with_id)
+                        
+                        response_dict = wapp_response.json()
+                        if "messages" in response_dict and response_dict["messages"]:
+                            wapp_id = response_dict["messages"][0]["id"]
+                            import json
+                            input_dict = {"role": "assistant", "content": analysis_with_id}
+                            input_data = json.dumps(input_dict, ensure_ascii=False)
+                            app.salvar_thread(input_data, wapp_id)
+                    else:
+                        send_msg.send_wapp_msg(phone_number_id, from_number, "❌ Erro ao baixar a imagem.")
                 else:
                     print(f"Tipo de mídia não suportado: {media_type}")
-                    send_msg.send_wapp_msg(phone_number_id, from_number, "Tipo de mídia não suportado. Por favor, envie um áudio.")
+                    send_msg.send_wapp_msg(phone_number_id, from_number, "Tipo de mídia não suportado. Por favor, envie um áudio ou imagem.")
             except KeyError as e:
                 print(f"Erro ao processar a mensagem: {e}")
                 send_msg.send_wapp_msg(phone_number_id, from_number, "Erro ao processar a mensagem. Por favor, tente novamente.")

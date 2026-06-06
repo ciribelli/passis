@@ -15,6 +15,7 @@ from dotenv import load_dotenv
 import os
 import send_msg
 import passis_tools
+import base64
 
 load_dotenv()
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
@@ -225,3 +226,31 @@ def audio_transcription():
         file=audio_file
     )
     return transcription.text
+
+def analyze_image(image_path):
+    try:
+        with open(image_path, "rb") as image_file:
+            base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+        
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "Analise a imagem em anexo. Sugira um título (curto) e uma descrição detalhada para que ela possa ser salva em um repositório de documentos. Responda estritamente neste formato:\nTítulo: [seu titulo]\nDescrição: [sua descricao]"},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{base64_image}"
+                            }
+                        }
+                    ]
+                }
+            ],
+            max_tokens=300
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        print("Erro na analise de imagem:", e)
+        return "Título: Imagem recebida\nDescrição: Erro ao analisar imagem."

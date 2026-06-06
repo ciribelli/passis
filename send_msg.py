@@ -109,6 +109,47 @@ def send_wapp_audio_reply(phone_number_id, from_number, coletor):
     response = requests.post(fb_url, json=payload, headers=headers)
     return (response)
 
+def send_wapp_image_reply(phone_number_id, from_number, coletor):
+    wapp_token = os.getenv('WHATSAPP_TOKEN')
+    fb_url = f"https://graph.facebook.com/v20.0/{phone_number_id}/messages?access_token={wapp_token}"
+    payload = {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": from_number,
+        "type": "interactive",
+        "interactive": {
+            "header": {
+                "type": "text",
+                "text": "Análise da Imagem 🖼️"
+            },
+            "type": "button",
+            "body": {
+                "text": coletor
+            },
+            "action": {
+                "buttons": [
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": "save_img",
+                            "title": "Salvar Documento"
+                        }
+                    },
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": "cancel_img",
+                            "title": "Descartar"
+                        }
+                    }
+                ]
+            }
+        }
+    }
+    headers = {"Content-Type": "application/json"}
+    response = requests.post(fb_url, json=payload, headers=headers)
+    return (response)
+
 
 def send_wapp_image(phone_number_id, from_number, coletor, endpoint):
     wapp_token = os.getenv('WHATSAPP_TOKEN')
@@ -149,7 +190,7 @@ def get_url_wapp_media(id):
     else:
         response.raise_for_status()
 
-def download_media(url):
+def download_media(url, filename="arquivo"):
     wapp_token = os.getenv('WHATSAPP_TOKEN')
     headers = {
         "Content-Type": "application/json",
@@ -169,7 +210,7 @@ def download_media(url):
             file_extension = 'bin'
 
         # Salvando o conteúdo do arquivo em um arquivo local
-        file_path = f"arquivo.{file_extension}"
+        file_path = f"{filename}.{file_extension}"
         with open(file_path, "wb") as file:
             file.write(response.content)
         print(f"Arquivo salvo com sucesso como {file_path}!")

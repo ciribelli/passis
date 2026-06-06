@@ -649,6 +649,20 @@ def criar_documento():
         # Substitua jsonify por json.dumps para criar uma resposta JSON de erro
         return json.dumps({'erro': str(e)})
 
+def salvar_documento_direto(nome, descricao, binario_data):
+    try:
+        novo_documento = DocumentoBinario(
+            nome_do_documento=nome[:255],
+            descricao=descricao,
+            binario_data=binario_data
+        )
+        db.session.add(novo_documento)
+        db.session.commit()
+        return "Documento salvo com sucesso!"
+    except Exception as e:
+        print(f"Erro ao salvar documento direto: {e}")
+        return str(e)
+
 # Rota para recuperar um documento binário pelo ID
 @app.route('/recuperar_documento/<int:documento_id>', methods=['GET'])
 def recuperar_documento(documento_id):
