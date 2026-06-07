@@ -79,13 +79,14 @@ def register_tool(openai_params=None):
 # ---------------------------------------------------------------------------
 _ctx = {}
 
-def set_context(data_atual: str, question: str, context_text: str):
+def set_context(data_atual: str, question: str, context_text: str, wapp_id: str = None):
     """Chamado pelo agent antes de despachar tool calls."""
     global _ctx
     _ctx = {
         "data_atual": data_atual,
         "question": question,
         "context": context_text,
+        "wapp_id": wapp_id,
     }
 
 
@@ -195,6 +196,36 @@ def registra_Memoria() -> str:
 @register_tool({
     "type": "object",
     "properties": {
+        "content": {
+            "type": "string",
+            "description": "O conteúdo do lembrete. Deve ser claro e direto. Exemplo: 'Comprar remédio', 'Reunião com a equipe'."
+        },
+        "reminder_time": {
+            "type": "string",
+            "description": "Data e hora exatas para o alarme tocar. Deve estar ESTRITAMENTE no formato 'YYYY-MM-DD HH:MM:00'. Use o contexto de hoje para inferir a data correta."
+        }
+    },
+    "required": ["content", "reminder_time"],
+})
+def agendar_lembrete(content: str, reminder_time: str) -> str:
+    """Cria um lembrete ativo com alarme. Use esta ferramenta APENAS quando o usuário pedir explicitamente para ser lembrado ou avisado de algo num horário ou data futura."""
+    import app as flask_app
+    wapp_id = _ctx.get("wapp_id")
+    if not wapp_id:
+        return "Erro: wapp_id não encontrado no contexto."
+    
+    from datetime import datetime
+    try:
+        dt = datetime.strptime(reminder_time, '%Y-%m-%d %H:%M:%S')
+    except ValueError:
+        return "Erro: reminder_time deve estar no formato 'YYYY-MM-DD HH:MM:SS'."
+    
+    return flask_app.salvar_lembrete(content, wapp_id, dt)
+
+
+@register_tool({
+    "type": "object",
+    "properties": {
         "query": {
             "type": "string",
             "description": "A query de busca otimizada para o X ou Web. Extraia a intenção real do usuário baseada no histórico.",
@@ -203,7 +234,7 @@ def registra_Memoria() -> str:
 })
 def real_time(query: str = None) -> str:
     """Aciona o modelo Grok para consultas em tempo real ao X (Twitter) e Web.
-    Use quando o usuário perguntar sobre notícias, eventos recentes, tendências,
+    Use quando o usuário perguntar sobre notícias, esportes do dia, jogos, resultados de jogos, últimos eventos, tendências,
     assuntos do momento ou qualquer tema que exija informação atualizada.
     Cobre buscas temáticas no X sem precisar de um perfil específico."""
     prompt = query if query else _ctx["question"]

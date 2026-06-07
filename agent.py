@@ -111,6 +111,7 @@ def responde_mcp(
         data_atual=data_atual,
         question=pergunta,
         context_text=context,
+        wapp_id=from_number,
     )
 
     # System prompt (mantido igual ao original)

@@ -747,9 +747,15 @@ class Memoria(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String(10000), nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    wapp_id = db.Column(db.String(100), nullable=True)
+    reminder_time = db.Column(db.DateTime, nullable=True)
+    reminder_status = db.Column(db.String(20), default='pendente', nullable=True)
 
-    def __init__(self, content):
+    def __init__(self, content, wapp_id=None, reminder_time=None):
         self.content = content
+        self.wapp_id = wapp_id
+        self.reminder_time = reminder_time
+        self.reminder_status = 'pendente' if reminder_time else None
 
 # salvando memorias diretamente sem uso da API
 def salvar_memoria_recebida(content):
@@ -757,6 +763,41 @@ def salvar_memoria_recebida(content):
     db.session.add(memoria)
     db.session.commit()
     return "Memória eternizada ✅"
+
+def salvar_lembrete(content, wapp_id, reminder_time):
+    lembrete = Memoria(content=content, wapp_id=wapp_id, reminder_time=reminder_time)
+    db.session.add(lembrete)
+    db.session.commit()
+    return f"Lembrete agendado para {reminder_time} ✅"
+
+import send_msg
+
+@app.route('/trigger_reminders', methods=['POST'])
+def trigger_reminders():
+    # Segurança básica via header CRON_SECRET
+    secret = request.headers.get('Authorization')
+    if os.environ.get('CRON_SECRET') and secret != os.environ.get('CRON_SECRET'):
+        return Response("Unauthorized", status=401)
+
+    agora = datetime.utcnow()
+    # Busca lembretes pendentes cujo horário já passou
+    lembretes = Memoria.query.filter(
+        Memoria.reminder_time <= agora,
+        Memoria.reminder_status == 'pendente'
+    ).all()
+
+    phone_number_id = os.environ.get('PHONE_NUMBER_ID', '233405413182343') # fallback pro seu ID atual se não tiver env var
+
+    for lembrete in lembretes:
+        if lembrete.wapp_id:
+            # Chama a função que já existe no seu send_msg.py
+            mensagem = f"⏰ *Lembrete:* {lembrete.content}"
+            send_msg.send_wapp_msg(phone_number_id, lembrete.wapp_id, mensagem)
+        
+        lembrete.reminder_status = 'enviado'
+    
+    db.session.commit()
+    return Response(json.dumps({'message': f'{len(lembretes)} lembretes processados.'}), status=200, content_type='application/json')
 
 @app.route('/memorias', methods=['POST'])
 def create_memoria():
