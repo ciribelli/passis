@@ -779,7 +779,11 @@ def trigger_reminders():
     if os.environ.get('CRON_SECRET') and secret != os.environ.get('CRON_SECRET'):
         return Response("Unauthorized", status=401)
 
-    agora = datetime.utcnow()
+    # O reminder_time salvo no banco está no horário do Brasil (America/Sao_Paulo)
+    # Precisamos comparar com a hora atual também no horário do Brasil.
+    fuso_br = pytz.timezone('America/Sao_Paulo')
+    agora = datetime.now(fuso_br).replace(tzinfo=None)
+    
     # Busca lembretes pendentes cujo horário já passou
     lembretes = Memoria.query.filter(
         Memoria.reminder_time <= agora,
