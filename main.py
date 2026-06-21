@@ -5,6 +5,7 @@ import datetime
 import pandas as pd
 import json
 import os
+import busca_clima_openmeteo
 
 def nucleo_jogos(data_hora):
     # busca a data do dia do sistema
@@ -149,31 +150,16 @@ def busca_X2(x_token, id_X):
     else:
         return f"Erro: {response.status_code} - {response.text}", response.text
 
-def busca_Clima(token):
-    # utiliza a API do Clima Tempo para fazer consultas para o Rio de Janeiro
-    url = "http://apiadvisor.climatempo.com.br/api/v1/weather/locale/5959/current?token=" + token
-    payload = {}
-    headers = {}
-    response = requests.request("GET", url, headers=headers, data=payload)
-
-    data = json.loads(response.text)
-    name = data["name"]
-    date = data["data"]["date"]
-    condition = data["data"]["condition"]
-    temperature = data["data"]["temperature"]
-    wind_velocity = data["data"]["wind_velocity"]
-    wind_direction = data["data"]["wind_direction"]
-    humidity = data["data"]["humidity"]
-    sensation = data["data"]["sensation"]
-
-    output = f"Clima em {name} - {date}\n"
-    output += f"{condition}\n\n"
-    output += f"Temperatura: {temperature}°C\n"
-    output += f"Vento: {wind_velocity} km/h de {wind_direction}\n"
-    output += f"Umidade: {humidity}%\n"
-    output += f"Sensação térmica: {sensation}°C"
-    print(output)
-    return output, response
+def busca_Clima(cidade: str = "Rio de Janeiro"):
+    """
+    Substitui a implementação antiga (Climatempo) por Open-Meteo.
+    Delega para `busca_clima_openmeteo.busca_Clima` e retorna (texto, json).
+    """
+    try:
+        texto, dados = busca_clima_openmeteo.busca_Clima(cidade)
+        return texto, dados
+    except Exception as e:
+        return f"Erro ao obter clima para {cidade}: {e}", {}
 
 # busca em tempo real utilizando a API do X com modelo Grok
 def real_time(prompt, context):
