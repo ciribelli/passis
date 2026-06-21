@@ -338,6 +338,57 @@ def deletar_clima(clima_id):
     else:
         return {"message": f"Registro de clima {clima_id} não encontrado."}, 404
 
+# nova classe Health
+
+class RestingHeartRate(db.Model):
+    __tablename__ = 'resting_heart_rates'
+    id = db.Column(db.Integer, primary_key=True)
+    data = db.Column(db.Date, nullable=False, unique=True)  # YYYY-MM-DD
+    resting_hr = db.Column(db.Float, nullable=False)        # Valor numérico
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __init__(self, data, resting_hr):
+        self.data = data
+        self.resting_hr = resting_hr
+
+
+# Endpoint para receber resting_hr
+@app.route('/health/resting_hr', methods=['POST', 'GET'])
+def handle_resting_hr():
+    if request.method == 'POST':
+        if not request.is_json:
+            return {"error": "Formato deve ser JSON"}, 400
+        
+        dados = request.get_json()
+        
+        # Validação
+        if 'data' not in dados or 'resting_hr' not in dados:
+            return {"error": "Campos obrigatórios: data (YYYY-MM-DD) e resting_hr"}, 400
+        
+        try:
+            data = datetime.strptime(dados['data'], '%Y-%m-%d').date()
+            resting_hr = float(dados['resting_hr'])
+        except ValueError:
+            return {"error": "Formato inválido. data=YYYY-MM-DD, resting_hr=número"}, 400
+        
+        # Upsert: atualiza se já existe, senão cria novo
+        entry = RestingHeartRate.query.filter_by(data=data).first()
+        if entry:
+            entry.resting_hr = resting_hr
+            db.session.commit()
+            return {"message": f"Resting HR para {data} atualizado.", "id": entry.id}, 200
+        
+        new_entry = RestingHeartRate(data=data, resting_hr=resting_hr)
+        db.session.add(new_entry)
+        db.session.commit()
+        return {"message": f"Resting HR para {data} criado.", "id": new_entry.id}, 201
+    
+    elif request.method == 'GET':
+        entries = RestingHeartRate.query.order_by(RestingHeartRate.data.desc()).limit(30).all()
+        results = [{"data": str(e.data), "resting_hr": e.resting_hr} for e in entries]
+        return {"count": len(results), "results": results}, 200
+# ------ fim classe Health ----
+
 # para ser utilizado pelas functions:
 def obter_cidade_atual_e_clima(start_date=None, end_date=None):
     if start_date and end_date:
@@ -808,11 +859,22 @@ def create_memoria():
     if request.method == 'POST':
         data = request.get_json()
         content = data.get('content')
+        reminder_time_str = data.get('reminder_time')
 
         if not content:
             return Response(json.dumps({'message': 'O campo "content" é obrigatório'}), status=400, content_type='application/json')
 
-        nova_memoria = Memoria(content=content)
+        reminder_time = None
+        if reminder_time_str:
+            try:
+                reminder_time = datetime.strptime(reminder_time_str, '%Y-%m-%d %H:%M:%S')
+            except ValueError:
+                try:
+                    reminder_time = datetime.strptime(reminder_time_str, '%Y-%m-%dT%H:%M')
+                except ValueError:
+                    return Response(json.dumps({'message': 'Formato de reminder_time inválido. Use YYYY-MM-DD HH:MM:SS ou YYYY-MM-DDTHH:MM'}), status=400, content_type='application/json')
+
+        nova_memoria = Memoria(content=content, reminder_time=reminder_time)
 
         db.session.add(nova_memoria)
         db.session.commit()
@@ -823,9 +885,58 @@ def create_memoria():
 def get_memorias():
     if request.method == 'GET':
         memorias = Memoria.query.order_by(Memoria.date_created.desc()).all()
-        serialized_memorias = [{'id': memoria.id, 'content': memoria.content, 'date_created': memoria.date_created.strftime('%Y-%m-%d %H:%M:%S')} for memoria in memorias]
+        serialized_memorias = []
+        for memoria in memorias:
+            reminder_time_str = memoria.reminder_time.strftime('%Y-%m-%d %H:%M:%S') if memoria.reminder_time else None
+            serialized_memorias.append({
+                'id': memoria.id,
+                'content': memoria.content,
+                'date_created': memoria.date_created.strftime('%Y-%m-%d %H:%M:%S'),
+                'reminder_time': reminder_time_str,
+                'reminder_status': memoria.reminder_status
+            })
 
         return Response(json.dumps(serialized_memorias), status=200, content_type='application/json')
+
+@app.route('/memorias/<int:memoria_id>', methods=['PUT'])
+def update_memoria(memoria_id):
+    try:
+        memoria = Memoria.query.get(memoria_id)
+        if not memoria:
+            return Response(json.dumps({'message': f'Memória com ID {memoria_id} não encontrada'}), status=404, content_type='application/json')
+
+        data = request.get_json()
+        content = data.get('content')
+        reminder_time_str = data.get('reminder_time')
+        reminder_status = data.get('reminder_status')
+
+        if content:
+            memoria.content = content
+
+        if 'reminder_time' in data:
+            if reminder_time_str:
+                try:
+                    memoria.reminder_time = datetime.strptime(reminder_time_str, '%Y-%m-%d %H:%M:%S')
+                except ValueError:
+                    try:
+                        memoria.reminder_time = datetime.strptime(reminder_time_str, '%Y-%m-%dT%H:%M')
+                    except ValueError:
+                        return Response(json.dumps({'message': 'Formato de reminder_time inválido.'}), status=400, content_type='application/json')
+                # Se mudou o reminder_time, atualiza o status de volta pra pendente (ou o status enviado)
+                memoria.reminder_status = reminder_status if reminder_status else 'pendente'
+            else:
+                memoria.reminder_time = None
+                memoria.reminder_status = None
+
+        elif 'reminder_status' in data:
+            # Caso só mude o status
+            memoria.reminder_status = reminder_status
+
+        db.session.commit()
+        return Response(json.dumps({'message': 'Memória atualizada com sucesso!'}), status=200, content_type='application/json')
+    except Exception as e:
+        db.session.rollback()
+        return Response(json.dumps({'error': str(e)}), status=500, content_type='application/json')
 
 @app.route('/memorias/<int:memoria_id>', methods=['DELETE'])
 def delete_memoria(memoria_id):
