@@ -11,6 +11,7 @@
 
 from typing import Optional, Tuple
 
+import re
 import requests
 from weather_codes import descreve_clima
 
@@ -55,6 +56,14 @@ def busca_Clima(cidade: str = "Rio de Janeiro") -> Tuple[str, dict]:
 
     Parâmetro novo em relação à versão Climatempo: `cidade` (antes fixo em RJ).
     """
+    # Validação rápida: entradas que parecem hashes/ids longos geralmente
+    # não são nomes de cidade — detectamos e devolvemos mensagem mais útil.
+    if cidade and re.fullmatch(r"[0-9a-fA-F]{16,}", cidade.strip()):
+        return (
+            f"Entrada inválida para cidade: '{cidade}'. Por favor informe o nome da cidade (ex: 'Rio de Janeiro').",
+            {},
+        )
+
     local = geocodifica_cidade(cidade)
     if local is None:
         return f"Não encontrei a cidade '{cidade}'.", {}
