@@ -142,8 +142,8 @@ def chatflow(entry):
                 coletor, datajson = main.busca_X2(token)
             # para CLIMA
             elif content.lower() == "Clima" or content.lower() == "Climas" or content.lower() == "clima" or content.lower() == "climas":
-                token = os.getenv('token_clima')
-                coletor, datajson = main.busca_Clima(token)
+                # Chamamos sem token: a função agora usa Open-Meteo por cidade (default Rio de Janeiro)
+                coletor, datajson = main.busca_Clima()
             # para CHECKIN
             elif content.lower() == "checkin":
                 data_inicio = datetime.strptime(str(data_atual), '%d-%m-%Y') - timedelta(days=4)

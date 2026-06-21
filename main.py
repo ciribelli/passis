@@ -5,6 +5,7 @@ import datetime
 import pandas as pd
 import json
 import os
+import re
 import busca_clima_openmeteo
 
 def nucleo_jogos(data_hora):
@@ -152,9 +153,15 @@ def busca_X2(x_token, id_X):
 
 def busca_Clima(cidade: str = "Rio de Janeiro"):
     """
-    Substitui a implementação antiga (Climatempo) por Open-Meteo.
+    Compatibilidade: originalmente aceitava um `token` (string).
+    Agora aceita o nome da cidade. Se receber uma string que parece um
+    token/hash, assume chamada legacy e usa o default "Rio de Janeiro".
     Delega para `busca_clima_openmeteo.busca_Clima` e retorna (texto, json).
     """
+    # backward-compat: if caller passed a token/hash, use default city
+    if cidade and re.fullmatch(r"[0-9a-fA-F]{8,}", cidade.strip()):
+        cidade = "Rio de Janeiro"
+
     try:
         texto, dados = busca_clima_openmeteo.busca_Clima(cidade)
         return texto, dados
