@@ -130,9 +130,10 @@ def processar_metricas(checkins, climas, start_date, end_date):
     avg_commute_w2 = np.mean(commutes_w2) if commutes_w2 else 0
     avg_commute_w3 = np.mean(commutes_w3) if commutes_w3 else 0
     
-    # Processar Clima (Temperatura - Semana atual)
+    # Processar Clima (Temperatura e Cidade - Semana atual)
     temp_min_w3 = {d: np.nan for d in days_range_w3}
     temp_max_w3 = {d: np.nan for d in days_range_w3}
+    cidade_dia_w3 = {d: 'Rio de Janeiro' for d in days_range_w3} # default
     
     clima_por_dia = {}
     for c in climas:
@@ -141,6 +142,9 @@ def processar_metricas(checkins, climas, start_date, end_date):
             try:
                 temp_val = float(c.temperatura.replace('°C', '').strip())
                 clima_por_dia.setdefault(d, []).append(temp_val)
+                # Salva a última cidade registrada para esse dia
+                if c.cidade:
+                    cidade_dia_w3[d] = c.cidade
             except:
                 pass
                 
@@ -157,6 +161,7 @@ def processar_metricas(checkins, climas, start_date, end_date):
         'commute_daily_w3': commute_daily_w3,
         'temp_min_w3': temp_min_w3,
         'temp_max_w3': temp_max_w3,
+        'cidade_dia_w3': cidade_dia_w3,
         
         # Hábitos dinâmicos top 2
         'top_habitos': top_habitos,
@@ -173,9 +178,9 @@ def gerar_dashboard(metricas):
     days_range_w3 = metricas['days_range_w3']
     days_str_w3 = [d.strftime('%a\n%d/%m') for d in days_range_w3]
     
-    # Cores e Estilo Escuro Premium (Design Vertical 9:17)
+    # Cores e Estilo Escuro Premium (Design Vertical 9:21)
     plt.style.use('dark_background')
-    fig, axs = plt.subplots(4, 1, figsize=(9, 17))
+    fig, axs = plt.subplots(5, 1, figsize=(9, 21)) # Aumentado de 4 para 5 subplots, altura para 21
     fig.patch.set_facecolor('#0f0f13') # Fundo profundo escuro
     
     # Paleta de Cores Premium
@@ -185,6 +190,8 @@ def gerar_dashboard(metricas):
     color_sleep = '#7b2cbf'   # Royal Indigo/Purple
     color_sleep_line = '#a29bfe' # Lavender
     color_commute = '#f72585' # Deep Pink/Coral
+    color_temp_max = '#ff5a5f' # Warm Red
+    color_temp_min = '#3a86c8' # Soft Blue
     
     for ax in axs:
         ax.set_facecolor('#16161a') # Cartões ligeiramente mais claros
@@ -257,42 +264,69 @@ def gerar_dashboard(metricas):
     axs[2].set_ylabel('Minutos', color='#a0a0aa', fontsize=12)
     axs[2].set_ylim(0, max(commute_vals + [60]) + 20)
     
-    # 4. Comparação de Desempenho (3 Semanas)
+    # 4. Clima & Cidades Visitadas (Reintroduzido com rótulo dinâmico)
+    t_min_vals = [metricas['temp_min_w3'][d] for d in days_range_w3]
+    t_max_vals = [metricas['temp_max_w3'][d] for d in days_range_w3]
+    axs[3].plot(x, t_max_vals, marker='^', color=color_temp_max, linewidth=2, label='Máx')
+    axs[3].plot(x, t_min_vals, marker='v', color=color_temp_min, linewidth=2, label='Mín')
+    axs[3].fill_between(x, t_min_vals, t_max_vals, color='#585b70', alpha=0.15)
+    
+    ultima_cidade = None
+    for i, d in enumerate(days_range_w3):
+        cid = metricas['cidade_dia_w3'][d]
+        t_max = t_max_vals[i]
+        if not np.isnan(t_max):
+            # Mostra a cidade quando ela muda ou no primeiro dia
+            if cid != ultima_cidade:
+                axs[3].text(i, t_max + 1, cid, ha='center', va='bottom', color='#cdd6f4', fontsize=9, weight='bold')
+                ultima_cidade = cid
+                
+    axs[3].set_title('Semana Atual: Clima & Cidades Visitadas', color='#f1f1f1', fontsize=14, pad=10, weight='bold')
+    axs[3].set_xticks(x)
+    axs[3].set_xticklabels(days_str_w3, fontsize=11)
+    axs[3].set_ylabel('Graus Celsius (°C)', color='#a0a0aa', fontsize=11)
+    axs[3].set_ylim(10, 35)
+    axs[3].legend(facecolor='#16161a', edgecolor='none', labelcolor='#e0e0e6', fontsize=11)
+    
+    # 5. Comparação de Desempenho (3 Semanas - Ambos os Hábitos + Sono!)
     semanas_labels = metricas['semanas_labels']
     h1_trends = metricas['habitos_trends'][h1_name] if h1_name in metricas['habitos_trends'] else [0, 0, 0]
+    h2_trends = metricas['habitos_trends'][h2_name] if h2_name in metricas['habitos_trends'] else [0, 0, 0]
     sleep_trends = metricas['sleep_trends']
     
-    axs[3].bar(np.arange(3) - 0.2, h1_trends, width=0.3, color=color_h1, label=f'{h1_name.capitalize()} (Total)')
-    axs[3].set_ylabel(f'{h1_name.capitalize()} (Total)', color=color_h1, fontsize=12)
-    axs[3].tick_params(axis='y', labelcolor=color_h1, labelsize=11)
+    # Desenhar barras agrupadas para os dois hábitos principais
+    bar_x = np.arange(3)
+    axs[4].bar(bar_x - 0.15, h1_trends, width=0.3, color=color_h1, label=f'{h1_name.capitalize()}')
+    axs[4].bar(bar_x + 0.15, h2_trends, width=0.3, color=color_h2, label=f'{h2_name.capitalize()}')
+    axs[4].set_ylabel('Hábitos (Total)', color='#a0a0aa', fontsize=12)
+    axs[4].tick_params(axis='y', labelsize=11)
     
-    ax3_twin = axs[3].twinx()
-    ax3_twin.spines['top'].set_visible(False)
-    ax3_twin.spines['left'].set_visible(False)
-    ax3_twin.spines['right'].set_color('#2e2e33')
-    color_sleep = '#7b2cbf'
-    ax3_twin.plot(np.arange(3), sleep_trends, marker='s', markersize=8, color=color_sleep_line, linewidth=3, label='Sono (Média)')
-    ax3_twin.fill_between(np.arange(3), sleep_trends, color=color_sleep, alpha=0.1)
-    ax3_twin.set_ylabel('Sono (Média Horas)', color=color_sleep_line, fontsize=12)
-    ax3_twin.tick_params(axis='y', labelcolor=color_sleep_line, labelsize=11)
-    ax3_twin.set_ylim(0, 10)
+    ax4_twin = axs[4].twinx()
+    ax4_twin.spines['top'].set_visible(False)
+    ax4_twin.spines['left'].set_visible(False)
+    ax4_twin.spines['right'].set_color('#2e2e33')
+    ax4_twin.plot(bar_x, sleep_trends, marker='s', markersize=8, color=color_sleep_line, linewidth=3, label='Sono (Média)')
+    ax4_twin.fill_between(bar_x, sleep_trends, color=color_sleep, alpha=0.1)
+    ax4_twin.set_ylabel('Sono (Média Horas)', color=color_sleep_line, fontsize=12)
+    ax4_twin.tick_params(axis='y', labelcolor=color_sleep_line, labelsize=11)
+    ax4_twin.set_ylim(0, 10)
     
     # Juntar legenda de ambos os eixos
-    lines, labels = axs[3].get_legend_handles_labels()
-    lines2, labels2 = ax3_twin.get_legend_handles_labels()
-    axs[3].legend(lines + lines2, labels + labels2, facecolor='#16161a', edgecolor='none', labelcolor='#e0e0e6', loc='upper left', fontsize=11)
+    lines, labels = axs[4].get_legend_handles_labels()
+    lines2, labels2 = ax4_twin.get_legend_handles_labels()
+    axs[4].legend(lines + lines2, labels + labels2, facecolor='#16161a', edgecolor='none', labelcolor='#e0e0e6', loc='upper left', fontsize=11)
     
-    axs[3].set_title('Histórico: Comparativo das Últimas 3 Semanas', color='#f1f1f1', fontsize=14, pad=10, weight='bold')
-    axs[3].set_xticks(np.arange(3))
-    axs[3].set_xticklabels(semanas_labels, fontsize=11)
-    axs[3].yaxis.grid(False)
+    axs[4].set_title('Histórico: Comparativo das Últimas 3 Semanas', color='#f1f1f1', fontsize=14, pad=10, weight='bold')
+    axs[4].set_xticks(bar_x)
+    axs[4].set_xticklabels(semanas_labels, fontsize=11)
+    axs[4].yaxis.grid(False)
     
     w3_start = metricas['w3_start']
     w3_end = metricas['w3_end']
     plt.suptitle(f"Relatório de Performance\nOtávio — {w3_start.strftime('%d/%m')} a {w3_end.strftime('%d/%m/%Y')}", color='#ffffff', fontsize=18, weight='bold', y=0.99)
     plt.tight_layout()
     
-    # Exporta para bytes com resolução maior (DPI=150)
+    # Exporta para bytes com resolução DPI=150
     buf = io.BytesIO()
     plt.savefig(buf, format='png', facecolor=fig.get_facecolor(), edgecolor='none', dpi=150)
     buf.seek(0)
@@ -311,6 +345,10 @@ def gerar_resumo_ia(metricas):
     t_min = min(t_min_clean) if t_min_clean else 20.0
     t_max = max(t_max_clean) if t_max_clean else 25.0
     
+    # Cidades visitadas na semana atual
+    cidades_visitadas = sorted(list(set(metricas['cidade_dia_w3'].values())))
+    cidades_str = ", ".join(cidades_visitadas)
+    
     # Gerar a string de hábitos dinâmicos
     habitos_trends = metricas['habitos_trends']
     trends_str = ""
@@ -325,9 +363,12 @@ def gerar_resumo_ia(metricas):
         f"- {sleep_trends[0]:.1f}h (Semana -2) -> {sleep_trends[1]:.1f}h (Semana -1) -> {sleep_trends[2]:.1f}h (Semana Atual)\n\n"
         f"Tempo de Trânsito médio:\n"
         f"- {commute_trends[0]:.1f}m (Semana -2) -> {commute_trends[1]:.1f}m (Semana -1) -> {commute_trends[2]:.1f}m (Semana Atual)\n\n"
-        f"Temperaturas na Semana Atual: Mínima de {t_min:.1f}°C, Máxima de {t_max:.1f}°C\n\n"
+        f"Localização na Semana Atual:\n"
+        f"- Cidades visitadas/onde esteve: {cidades_str}\n"
+        f"- Temperaturas na Semana Atual: Mínima de {t_min:.1f}°C, Máxima de {t_max:.1f}°C\n\n"
         f"Escreva uma análise comparativa dos hábitos dele ao longo dessas 3 semanas. Identifique tendências "
         f"(se ele está melhorando o sono, diminuindo ou aumentando academia, mantendo rezas do terço consistentes, ou se apareceram hábitos novos de forma dinâmica). "
+        f"Comente de forma inteligente e descontraída se ele viajou ou esteve em cidades diferentes (como {cidades_str}) e o clima por lá. "
         f"Gere um texto curto, motivacional, descontraído e inteligente para enviar pelo WhatsApp (máximo 450 caracteres). "
         f"Use asteriscos para negrito e fale diretamente com o Otávio."
     )
@@ -351,7 +392,7 @@ def gerar_resumo_ia(metricas):
     # Fallback estático
     return (
         f"🤖 *Histórico de Performance:* \n"
-        f"Otávio, nas últimas 3 semanas seus hábitos evoluíram. "
+        f"Otávio, nas últimas 3 semanas seus hábitos evoluíram. Você esteve em {cidades_str}. "
         f"O sono médio oscilou: {sleep_trends[0]:.1f}h -> {sleep_trends[1]:.1f}h -> {sleep_trends[2]:.1f}h. Continue buscando consistência!"
     )
 
