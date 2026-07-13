@@ -666,6 +666,21 @@ def get_predicoes():
         )
 # --- fim predicoes ---
 
+@app.route('/v1/weekly-report', methods=['POST'])
+def trigger_weekly_report():
+    data = request.get_json(silent=True) or {}
+    
+    phone_number_id = data.get('phone_number_id') or os.getenv('PHONE_NUMBER_ID', '233405413182343')
+    recipient = data.get('recipient') or os.getenv('WHATSAPP_PHONE_NUMBER', '5521983163900')
+    
+    import weekly_report
+    try:
+        insight = weekly_report.gerar_e_enviar_relatorio(phone_number_id, recipient)
+        return {"status": "success", "message": "Relatório semanal gerado e enviado.", "insight": insight}, 200
+    except Exception as e:
+        current_app.logger.error(f"Erro no endpoint /v1/weekly-report: {e}", exc_info=True)
+        return {"status": "error", "message": str(e)}, 500
+
 if __name__ == '__main__':
     app.run(debug=True)
 

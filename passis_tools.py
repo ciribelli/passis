@@ -188,6 +188,25 @@ def ultimo_Checkin() -> str:
 
 
 @register_tool()
+def obter_relatorio_semanal() -> str:
+    """Gera e envia o relatório visual semanal (últimos 7 dias) do usuário no WhatsApp.
+    O painel inclui checkins de academia, rezas de terço, horas de sono por noite, trânsito para o escritório e clima.
+    Use quando o usuário pedir o relatório visual da semana, gráficos semanais, evolução de treinos/sono ou resumo consolidado."""
+    import weekly_report
+    import os
+    
+    phone_number_id = os.getenv('PHONE_NUMBER_ID', '233405413182343')
+    from_number = _ctx.get("wapp_id")
+    
+    if not from_number:
+        return "Erro: número do usuário não encontrado no contexto."
+        
+    resumo = weekly_report.gerar_e_enviar_relatorio(phone_number_id, from_number)
+    return resumo
+
+
+
+@register_tool()
 def registra_Memoria() -> str:
     """Detecta quando o usuário quer salvar uma informação qualquer na memória eterna."""
     return "__REGISTRAR_MEMORIA__"
