@@ -11,10 +11,10 @@ import io
 def obter_dados_semana(start_date, end_date):
     from app import Checkin, Clima
     
-    # Consulta checkins no período
+    # Consulta checkins no período de 21 dias
     checkins = Checkin.query.filter(Checkin.data.between(start_date, end_date)).order_by(Checkin.data).all()
     
-    # Consulta climas no período
+    # Consulta climas no período de 21 dias
     climas = Clima.query.filter(Clima.data.between(start_date, end_date)).order_by(Clima.data).all()
     
     return checkins, climas
@@ -31,33 +31,50 @@ def processar_metricas(checkins, climas, start_date, end_date):
     
     days_range_w3 = [w3_start + timedelta(days=i) for i in range(7)]
     
-    gym_w1, gym_w2, gym_w3 = 0, 0, 0
-    terco_w1, terco_w2, terco_w3 = 0, 0, 0
-    
-    gym_daily_w3 = {d: 0 for d in days_range_w3}
-    terco_daily_w3 = {d: 0 for d in days_range_w3}
-    
+    # Mapeamento de hábitos dinâmicos
     offices = {'EDISEN', 'EDIHB', 'CENPES'}
+    exclusoes = {'awake', 'casa', 'drive'}.union(offices)
     
+    # Identifica todos os hábitos distintos com check-in "in" no período de 21 dias (excluindo sono/transito)
+    todos_habitos = set()
+    for c in checkins:
+        if c.direction == 'in' and c.checkin not in exclusoes:
+            todos_habitos.add(c.checkin)
+            
+    # Inicializa contagens para todos os hábitos encontrados
+    habitos_trends = {}  # hab -> [w1_count, w2_count, w3_count]
+    habitos_daily_w3 = {}  # hab -> {date: count}
+    
+    for hab in todos_habitos:
+        habitos_trends[hab] = [0, 0, 0]
+        habitos_daily_w3[hab] = {d: 0 for d in days_range_w3}
+        
     for c in checkins:
         dt_date = c.data.date()
-        is_gym = (c.checkin == 'academia' and c.direction == 'in')
-        is_terco = (c.checkin == 'terco' and c.direction == 'in')
+        is_in = (c.direction == 'in')
+        hab = c.checkin
         
-        if w1_start <= dt_date <= w1_end:
-            if is_gym: gym_w1 += 1
-            if is_terco: terco_w1 += 1
-        elif w2_start <= dt_date <= w2_end:
-            if is_gym: gym_w2 += 1
-            if is_terco: terco_w2 += 1
-        elif w3_start <= dt_date <= w3_end:
-            if is_gym:
-                gym_w3 += 1
-                gym_daily_w3[dt_date] += 1
-            if is_terco:
-                terco_w3 += 1
-                terco_daily_w3[dt_date] += 1
+        if is_in and hab in todos_habitos:
+            if w1_start <= dt_date <= w1_end:
+                habitos_trends[hab][0] += 1
+            elif w2_start <= dt_date <= w2_end:
+                habitos_trends[hab][1] += 1
+            elif w3_start <= dt_date <= w3_end:
+                habitos_trends[hab][2] += 1
+                habitos_daily_w3[hab][dt_date] += 1
                 
+    # Determinar os top 2 hábitos com base na semana atual (w3), senão pelo histórico geral
+    habitos_ordenados = sorted(todos_habitos, key=lambda h: (habitos_trends[h][2], sum(habitos_trends[h])), reverse=True)
+    top_habitos = habitos_ordenados[:2]
+    
+    # Fallback caso tenhamos menos de 2 hábitos
+    defaults_fallback = ['academia', 'terco']
+    for df_val in defaults_fallback:
+        if len(top_habitos) < 2 and df_val not in top_habitos:
+            top_habitos.append(df_val)
+    while len(top_habitos) < 2:
+        top_habitos.append('habito')
+        
     # Processar Sono
     df_awake = [c for c in checkins if c.checkin == 'awake']
     sleep_w1, sleep_w2, sleep_w3 = [], [], []
@@ -136,17 +153,18 @@ def processar_metricas(checkins, climas, start_date, end_date):
         'w3_start': w3_start,
         'w3_end': w3_end,
         'days_range_w3': days_range_w3,
-        'gym_daily_w3': gym_daily_w3,
-        'terco_daily_w3': terco_daily_w3,
         'sleep_daily_w3': sleep_daily_w3,
         'commute_daily_w3': commute_daily_w3,
         'temp_min_w3': temp_min_w3,
         'temp_max_w3': temp_max_w3,
         
-        # Histórico comparativo
+        # Hábitos dinâmicos top 2
+        'top_habitos': top_habitos,
+        'habitos_trends': habitos_trends,
+        'habitos_daily_w3': habitos_daily_w3,
+        
+        # Histórico comparativo geral
         'semanas_labels': ['Semana -2', 'Semana -1', 'Semana Atual'],
-        'gym_trends': [gym_w1, gym_w2, gym_w3],
-        'terco_trends': [terco_w1, terco_w2, terco_w3],
         'sleep_trends': [avg_sleep_w1, avg_sleep_w2, avg_sleep_w3],
         'commute_trends': [avg_commute_w1, avg_commute_w2, avg_commute_w3]
     }
@@ -161,8 +179,9 @@ def gerar_dashboard(metricas):
     fig.patch.set_facecolor('#0f0f13') # Fundo profundo escuro
     
     # Paleta de Cores Premium
-    color_gym = '#06d6a0'     # Mint Teal
-    color_terco = '#ffb703'   # Amber Gold
+    top_habitos = metricas['top_habitos']
+    color_h1 = '#06d6a0'      # Mint Teal
+    color_h2 = '#ffb703'      # Amber Gold
     color_sleep = '#7b2cbf'   # Royal Indigo/Purple
     color_sleep_line = '#a29bfe' # Lavender
     color_commute = '#f72585' # Deep Pink/Coral
@@ -173,24 +192,28 @@ def gerar_dashboard(metricas):
         ax.spines['right'].set_visible(False)
         ax.spines['left'].set_color('#2e2e33')
         ax.spines['bottom'].set_color('#2e2e33')
-        ax.tick_params(colors='#a0a0aa', labelsize=10)
+        ax.tick_params(colors='#a0a0aa', labelsize=11)
         ax.yaxis.grid(True, linestyle='-', color='#222226', alpha=0.8) # Gridlines escuras e discretas
         ax.set_axisbelow(True)
         
     x = np.arange(7)
     width = 0.3
     
-    # 1. Hábitos Diários (Semana Atual)
-    gym_vals = [metricas['gym_daily_w3'][d] for d in days_range_w3]
-    terco_vals = [metricas['terco_daily_w3'][d] for d in days_range_w3]
-    axs[0].bar(x - width/2, gym_vals, width, label='Academia', color=color_gym)
-    axs[0].bar(x + width/2, terco_vals, width, label='Terço', color=color_terco)
-    axs[0].set_title('Semana Atual: Hábitos Diários', color='#f1f1f1', fontsize=12, pad=8, weight='bold')
+    # 1. Hábitos Diários Dinâmicos (Semana Atual)
+    h1_name = top_habitos[0]
+    h2_name = top_habitos[1]
+    
+    h1_vals = [metricas['habitos_daily_w3'][h1_name][d] if h1_name in metricas['habitos_daily_w3'] else 0 for d in days_range_w3]
+    h2_vals = [metricas['habitos_daily_w3'][h2_name][d] if h2_name in metricas['habitos_daily_w3'] else 0 for d in days_range_w3]
+    
+    axs[0].bar(x - width/2, h1_vals, width, label=h1_name.capitalize(), color=color_h1)
+    axs[0].bar(x + width/2, h2_vals, width, label=h2_name.capitalize(), color=color_h2)
+    axs[0].set_title('Semana Atual: Hábitos Diários', color='#f1f1f1', fontsize=14, pad=10, weight='bold')
     axs[0].set_xticks(x)
-    axs[0].set_xticklabels(days_str_w3)
-    axs[0].legend(facecolor='#16161a', edgecolor='none', labelcolor='#e0e0e6')
-    axs[0].set_ylabel('Frequência', color='#a0a0aa')
-    axs[0].set_ylim(0, max(gym_vals + terco_vals + [2]))
+    axs[0].set_xticklabels(days_str_w3, fontsize=11)
+    axs[0].legend(facecolor='#16161a', edgecolor='none', labelcolor='#e0e0e6', fontsize=11)
+    axs[0].set_ylabel('Frequência', color='#a0a0aa', fontsize=12)
+    axs[0].set_ylim(0, max(h1_vals + h2_vals + [2]))
     
     # 2. Sono Diário (Semana Atual)
     sleep_vals = [metricas['sleep_daily_w3'][d] for d in days_range_w3]
@@ -204,12 +227,12 @@ def gerar_dashboard(metricas):
     if len(plot_sleep_y) > 0:
         avg_sleep_w3 = np.mean(plot_sleep_y)
         axs[1].axhline(avg_sleep_w3, linestyle='--', color='#ff6b6b', alpha=0.9, label=f'Média Sem. Atual ({avg_sleep_w3:.1f}h)')
-    axs[1].set_title('Semana Atual: Horas de Sono por Noite', color='#f1f1f1', fontsize=12, pad=8, weight='bold')
+    axs[1].set_title('Semana Atual: Horas de Sono por Noite', color='#f1f1f1', fontsize=14, pad=10, weight='bold')
     axs[1].set_xticks(x)
-    axs[1].set_xticklabels(days_str_w3)
-    axs[1].set_ylabel('Horas', color='#a0a0aa')
+    axs[1].set_xticklabels(days_str_w3, fontsize=11)
+    axs[1].set_ylabel('Horas', color='#a0a0aa', fontsize=12)
     axs[1].set_ylim(0, 12)
-    axs[1].legend(facecolor='#16161a', edgecolor='none', labelcolor='#e0e0e6')
+    axs[1].legend(facecolor='#16161a', edgecolor='none', labelcolor='#e0e0e6', fontsize=11)
     
     # 3. Trânsito para o Escritório (Semana Atual)
     commute_vals = [metricas['commute_daily_w3'][d] for d in days_range_w3]
@@ -226,58 +249,57 @@ def gerar_dashboard(metricas):
                 Checkin.checkin.in_(offices)
             ).first()
             office_name = office_c.checkin if office_c else 'Esc.'
-            axs[2].text(i, val + 2, f"{val:.0f}m\n({office_name})", ha='center', va='bottom', color='#e0e0e6', fontsize=8, weight='bold')
+            axs[2].text(i, val + 2, f"{val:.0f}m\n({office_name})", ha='center', va='bottom', color='#e0e0e6', fontsize=9, weight='bold')
             
-    axs[2].set_title('Semana Atual: Tempo de Trânsito para o Escritório', color='#f1f1f1', fontsize=12, pad=8, weight='bold')
+    axs[2].set_title('Semana Atual: Tempo de Trânsito para o Escritório', color='#f1f1f1', fontsize=14, pad=10, weight='bold')
     axs[2].set_xticks(x)
-    axs[2].set_xticklabels(days_str_w3)
-    axs[2].set_ylabel('Minutos', color='#a0a0aa')
+    axs[2].set_xticklabels(days_str_w3, fontsize=11)
+    axs[2].set_ylabel('Minutos', color='#a0a0aa', fontsize=12)
     axs[2].set_ylim(0, max(commute_vals + [60]) + 20)
     
     # 4. Comparação de Desempenho (3 Semanas)
     semanas_labels = metricas['semanas_labels']
-    gym_trends = metricas['gym_trends']
+    h1_trends = metricas['habitos_trends'][h1_name] if h1_name in metricas['habitos_trends'] else [0, 0, 0]
     sleep_trends = metricas['sleep_trends']
     
-    axs[3].bar(np.arange(3) - 0.2, gym_trends, width=0.3, color=color_gym, label='Academia (Total)')
-    axs[3].set_ylabel('Treinos (Total)', color=color_gym)
-    axs[3].tick_params(axis='y', labelcolor=color_gym)
+    axs[3].bar(np.arange(3) - 0.2, h1_trends, width=0.3, color=color_h1, label=f'{h1_name.capitalize()} (Total)')
+    axs[3].set_ylabel(f'{h1_name.capitalize()} (Total)', color=color_h1, fontsize=12)
+    axs[3].tick_params(axis='y', labelcolor=color_h1, labelsize=11)
     
     ax3_twin = axs[3].twinx()
     ax3_twin.spines['top'].set_visible(False)
     ax3_twin.spines['left'].set_visible(False)
     ax3_twin.spines['right'].set_color('#2e2e33')
+    color_sleep = '#7b2cbf'
     ax3_twin.plot(np.arange(3), sleep_trends, marker='s', markersize=8, color=color_sleep_line, linewidth=3, label='Sono (Média)')
     ax3_twin.fill_between(np.arange(3), sleep_trends, color=color_sleep, alpha=0.1)
-    ax3_twin.set_ylabel('Sono (Média Horas)', color=color_sleep_line)
-    ax3_twin.tick_params(axis='y', labelcolor=color_sleep_line)
+    ax3_twin.set_ylabel('Sono (Média Horas)', color=color_sleep_line, fontsize=12)
+    ax3_twin.tick_params(axis='y', labelcolor=color_sleep_line, labelsize=11)
     ax3_twin.set_ylim(0, 10)
     
     # Juntar legenda de ambos os eixos
     lines, labels = axs[3].get_legend_handles_labels()
     lines2, labels2 = ax3_twin.get_legend_handles_labels()
-    axs[3].legend(lines + lines2, labels + labels2, facecolor='#16161a', edgecolor='none', labelcolor='#e0e0e6', loc='upper left')
+    axs[3].legend(lines + lines2, labels + labels2, facecolor='#16161a', edgecolor='none', labelcolor='#e0e0e6', loc='upper left', fontsize=11)
     
-    axs[3].set_title('Histórico: Comparativo das Últimas 3 Semanas', color='#f1f1f1', fontsize=12, pad=8, weight='bold')
+    axs[3].set_title('Histórico: Comparativo das Últimas 3 Semanas', color='#f1f1f1', fontsize=14, pad=10, weight='bold')
     axs[3].set_xticks(np.arange(3))
-    axs[3].set_xticklabels(semanas_labels)
+    axs[3].set_xticklabels(semanas_labels, fontsize=11)
     axs[3].yaxis.grid(False)
     
     w3_start = metricas['w3_start']
     w3_end = metricas['w3_end']
-    plt.suptitle(f"Relatório de Performance\nOtávio — {w3_start.strftime('%d/%m')} a {w3_end.strftime('%d/%m/%Y')}", color='#ffffff', fontsize=16, weight='bold', y=0.99)
+    plt.suptitle(f"Relatório de Performance\nOtávio — {w3_start.strftime('%d/%m')} a {w3_end.strftime('%d/%m/%Y')}", color='#ffffff', fontsize=18, weight='bold', y=0.99)
     plt.tight_layout()
     
-    # Exporta para bytes
+    # Exporta para bytes com resolução maior (DPI=150)
     buf = io.BytesIO()
-    plt.savefig(buf, format='png', facecolor=fig.get_facecolor(), edgecolor='none')
+    plt.savefig(buf, format='png', facecolor=fig.get_facecolor(), edgecolor='none', dpi=150)
     buf.seek(0)
     plt.close()
     return buf.read()
 
 def gerar_resumo_ia(metricas):
-    gym_trends = metricas['gym_trends']
-    terco_trends = metricas['terco_trends']
     sleep_trends = metricas['sleep_trends']
     commute_trends = metricas['commute_trends']
     
@@ -289,26 +311,23 @@ def gerar_resumo_ia(metricas):
     t_min = min(t_min_clean) if t_min_clean else 20.0
     t_max = max(t_max_clean) if t_max_clean else 25.0
     
+    # Gerar a string de hábitos dinâmicos
+    habitos_trends = metricas['habitos_trends']
+    trends_str = ""
+    for hab, counts in habitos_trends.items():
+        if sum(counts) > 0:
+            trends_str += f"- {hab.capitalize()}: {counts[0]} (Semana -2) -> {counts[1]} (Semana -1) -> {counts[2]} (Semana Atual)\n"
+            
     prompt = (
         f"Consolidei o histórico das últimas 3 semanas do Otávio:\n\n"
-        f"Semana -2 (Mais antiga):\n"
-        f"- Academia: {gym_trends[0]} treinos\n"
-        f"- Terço: {terco_trends[0]} rezas\n"
-        f"- Sono Médio: {sleep_trends[0]:.1f}h/noite\n"
-        f"- Trânsito Médio: {commute_trends[0]:.1f} min\n\n"
-        f"Semana -1:\n"
-        f"- Academia: {gym_trends[1]} treinos\n"
-        f"- Terço: {terco_trends[1]} rezas\n"
-        f"- Sono Médio: {sleep_trends[1]:.1f}h/noite\n"
-        f"- Trânsito Médio: {commute_trends[1]:.1f} min\n\n"
-        f"Semana Atual (Mais recente):\n"
-        f"- Academia: {gym_trends[2]} treinos\n"
-        f"- Terço: {terco_trends[2]} rezas\n"
-        f"- Sono Médio: {sleep_trends[2]:.1f}h/noite\n"
-        f"- Trânsito Médio: {commute_trends[2]:.1f} min\n"
-        f"- Temperaturas na Semana Atual: Mínima de {t_min:.1f}°C, Máxima de {t_max:.1f}°C\n\n"
+        f"Hábitos registrados:\n{trends_str}\n"
+        f"Média de Sono por noite:\n"
+        f"- {sleep_trends[0]:.1f}h (Semana -2) -> {sleep_trends[1]:.1f}h (Semana -1) -> {sleep_trends[2]:.1f}h (Semana Atual)\n\n"
+        f"Tempo de Trânsito médio:\n"
+        f"- {commute_trends[0]:.1f}m (Semana -2) -> {commute_trends[1]:.1f}m (Semana -1) -> {commute_trends[2]:.1f}m (Semana Atual)\n\n"
+        f"Temperaturas na Semana Atual: Mínima de {t_min:.1f}°C, Máxima de {t_max:.1f}°C\n\n"
         f"Escreva uma análise comparativa dos hábitos dele ao longo dessas 3 semanas. Identifique tendências "
-        f"(se ele está melhorando o sono, diminuindo ou aumentando academia, mantendo rezas do terço consistentes). "
+        f"(se ele está melhorando o sono, diminuindo ou aumentando academia, mantendo rezas do terço consistentes, ou se apareceram hábitos novos de forma dinâmica). "
         f"Gere um texto curto, motivacional, descontraído e inteligente para enviar pelo WhatsApp (máximo 450 caracteres). "
         f"Use asteriscos para negrito e fale diretamente com o Otávio."
     )
@@ -332,8 +351,7 @@ def gerar_resumo_ia(metricas):
     # Fallback estático
     return (
         f"🤖 *Histórico de Performance:* \n"
-        f"Otávio, nas últimas 3 semanas seus treinos foram de {gym_trends[0]} para {gym_trends[1]} e depois {gym_trends[2]} nesta semana. "
-        f"Seu terço foi de {terco_trends[0]} para {terco_trends[1]} e depois {terco_trends[2]}. "
+        f"Otávio, nas últimas 3 semanas seus hábitos evoluíram. "
         f"O sono médio oscilou: {sleep_trends[0]:.1f}h -> {sleep_trends[1]:.1f}h -> {sleep_trends[2]:.1f}h. Continue buscando consistência!"
     )
 
