@@ -183,7 +183,7 @@ def answer_question(
         print("mensagens: \n", messages)
 
         completion = client.chat.completions.create(
-            model="gpt-4o",
+            model="luna",
             messages=messages,
             tools=tools, # para chamada da funcao
             tool_choice="auto", # para chamada da funcao
@@ -252,7 +252,7 @@ def answer_question(
                         "content": function_output,
                     })
             second_response = client.chat.completions.create(
-                model="gpt-5",
+                model="luna",
                 messages=messages
             )
 
