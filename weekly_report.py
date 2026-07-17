@@ -8,6 +8,26 @@ import requests
 from datetime import datetime, timedelta
 import io
 
+def obter_metricas_ml(start_date, end_date):
+    from app import db
+    from sqlalchemy import text
+    try:
+        query = text("""
+            SELECT target_checkin, COUNT(*) AS eventos_avaliados, 
+                   ROUND(AVG(minutos_antes)::numeric, 1) AS media_minutos_antes, 
+                   ROUND(AVG(prediction)::numeric, 3) AS media_pred_antes, 
+                   ROUND(AVG(erro_absoluto)::numeric, 3) AS mae 
+            FROM ml.v_precisao_modelo 
+            WHERE evento_real >= :start AND evento_real <= :end 
+            GROUP BY target_checkin 
+            ORDER BY mae ASC
+        """)
+        resultado = db.session.execute(query, {"start": start_date, "end": end_date}).fetchall()
+        return [{"checkin": row.target_checkin, "count": int(row.eventos_avaliados), "min_antes": float(row.media_minutos_antes), "avg_prob": float(row.media_pred_antes), "mae": float(row.mae)} for row in resultado]
+    except Exception as e:
+        print(f"Erro ao obter métricas ML: {e}")
+        return []
+
 def obter_dados_semana(start_date, end_date):
     from app import Checkin, Clima
     
@@ -333,7 +353,7 @@ def gerar_dashboard(metricas):
     plt.close()
     return buf.read()
 
-def gerar_resumo_ia(metricas):
+def gerar_resumo_ia(metricas, metricas_ml=None):
     sleep_trends = metricas['sleep_trends']
     commute_trends = metricas['commute_trends']
     
@@ -356,6 +376,13 @@ def gerar_resumo_ia(metricas):
         if sum(counts) > 0:
             trends_str += f"- {hab.capitalize()}: {counts[0]} (Semana -2) -> {counts[1]} (Semana -1) -> {counts[2]} (Semana Atual)\n"
             
+    ml_str = ""
+    if metricas_ml:
+        ml_str = "Precisão da Inteligência Artificial (Modelos Preditivos):\n"
+        for m in metricas_ml:
+            acuracia = 1 - m['mae']
+            ml_str += f"- {m['checkin'].capitalize()}: {m['count']} eventos | Previstos c/ média de {m['min_antes']:.1f}min de antecedência | Acurácia {acuracia*100:.1f}%\n"
+
     prompt = (
         f"Consolidei o histórico das últimas 3 semanas do Otávio:\n\n"
         f"Hábitos registrados:\n{trends_str}\n"
@@ -366,9 +393,11 @@ def gerar_resumo_ia(metricas):
         f"Localização na Semana Atual:\n"
         f"- Cidades visitadas/onde esteve: {cidades_str}\n"
         f"- Temperaturas na Semana Atual: Mínima de {t_min:.1f}°C, Máxima de {t_max:.1f}°C\n\n"
+        f"{ml_str}\n"
         f"Escreva uma análise comparativa dos hábitos dele ao longo dessas 3 semanas. Identifique tendências "
         f"(se ele está melhorando o sono, diminuindo ou aumentando academia, mantendo rezas do terço consistentes, ou se apareceram hábitos novos de forma dinâmica). "
         f"Comente de forma inteligente e descontraída se ele viajou ou esteve em cidades diferentes (como {cidades_str}) e o clima por lá. "
+        f"Se os dados de 'Precisão da Inteligência Artificial' estiverem disponíveis, elogie ou brinque rapidamente com o fato de que a IA (Skynet) está conseguindo prever os passos dele com X% de acurácia ou Y min de antecedência. "
         f"Gere um texto curto, motivacional, descontraído e inteligente para enviar pelo WhatsApp (máximo 450 caracteres). "
         f"Use asteriscos para negrito e fale diretamente com o Otávio."
     )
@@ -413,6 +442,9 @@ def gerar_e_enviar_relatorio(phone_number_id, from_number):
     if not checkins:
         return "Nenhum check-in registrado nas últimas 3 semanas para gerar o relatório."
         
+    # 1.5. Obter métricas de Machine Learning (Precisão dos modelos preditivos)
+    metricas_ml = obter_metricas_ml(start_date, end_date)
+    
     # 2. Processar métricas
     metricas = processar_metricas(checkins, climas, start_date, end_date)
     
@@ -431,7 +463,7 @@ def gerar_e_enviar_relatorio(phone_number_id, from_number):
         return "Não foi possível recuperar a imagem do relatório recém-gerada."
         
     # 6. Gerar resumo explicativo e comparativo via IA
-    insight_text = gerar_resumo_ia(metricas)
+    insight_text = gerar_resumo_ia(metricas, metricas_ml)
     
     # 7. Enviar via WhatsApp (imagem + legenda)
     endpoint = f"recuperar_documento/{doc.id}"
