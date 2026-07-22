@@ -188,15 +188,6 @@ def responde_mcp(
                     "Apresente as informações que ele pediu e confirme se ele quer mesmo."
                 )
 
-            # Trata sinal especial de enviar_missao_openclaw
-            elif isinstance(output, str) and output.startswith("__REQUER_AUTORIZACAO_MISSAO__:"):
-                missao_text = output.replace("__REQUER_AUTORIZACAO_MISSAO__:", "", 1)
-                eh_pergunta = "openclaw_confirm:" + missao_text
-                output = (
-                    "avise ao usuário que a missão foi recebida e que ele deve autorizar a execução "
-                    "através dos botões de confirmação enviados no WhatsApp."
-                )
-
             # Role correto: "tool" (não "assistant" como no código original)
             messages.append({
                 "role": "tool",

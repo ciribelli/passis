@@ -127,21 +127,6 @@ def chatflow(entry):
                     send_msg.send_wapp_msg(phone_number_id, from_number, "❌ Erro: Arquivo da mídia não encontrado localmente.")
             elif button_id == "cancel_img":
                 send_msg.send_wapp_msg(phone_number_id, from_number, "Ok, a imagem foi descartada.")
-            elif button_id == "run_claw":
-                content = app.get_thread_content_by_wapp_id(wapp_id)
-                if content and content.startswith("__CLAW_MISSION__:"):
-                    missao = content.replace("__CLAW_MISSION__:", "", 1)
-                    send_msg.send_wapp_msg(phone_number_id, from_number, "🚀 _Disparando missão para o OpenClaw via Telegram..._")
-                    sucesso, erro = send_msg.send_telegram_openclaw_mission(missao)
-                    if sucesso:
-                        coletor = "✅ Missão enviada com sucesso para o Telegram do OpenClaw! Acompanhe a execução por lá."
-                    else:
-                        coletor = f"❌ Erro ao enviar missão para o Telegram: {erro}"
-                else:
-                    coletor = "❌ Não foi possível recuperar os detalhes da missão."
-                responde_usuario_salva_thread(phone_number_id, from_number, coletor)
-            elif button_id == "cancel_claw":
-                send_msg.send_wapp_msg(phone_number_id, from_number, "Ok, a missão do OpenClaw foi cancelada.")
         elif msg_body:
             print("msg_body:", msg_body)
             tipo_pergunta = False
@@ -194,15 +179,7 @@ def chatflow(entry):
                     
             # envia a mensagem de retorno para o whatsapp
             try:
-                if isinstance(tipo_pergunta, str) and tipo_pergunta.startswith("openclaw_confirm:"):
-                    missao = tipo_pergunta.replace("openclaw_confirm:", "", 1)
-                    wapp_response = send_msg.send_wapp_claw_auth(phone_number_id, from_number, missao)
-                    response_dict = wapp_response.json()
-                    if "messages" in response_dict and response_dict["messages"]:
-                        sent_wapp_id = response_dict["messages"][0]["id"]
-                        input_data = json.dumps({"role": "assistant", "content": f"__CLAW_MISSION__:{missao}"}, ensure_ascii=False)
-                        app.salvar_thread(input_data, sent_wapp_id)
-                elif (tipo_pergunta):
+                if (tipo_pergunta):
                     send_msg.send_wapp_question(phone_number_id, from_number, coletor)
                 else:
                     # responde o usuario no wapp e salva a conversa
