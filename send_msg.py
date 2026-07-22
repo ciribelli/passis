@@ -221,3 +221,70 @@ def download_media(url, filename="arquivo"):
         print(f"Falha ao baixar o arquivo. Status code: {response.status_code}")
         print("Resposta do servidor:", response.text)
         return None
+
+def send_wapp_claw_auth(phone_number_id, from_number, missao):
+    wapp_token = os.getenv('WHATSAPP_TOKEN')
+    fb_url = f"https://graph.facebook.com/v20.0/{phone_number_id}/messages?access_token={wapp_token}"
+    
+    corpo_texto = f"Deseja autorizar a execução da seguinte missão no OpenClaw?\n\n\"{missao}\""
+    if len(corpo_texto) > 1024:
+        corpo_texto = corpo_texto[:1020] + "..."
+
+    payload = {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": from_number,
+        "type": "interactive",
+        "interactive": {
+            "header": {
+                "type": "text",
+                "text": "Autorização de Missão 🦀"
+            },
+            "type": "button",
+            "body": {
+                "text": corpo_texto
+            },
+            "action": {
+                "buttons": [
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": "run_claw",
+                            "title": "Sim, Executar"
+                        }
+                    },
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": "cancel_claw",
+                            "title": "Cancelar"
+                        }
+                    }
+                ]
+            }
+        }
+    }
+    headers = {"Content-Type": "application/json"}
+    response = requests.post(fb_url, json=payload, headers=headers)
+    return response
+
+def send_telegram_openclaw_mission(missao):
+    token = os.environ.get('TELEGRAM_BOT_TOKEN')
+    chat_id = os.environ.get('TELEGRAM_CHAT_ID')
+    
+    if not token or not chat_id:
+        return False, "Credenciais do Telegram (TELEGRAM_BOT_TOKEN ou TELEGRAM_CHAT_ID) não configuradas."
+        
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": f"🤖 *Nova Missão Solicitada pelo Passis:*\n\n{missao}",
+        "parse_mode": "Markdown"
+    }
+    try:
+        response = requests.post(url, json=payload, timeout=10)
+        if response.status_code == 200:
+            return True, None
+        return False, f"Telegram API retornou status {response.status_code}: {response.text}"
+    except Exception as e:
+        return False, str(e)

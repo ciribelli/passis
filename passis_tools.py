@@ -258,3 +258,22 @@ def real_time(query: str = None) -> str:
     Cobre buscas temáticas no X sem precisar de um perfil específico."""
     prompt = query if query else _ctx["question"]
     return main.real_time(prompt, _ctx["context"])
+
+
+@register_tool({
+    "type": "object",
+    "properties": {
+        "missao": {
+            "type": "string",
+            "description": "A descrição detalhada da missão ou tarefa complexa a ser executada pelo OpenClaw."
+        }
+    },
+    "required": ["missao"]
+})
+def enviar_missao_openclaw(missao: str) -> str:
+    """Envia uma missão ou tarefa complexa para o assistente autônomo OpenClaw rodar em segundo plano.
+    Use quando o usuário pedir explicitamente para rodar tarefas complexas como buscas na web integradas,
+    escrita ou modificação de arquivos locais, refatorações ou automações avançadas."""
+    return "__REQUER_AUTORIZACAO_MISSAO__:" + missao
+
+
