@@ -73,15 +73,29 @@ def chatflow(entry):
             button_action = message['interactive']['button_reply']['title']
             wapp_id = message['context']['id']
             print('>>>> ', button_id, button_action, wapp_id)
-            if button_id == "1":
-                # memorizar a informação
+            if button_id == "save_mem":
+                # salvar memória via botão descritivo
                 content = app.get_thread_content_by_wapp_id(wapp_id)
                 print(content)
-                coletor = app.salvar_memoria_recebida(content.lower())
+                if content:
+                    coletor = app.salvar_memoria_recebida(content.lower())
+                else:
+                    coletor = "❌ Não encontrei o conteúdo para salvar."
+                responde_usuario_salva_thread(phone_number_id, from_number, coletor)
+            elif button_id == "cancel_mem":
+                send_msg.send_wapp_msg(phone_number_id, from_number, "Ok, memória descartada.")
+            elif button_id == "1":
+                # memorizar a informação (áudio)
+                content = app.get_thread_content_by_wapp_id(wapp_id)
+                print(content)
+                if content:
+                    coletor = app.salvar_memoria_recebida(content.lower())
+                else:
+                    coletor = "❌ Não encontrei o conteúdo para salvar."
                 # responde o usuario no wapp e salva a conversa
                 responde_usuario_salva_thread(phone_number_id, from_number, coletor)
             elif button_id == "0":
-                # memorizar a informação
+                # executar ação (áudio)
                 content = app.get_thread_content_by_wapp_id(wapp_id)
                 print(content)
                 coletor, link, tipo_pergunta = envia_prompt_api(content, data_atual, hora_atual, phone_number_id, from_number, wapp_id)
@@ -180,7 +194,12 @@ def chatflow(entry):
             # envia a mensagem de retorno para o whatsapp
             try:
                 if (tipo_pergunta):
-                    send_msg.send_wapp_question(phone_number_id, from_number, coletor)
+                    wapp_response = send_msg.send_wapp_question(phone_number_id, from_number, coletor)
+                    response_dict = wapp_response.json()
+                    if "messages" in response_dict and response_dict["messages"]:
+                        resp_wapp_id = response_dict["messages"][0]["id"]
+                        input_data = '{"role": "assistant", "content":"' + coletor.replace('"', ' ') + '"}'
+                        app.salvar_thread(input_data, resp_wapp_id)
                 else:
                     # responde o usuario no wapp e salva a conversa
                     responde_usuario_salva_thread(phone_number_id, from_number, coletor)

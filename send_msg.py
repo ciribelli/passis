@@ -40,14 +40,14 @@ def send_wapp_question(phone_number_id, from_number, coletor):
                     {
                         "type": "reply",
                         "reply": {
-                            "id": "0",
+                            "id": "save_mem",
                             "title": "Sim"
                         }
                     },
                     {
                         "type": "reply",
                         "reply": {
-                            "id": "1",
+                            "id": "cancel_mem",
                             "title": "Cancelar"
                         }
                     }
@@ -57,6 +57,7 @@ def send_wapp_question(phone_number_id, from_number, coletor):
     }
     headers = {"Content-Type": "application/json"}
     response = requests.post(fb_url, json=payload, headers=headers)
+    return response
 
 def send_wapp_audio_reply(phone_number_id, from_number, coletor):
     wapp_token = os.getenv('WHATSAPP_TOKEN')
