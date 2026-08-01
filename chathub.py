@@ -24,7 +24,7 @@ def envia_prompt_api(content, data_atual, hora_atual, phone_number_id, from_numb
         # envia mensagem para API openAI
         coletor, link, tipo_pergunta, prompt_final = app.fazer_perguntas(content, data_atual, hora_atual, phone_number_id, from_number)
         # 📅 registra mensagem recebida de usuario em threads📅
-        input_data = '{"role": "user", "content":"' + content.replace('"', ' ') + '"}'
+        input_data = json.dumps({"role": "user", "content": content}, ensure_ascii=False)
         app.salvar_thread(input_data, wapp_id)
         app.salvar_prompt(json.dumps(prompt_final, ensure_ascii=False), wapp_id)
         print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> \n\n ', prompt_final)
@@ -39,7 +39,7 @@ def responde_usuario_salva_thread(phone_number_id, from_number, coletor):
     if "messages" in response_dict and response_dict["messages"]:
         wapp_id = response_dict["messages"][0]["id"]
         # 📅 registra mensagem gerada pelo sistema em threads 📅
-        input_data = '{"role": "assistant", "content":"' + coletor.replace('"', ' ') + '"}'
+        input_data = json.dumps({"role": "assistant", "content": coletor}, ensure_ascii=False)
         app.salvar_thread(input_data, wapp_id)
     else:
         print("Resposta sem mensagens. Nada salvo em thread.")
@@ -141,6 +141,32 @@ def chatflow(entry):
                     send_msg.send_wapp_msg(phone_number_id, from_number, "❌ Erro: Arquivo da mídia não encontrado localmente.")
             elif button_id == "cancel_img":
                 send_msg.send_wapp_msg(phone_number_id, from_number, "Ok, a imagem foi descartada.")
+            elif button_id.startswith("snooze_reminder_"):
+                memoria_id = int(button_id.replace("snooze_reminder_", ""))
+                resultado = app.snooze_lembrete(memoria_id)
+                if resultado:
+                    send_msg.send_wapp_msg(phone_number_id, from_number, resultado)
+                else:
+                    send_msg.send_wapp_msg(phone_number_id, from_number, "❌ Lembrete não encontrado.")
+            elif button_id.startswith("done_reminder_"):
+                memoria_id = int(button_id.replace("done_reminder_", ""))
+                memoria = app.Memoria.query.get(memoria_id)
+                if memoria:
+                    memoria.reminder_status = 'concluido'
+                    app.db.session.commit()
+                    send_msg.send_wapp_msg(phone_number_id, from_number, "✅ Lembrete concluído!")
+                else:
+                    send_msg.send_wapp_msg(phone_number_id, from_number, "❌ Lembrete não encontrado.")
+            elif button_id.startswith("archive_reminder_"):
+                memoria_id = int(button_id.replace("archive_reminder_", ""))
+                memoria = app.Memoria.query.get(memoria_id)
+                if memoria:
+                    memoria.reminder_status = 'arquivado'
+                    memoria.reminder_time = None
+                    app.db.session.commit()
+                    send_msg.send_wapp_msg(phone_number_id, from_number, "📋 Lembrete arquivado. O conteúdo continua salvo nas suas memórias.")
+                else:
+                    send_msg.send_wapp_msg(phone_number_id, from_number, "❌ Lembrete não encontrado.")
         elif msg_body:
             print("msg_body:", msg_body)
             tipo_pergunta = False
@@ -198,7 +224,7 @@ def chatflow(entry):
                     response_dict = wapp_response.json()
                     if "messages" in response_dict and response_dict["messages"]:
                         resp_wapp_id = response_dict["messages"][0]["id"]
-                        input_data = '{"role": "assistant", "content":"' + coletor.replace('"', ' ') + '"}'
+                        input_data = json.dumps({"role": "assistant", "content": coletor}, ensure_ascii=False)
                         app.salvar_thread(input_data, resp_wapp_id)
                 else:
                     # responde o usuario no wapp e salva a conversa
@@ -235,7 +261,7 @@ def chatflow(entry):
                     # 📅 registra transcrição gerada pelo sistema em threads📅
                     response_dict = wapp_response.json()
                     wapp_id = response_dict["messages"][0]["id"]
-                    input_data = '{"role": "assistant", "content":"' + transcricao.replace('"', ' ') + '"}'
+                    input_data = json.dumps({"role": "assistant", "content": transcricao}, ensure_ascii=False)
                     app.salvar_thread(input_data, wapp_id)
                 elif media_type == 'image':
                     image_id = entry['changes'][0]['value']['messages'][0]['image']['id']

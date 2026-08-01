@@ -152,6 +152,50 @@ def send_wapp_image_reply(phone_number_id, from_number, coletor, header_text="An
     return (response)
 
 
+def send_wapp_reminder(phone_number_id, from_number, mensagem, memoria_id):
+    """Envia lembrete com botões de Feito, Soneca e Arquivar."""
+    wapp_token = os.getenv('WHATSAPP_TOKEN')
+    fb_url = f"https://graph.facebook.com/v20.0/{phone_number_id}/messages?access_token={wapp_token}"
+    payload = {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": from_number,
+        "type": "interactive",
+        "interactive": {
+            "type": "button",
+            "header": {"type": "text", "text": "⏰ Lembrete"},
+            "body": {"text": mensagem},
+            "action": {
+                "buttons": [
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": f"done_reminder_{memoria_id}",
+                            "title": "Feito ✅"
+                        }
+                    },
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": f"snooze_reminder_{memoria_id}",
+                            "title": "Soneca 💤"
+                        }
+                    },
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": f"archive_reminder_{memoria_id}",
+                            "title": "Arquivar 📋"
+                        }
+                    }
+                ]
+            }
+        }
+    }
+    headers = {"Content-Type": "application/json"}
+    response = requests.post(fb_url, json=payload, headers=headers)
+    return response
+
 def send_wapp_image(phone_number_id, from_number, coletor, endpoint):
     wapp_token = os.getenv('WHATSAPP_TOKEN')
     url = os.getenv('url')

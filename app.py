@@ -1105,14 +1105,29 @@ def trigger_reminders():
 
     for lembrete in lembretes:
         if lembrete.wapp_id:
-            # Chama a função que já existe no seu send_msg.py
-            mensagem = f"⏰ *Lembrete:* {lembrete.content}"
-            send_msg.send_wapp_msg(phone_number_id, lembrete.wapp_id, mensagem)
+            # Envia lembrete com botões interativos (Feito / Soneca / Arquivar)
+            send_msg.send_wapp_reminder(phone_number_id, lembrete.wapp_id, lembrete.content, lembrete.id)
         
         lembrete.reminder_status = 'enviado'
     
     db.session.commit()
     return Response(json.dumps({'message': f'{len(lembretes)} lembretes processados.'}), status=200, content_type='application/json')
+
+def snooze_lembrete(memoria_id, minutos=15):
+    """Adia um lembrete para daqui a X minutos."""
+    fuso_br = pytz.timezone('America/Sao_Paulo')
+    agora = datetime.now(fuso_br).replace(tzinfo=None)
+    
+    memoria = Memoria.query.get(memoria_id)
+    if not memoria:
+        return None
+    
+    memoria.reminder_time = agora + timedelta(minutes=minutos)
+    memoria.reminder_status = 'pendente'
+    db.session.commit()
+    
+    hora_formatada = memoria.reminder_time.strftime('%H:%M')
+    return f"💤 Ok! Vou te lembrar de novo às {hora_formatada}."
 
 @app.route('/memorias', methods=['POST'])
 def create_memoria():
@@ -1239,7 +1254,7 @@ def get_thread_content_by_wapp_id(wapp_id):
     thread = Thread.query.filter_by(wapp_id=wapp_id).first()
     if thread:
         try:
-            content_json = json.loads(thread.content)
+            content_json = json.loads(thread.content, strict=False)
             return content_json['content']
         except (json.JSONDecodeError, KeyError) as e:
             return None
