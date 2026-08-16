@@ -198,25 +198,29 @@ def send_wapp_reminder(phone_number_id, from_number, mensagem, memoria_id):
 
 def send_wapp_image(phone_number_id, from_number, coletor, endpoint):
     wapp_token = os.getenv('WHATSAPP_TOKEN')
-    url = os.getenv('url')
-    link = url + endpoint
+    base_url = os.getenv('url') or os.getenv('HEROKU_APP_URL', '')
+    if base_url and not base_url.endswith('/'):
+        base_url += '/'
+    if endpoint.startswith('/'):
+        endpoint = endpoint[1:]
+    link = (base_url + endpoint) if base_url else endpoint
     print('recuperando o documento em: ', link)
     fb_url = f"https://graph.facebook.com/v20.0/{phone_number_id}/messages?access_token={wapp_token}"
+    
+    image_obj = {"link": link}
+    if coletor:
+        image_obj["caption"] = str(coletor)[:1024]
+
     payload = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
         "to": from_number,
         "type": "image",
-        "header":{
-        "type": "text",
-        "text": coletor
-        },
-        "image": {
-            "link": link
-        }
+        "image": image_obj
     }
     headers = {"Content-Type": "application/json"}
     response = requests.post(fb_url, json=payload, headers=headers)
+    return response
 
 
 

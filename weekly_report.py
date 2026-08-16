@@ -407,6 +407,8 @@ def gerar_resumo_ia(metricas, metricas_ml=None):
         from agent import client
         completion = client.chat.completions.create(
             model="o3-mini",
+            reasoning_effort="low",
+            max_completion_tokens=500,
             messages=[
                 {
                     "role": "user",
