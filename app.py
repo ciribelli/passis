@@ -1041,12 +1041,15 @@ def get_kid_chat_messages(kid_id):
         'messages': [m.to_dict() for m in messages]
     }), 200
 
-def salvar_resposta_pai_whatsapp(texto, from_number):
+def salvar_resposta_pai_whatsapp(texto, from_number, target_kid_id=None):
     try:
         db.create_all()
-        # Encontra a última criança que interagiu ou usa a default
-        last_kid_msg = KidChatMessage.query.filter_by(sender='kid').order_by(KidChatMessage.timestamp.desc()).first()
-        target_kid_id = last_kid_msg.kid_id if last_kid_msg else 1
+        if not target_kid_id:
+            last_kid_msg = KidChatMessage.query.filter_by(sender='kid').order_by(KidChatMessage.timestamp.desc()).first()
+            target_kid_id = last_kid_msg.kid_id if last_kid_msg else 1
+
+        kid = KidAccount.query.get(target_kid_id)
+        kid_name = kid.name if kid else "Filhos"
 
         reply = KidChatMessage(
             kid_id=target_kid_id,
@@ -1057,10 +1060,11 @@ def salvar_resposta_pai_whatsapp(texto, from_number):
         )
         db.session.add(reply)
         db.session.commit()
-        return True
+        return True, kid_name
     except Exception as e:
         print(f"Erro ao salvar resposta do pai vinda do WhatsApp: {e}")
-        return False
+        return False, "Filhos"
+
 
 
 if __name__ == '__main__':

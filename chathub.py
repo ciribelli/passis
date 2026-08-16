@@ -218,9 +218,38 @@ def chatflow(entry):
                     father_phone = os.getenv('WHATSAPP_PHONE_NUMBER', '5521983163900')
                     clean_from = ''.join(filter(str.isdigit, str(from_number)))
                     clean_father = ''.join(filter(str.isdigit, str(father_phone)))
-                    if clean_from and (clean_from in clean_father or clean_father in clean_from):
-                        app.salvar_resposta_pai_whatsapp(content, from_number)
+                    is_from_father = bool(clean_from and (clean_from in clean_father or clean_father in clean_from))
+
+                    # Verifica se contém emoji/prefixo reservado para os filhos (👶, 👧, 👦, filhos:, etc)
+                    kid_prefixes = ['👶', '👧', '👦', 'filhos:', 'filho:', 'filha:', 'k:', 'maria:', 'jose:', 'josé:']
+                    raw_lower = content.strip().lower()
+                    has_kid_prefix = any(raw_lower.startswith(p) or content.strip().startswith(p) for p in kid_prefixes)
+
+                    if is_from_father and has_kid_prefix:
+                        raw_msg = content.strip()
+                        target_kid_id = None
+
+                        if raw_msg.startswith('👧') or raw_lower.startswith('filha:') or raw_lower.startswith('maria:'):
+                            target_kid_id = 1
+                        elif raw_msg.startswith('👦') or raw_lower.startswith('filho:') or raw_lower.startswith('jose:') or raw_lower.startswith('josé:'):
+                            target_kid_id = 2
+
+                        clean_text = raw_msg
+                        for p in kid_prefixes:
+                            if clean_text.lower().startswith(p) or clean_text.startswith(p):
+                                clean_text = clean_text[len(p):].strip()
+                                break
+
+                        if clean_text:
+                            success, kid_name = app.salvar_resposta_pai_whatsapp(clean_text, from_number, target_kid_id)
+                            if success:
+                                send_msg.send_wapp_msg(phone_number_id, from_number, f"✅ Recado enviado para *{kid_name}* no Cofre dos Filhos!")
+                            else:
+                                send_msg.send_wapp_msg(phone_number_id, from_number, "❌ Erro ao enviar recado para os filhos.")
+                        return
+
                     coletor, link, tipo_pergunta = envia_prompt_api(content, data_atual, hora_atual, phone_number_id, from_number, wapp_id)
+
                     
             # envia a mensagem de retorno para o whatsapp
             try:
