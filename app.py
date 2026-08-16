@@ -738,6 +738,28 @@ class KidTransaction(db.Model):
             'timestamp': self.timestamp.strftime('%Y-%m-%d %H:%M:%S') if self.timestamp else None
         }
 
+class KidChatMessage(db.Model):
+    __tablename__ = 'kid_chat_messages'
+    id = db.Column(db.Integer, primary_key=True)
+    kid_id = db.Column(db.Integer, db.ForeignKey('kid_accounts.id'), nullable=False)
+    sender = db.Column(db.String(20), nullable=False)  # 'kid' ou 'father'
+    message = db.Column(db.Text, nullable=False)
+    action_type = db.Column(db.String(50), default='custom')  # 'alexa', 'home', 'withdraw', 'custom', 'reply'
+    whatsapp_status = db.Column(db.String(20), default='sent')
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'kid_id': self.kid_id,
+            'sender': self.sender,
+            'message': self.message,
+            'action_type': self.action_type,
+            'whatsapp_status': self.whatsapp_status,
+            'timestamp': self.timestamp.strftime('%d/%m/%Y %H:%M') if self.timestamp else None
+        }
+
+
 @app.route('/v1/kids/init-defaults', methods=['POST'])
 def init_kids_defaults():
     try:
@@ -925,6 +947,121 @@ def delete_kid_transaction(tx_id):
     db.session.delete(tx)
     db.session.commit()
     return jsonify({'message': f'Transação #{tx_id} apagada com sucesso.'}), 200
+
+# Chat dos Filhos ➔ WhatsApp do Pai
+@app.route('/v1/kids/<int:kid_id>/chat/send', methods=['POST'])
+def send_kid_message(kid_id):
+    kid = KidAccount.query.get(kid_id)
+    if not kid:
+        return jsonify({'error': 'Conta não encontrada'}), 404
+
+    data = request.get_json(silent=True) or {}
+    message_text = str(data.get('message', '')).strip()
+    action_type = str(data.get('action_type', 'custom')).strip()
+
+    if not message_text:
+        return jsonify({'error': 'A mensagem não pode ser vazia'}), 400
+
+    db.create_all()
+
+    chat_msg = KidChatMessage(
+        kid_id=kid.id,
+        sender='kid',
+        message=message_text,
+        action_type=action_type,
+        whatsapp_status='sending'
+    )
+    db.session.add(chat_msg)
+    db.session.commit()
+
+    # Dispara notificação via Meta WhatsApp Cloud API
+    phone_number_id = os.environ.get('PHONE_NUMBER_ID', '233405413182343')
+    recipient = os.environ.get('WHATSAPP_PHONE_NUMBER', '5521983163900')
+
+    is_maria = 'maria' in kid.name.lower()
+    icon = '👧' if is_maria else '👦'
+    wapp_text = f"{icon} *{kid.name}* (via Cofre dos Filhos):\n\n\"{message_text}\""
+
+    try:
+        wapp_resp = send_msg.send_wapp_msg(phone_number_id, recipient, wapp_text)
+        if wapp_resp and wapp_resp.status_code == 200:
+            chat_msg.whatsapp_status = 'delivered'
+        else:
+            chat_msg.whatsapp_status = 'sent'
+        db.session.commit()
+    except Exception as e:
+        print(f"Erro ao enviar WhatsApp do filho para o pai: {e}")
+        chat_msg.whatsapp_status = 'failed'
+        db.session.commit()
+
+    return jsonify({
+        'message': 'Mensagem enviada com sucesso ao Papai!',
+        'chat_message': chat_msg.to_dict()
+    }), 201
+
+@app.route('/v1/kids/<int:kid_id>/chat/reply', methods=['POST'])
+def reply_kid_message(kid_id):
+    kid = KidAccount.query.get(kid_id)
+    if not kid:
+        return jsonify({'error': 'Conta não encontrada'}), 404
+
+    data = request.get_json(silent=True) or {}
+    message_text = str(data.get('message', '')).strip()
+
+    if not message_text:
+        return jsonify({'error': 'A resposta não pode ser vazia'}), 400
+
+    db.create_all()
+
+    chat_msg = KidChatMessage(
+        kid_id=kid.id,
+        sender='father',
+        message=message_text,
+        action_type='reply',
+        whatsapp_status='sent'
+    )
+    db.session.add(chat_msg)
+    db.session.commit()
+
+    return jsonify({
+        'message': 'Resposta enviada!',
+        'chat_message': chat_msg.to_dict()
+    }), 201
+
+@app.route('/v1/kids/<int:kid_id>/chat/messages', methods=['GET'])
+def get_kid_chat_messages(kid_id):
+    kid = KidAccount.query.get(kid_id)
+    if not kid:
+        return jsonify({'error': 'Conta não encontrada'}), 404
+
+    db.create_all()
+    messages = KidChatMessage.query.filter_by(kid_id=kid_id).order_by(KidChatMessage.timestamp.asc()).all()
+    return jsonify({
+        'kid_id': kid_id,
+        'messages': [m.to_dict() for m in messages]
+    }), 200
+
+def salvar_resposta_pai_whatsapp(texto, from_number):
+    try:
+        db.create_all()
+        # Encontra a última criança que interagiu ou usa a default
+        last_kid_msg = KidChatMessage.query.filter_by(sender='kid').order_by(KidChatMessage.timestamp.desc()).first()
+        target_kid_id = last_kid_msg.kid_id if last_kid_msg else 1
+
+        reply = KidChatMessage(
+            kid_id=target_kid_id,
+            sender='father',
+            message=texto,
+            action_type='whatsapp_reply',
+            whatsapp_status='received'
+        )
+        db.session.add(reply)
+        db.session.commit()
+        return True
+    except Exception as e:
+        print(f"Erro ao salvar resposta do pai vinda do WhatsApp: {e}")
+        return False
+
 
 if __name__ == '__main__':
     app.run(debug=True)

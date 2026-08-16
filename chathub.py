@@ -215,6 +215,11 @@ def chatflow(entry):
                 ##### avalia se a mensagem nao eh feedback dos recursos de automacao #####
                 # avalia se a mensagem não é feedback dos recursos de automação
                 if "✅" not in content:
+                    father_phone = os.getenv('WHATSAPP_PHONE_NUMBER', '5521983163900')
+                    clean_from = ''.join(filter(str.isdigit, str(from_number)))
+                    clean_father = ''.join(filter(str.isdigit, str(father_phone)))
+                    if clean_from and (clean_from in clean_father or clean_father in clean_from):
+                        app.salvar_resposta_pai_whatsapp(content, from_number)
                     coletor, link, tipo_pergunta = envia_prompt_api(content, data_atual, hora_atual, phone_number_id, from_number, wapp_id)
                     
             # envia a mensagem de retorno para o whatsapp
