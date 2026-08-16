@@ -234,11 +234,15 @@ def chatflow(entry):
                         elif raw_msg.startswith('👦') or raw_lower.startswith('filho:') or raw_lower.startswith('jose:') or raw_lower.startswith('josé:'):
                             target_kid_id = 2
 
+                        # Remoção completa de emojis e prefixos no início do texto
+                        import re
                         clean_text = raw_msg
-                        for p in kid_prefixes:
-                            if clean_text.lower().startswith(p) or clean_text.startswith(p):
-                                clean_text = clean_text[len(p):].strip()
-                                break
+                        # Remove emojis de crianças (👶 👧 👦) e modificadores de tom de pele / variação
+                        clean_text = re.sub(r'^[\s\U0001F476\U0001F467\U0001F466\U0001F3FB-\U0001F3FF\uFE0F\u200D]+', '', clean_text)
+                        # Remove prefixos textuais (filhos:, filho:, filha:, maria:, jose:, k:)
+                        clean_text = re.sub(r'^(?:filhos?|filha|maria|josé?|k)\s*[:\-\s]*', '', clean_text, flags=re.IGNORECASE)
+                        # Limpa qualquer emoji remanescente no início
+                        clean_text = re.sub(r'^[\s\U0001F476\U0001F467\U0001F466\U0001F3FB-\U0001F3FF\uFE0F\u200D]+', '', clean_text).strip()
 
                         if clean_text:
                             success, kid_name = app.salvar_resposta_pai_whatsapp(clean_text, from_number, target_kid_id)
@@ -247,6 +251,7 @@ def chatflow(entry):
                             else:
                                 send_msg.send_wapp_msg(phone_number_id, from_number, "❌ Erro ao enviar recado para os filhos.")
                         return
+
 
                     coletor, link, tipo_pergunta = envia_prompt_api(content, data_atual, hora_atual, phone_number_id, from_number, wapp_id)
 
