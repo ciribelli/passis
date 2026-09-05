@@ -815,7 +815,7 @@ def auth_kid(kid_id):
     admin_pin = os.environ.get('KIDS_ADMIN_PIN', '8888')
 
     if is_admin:
-        if passcode == admin_pin or passcode == '8888' or passcode == '9999':
+        if passcode == admin_pin:
             return jsonify({'success': True, 'role': 'admin'}), 200
         return jsonify({'success': False, 'error': 'Senha de Administrador incorreta'}), 401
 
@@ -823,7 +823,7 @@ def auth_kid(kid_id):
     if not kid:
         return jsonify({'error': 'Conta não encontrada'}), 404
 
-    if passcode == kid.passcode or passcode == admin_pin or passcode == '8888' or passcode == '9999':
+    if passcode == kid.passcode or passcode == admin_pin:
         return jsonify({'success': True, 'kid': kid.to_dict()}), 200
 
     return jsonify({'success': False, 'error': 'Senha incorreta'}), 401
@@ -912,7 +912,7 @@ def withdraw_kid(kid_id):
     passcode = str(data.get('passcode', '')).strip()
 
     admin_pin = os.environ.get('KIDS_ADMIN_PIN', '8888')
-    if passcode != kid.passcode and passcode != admin_pin and passcode != '8888' and passcode != '9999':
+    if passcode != kid.passcode and passcode != admin_pin:
         return jsonify({'error': 'Senha incorreta para realizar o saque'}), 401
 
     if amount <= 0:
