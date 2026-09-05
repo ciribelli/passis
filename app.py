@@ -1,5 +1,6 @@
 import io
-from flask import Flask, request, Response, json, send_file, current_app,jsonify
+from flask import Flask, request, Response, json, send_file, current_app, jsonify
+from functools import wraps
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import JSONB
 from flask_migrate import Migrate
@@ -27,6 +28,27 @@ migrate = Migrate(app, db)
 # Whatsapp webhook token:
 token = os.environ.get('WHATSAPP_TOKEN')
 verify_token = os.environ.get('VERIFY_TOKEN')
+
+def require_api_key(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        expected_key = os.environ.get('PASSIS_API_KEY')
+        if not expected_key:
+            return f(*args, **kwargs)
+
+        token_sent = (
+            request.args.get('key') or
+            request.args.get('api_key') or
+            request.headers.get('X-API-Key') or
+            request.headers.get('Authorization', '').replace('Bearer ', '').strip() or
+            (request.is_json and (request.get_json(silent=True) or {}).get('key'))
+        )
+
+        if token_sent and token_sent == expected_key:
+            return f(*args, **kwargs)
+
+        return jsonify({'error': 'Não autorizado (API Key inválida ou ausente)'}), 401
+    return decorated
 
 # Rota principal (página inicial)
 @app.route('/')
@@ -127,6 +149,7 @@ class Checkin(db.Model):
 # $ flask db migrate
 # $ flask db upgrade
 @app.route('/checkin', methods=['POST', 'GET'])
+@require_api_key
 def handle_checkin():
     if request.method == 'POST':
         if request.is_json:
@@ -195,6 +218,7 @@ def handle_checkin():
         }
 
 @app.route('/checkin/<int:checkin_id>', methods=['GET', 'PUT', 'DELETE'])
+@require_api_key
 def handle_checkin_id(checkin_id):
     checkin = Checkin.query.get_or_404(checkin_id)
 
@@ -290,6 +314,7 @@ class Clima(db.Model):
         self.cidade = cidade
 
 @app.route('/adicionar_clima', methods=['POST'])
+@require_api_key
 def adicionar_clima():
     dados = request.json
 
@@ -308,6 +333,7 @@ def adicionar_clima():
     return {"message": "Dados de clima adicionados com sucesso!"}
 # funcao nao utilizada:
 @app.route('/obter_climas', methods=['GET'])
+@require_api_key
 def obter_climas():
     climas = Clima.query.all()
     clima_lista = []
@@ -328,6 +354,7 @@ def obter_climas():
     return {"message": "success", "climas": clima_lista}
 
 @app.route('/deletar_clima/<int:clima_id>', methods=['DELETE'])
+@require_api_key
 def deletar_clima(clima_id):
     clima = Clima.query.get(clima_id)
     
@@ -354,6 +381,7 @@ class RestingHeartRate(db.Model):
 
 # Endpoint para receber resting_hr
 @app.route('/health/resting_hr', methods=['POST', 'GET'])
+@require_api_key
 def handle_resting_hr():
     if request.method == 'POST':
         if not request.is_json:
@@ -1080,6 +1108,7 @@ class DocumentoBinario(db.Model):
     versao = db.Column(db.Integer, default=1)
 
 @app.route('/criar_documento', methods=['POST'])
+@require_api_key
 def criar_documento():
     try:
         nome = request.form.get('nome_do_documento')
@@ -1117,6 +1146,7 @@ def salvar_documento_direto(nome, descricao, binario_data):
 
 # Rota para recuperar um documento binário pelo ID
 @app.route('/recuperar_documento/<int:documento_id>', methods=['GET'])
+@require_api_key
 def recuperar_documento(documento_id):
     try:
         documento = DocumentoBinario.query.get(documento_id)
@@ -1131,6 +1161,7 @@ def recuperar_documento(documento_id):
 
 # recuperar uma lista com todos os documentos
 @app.route('/recuperar_lista_documentos', methods=['GET'])
+@require_api_key
 def recuperar_lista_documentos():
     try:
         # Consulta o banco de dados para obter todos os documentos
@@ -1158,6 +1189,7 @@ def recuperar_lista_documentos():
 
 # Rota para excluir um documento pelo ID
 @app.route('/excluir_documento/<int:documento_id>', methods=['DELETE'])
+@require_api_key
 def excluir_documento(documento_id):
     try:
         documento = DocumentoBinario.query.get(documento_id)
@@ -1173,6 +1205,7 @@ def excluir_documento(documento_id):
 
 # Rota para atualizar informações de um documento pelo ID
 @app.route('/atualizar_documento/<int:documento_id>', methods=['PUT'])
+@require_api_key
 def atualizar_documento(documento_id):
     try:
         documento = DocumentoBinario.query.get(documento_id)
@@ -1293,6 +1326,7 @@ def get_lembretes_perdidos(dias_atras=1):
 
 
 @app.route('/memorias', methods=['POST'])
+@require_api_key
 def create_memoria():
     if request.method == 'POST':
         data = request.get_json()
@@ -1320,6 +1354,7 @@ def create_memoria():
         return Response(json.dumps({'message': 'Nova memória criada com sucesso!'}), status=201, content_type='application/json')
 
 @app.route('/memorias', methods=['GET'])
+@require_api_key
 def get_memorias():
     if request.method == 'GET':
         memorias = Memoria.query.order_by(Memoria.date_created.desc()).all()
@@ -1337,6 +1372,7 @@ def get_memorias():
         return Response(json.dumps(serialized_memorias), status=200, content_type='application/json')
 
 @app.route('/memorias/<int:memoria_id>', methods=['PUT'])
+@require_api_key
 def update_memoria(memoria_id):
     try:
         memoria = Memoria.query.get(memoria_id)
@@ -1377,6 +1413,7 @@ def update_memoria(memoria_id):
         return Response(json.dumps({'error': str(e)}), status=500, content_type='application/json')
 
 @app.route('/memorias/<int:memoria_id>', methods=['DELETE'])
+@require_api_key
 def delete_memoria(memoria_id):
     memoria = Memoria.query.get(memoria_id)
 
@@ -1407,6 +1444,7 @@ def salvar_thread(content, wapp_id):
     return "Thread registrada ✅"
 
 @app.route('/threads', methods=['GET'])
+@require_api_key
 def get_threads():
     if request.method == 'GET':
         threads = Thread.query.order_by(Thread.date_created.desc()).limit(6).all()
@@ -1424,6 +1462,7 @@ def get_thread_content_by_wapp_id(wapp_id):
     return None
 
 @app.route('/apagar_threads', methods=['DELETE'])
+@require_api_key
 def apagar_threads():
     try:
         # Apaga todos os itens da tabela Thread
@@ -1457,6 +1496,7 @@ def salvar_prompt(content, wapp_id):
     return "Prompt registrado ✅"
 
 @app.route('/prompts', methods=['GET'])
+@require_api_key
 def get_prompts():
     if request.method == 'GET':
         prompts = Prompt.query.order_by(Prompt.date_created.desc()).limit(6).all()
@@ -1491,6 +1531,7 @@ class VectorEmbedding(db.Model):
     embeddings = db.Column(JSONB)  # Correção aqui
 
 @app.route('/recuperar_dados', methods=['GET'])
+@require_api_key
 def recuperar_dados():
     try:
         # Consulte todos os registros na tabela VectorEmbedding
@@ -1517,6 +1558,7 @@ def recuperar_dados():
 # busca as memorias e registros do DB
 # calcula n_tokens, embeddings e retorna para o DB
 @app.route('/inserir_dados', methods=['POST'])
+@require_api_key
 def inserir_dados():
     # primeiro apago todos os embeddings
     apagar_todos_os_embeddings()
@@ -1541,6 +1583,7 @@ def inserir_dados():
     return 'Dados atualizados ✅'
 
 @app.route('/apagar_todos_os_embeddings', methods=['DELETE'])
+@require_api_key
 def apagar_todos_os_embeddings():
     try:
         num_registros_apagados = db.session.query(VectorEmbedding).delete()
