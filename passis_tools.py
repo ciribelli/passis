@@ -245,6 +245,21 @@ def agendar_lembrete(content: str, reminder_time: str) -> str:
 @register_tool({
     "type": "object",
     "properties": {
+        "dias_atras": {
+            "type": "integer",
+            "description": "Número de dias para buscar os lembretes perdidos (ex: 1 para as últimas 24 horas, 7 para a última semana)."
+        }
+    }
+})
+def resumo_lembretes_perdidos(dias_atras: int = 1) -> str:
+    """Busca um resumo dos lembretes que foram enviados mas não foram concluídos, arquivados ou adiados (os que 'passaram batido'). Use quando o usuário pedir um resumo de lembretes perdidos ou esquecidos."""
+    import app as flask_app
+    return flask_app.get_lembretes_perdidos(dias_atras)
+
+
+@register_tool({
+    "type": "object",
+    "properties": {
         "query": {
             "type": "string",
             "description": "A query de busca otimizada para o X ou Web. Extraia a intenção real do usuário baseada no histórico.",

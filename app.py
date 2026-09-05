@@ -1270,6 +1270,28 @@ def snooze_lembrete(memoria_id, minutos=15):
     hora_formatada = memoria.reminder_time.strftime('%H:%M')
     return f"💤 Ok! Vou te lembrar de novo às {hora_formatada}."
 
+def get_lembretes_perdidos(dias_atras=1):
+    fuso_br = pytz.timezone('America/Sao_Paulo')
+    agora = datetime.now(fuso_br).replace(tzinfo=None)
+    limite = agora - timedelta(days=dias_atras)
+    
+    lembretes = Memoria.query.filter(
+        Memoria.reminder_status == 'enviado',
+        Memoria.reminder_time >= limite,
+        Memoria.reminder_time <= agora
+    ).order_by(Memoria.reminder_time.desc()).all()
+    
+    if not lembretes:
+        return f"Nenhum lembrete perdido (não respondido) nos últimos {dias_atras} dias."
+    
+    resumo = f"Lembretes perdidos/não respondidos (últimos {dias_atras} dias):\n"
+    for l in lembretes:
+        hora_str = l.reminder_time.strftime('%d/%m às %H:%M') if l.reminder_time else 'Desconhecido'
+        resumo += f"- {hora_str}: {l.content}\n"
+    
+    return resumo
+
+
 @app.route('/memorias', methods=['POST'])
 def create_memoria():
     if request.method == 'POST':
