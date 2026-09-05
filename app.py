@@ -19,7 +19,7 @@ from sqlalchemy import text # necessidade para o endpoint de predicoes
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app) # Habilita CORS para todas as rotas para viabilizar request da web
+CORS(app, allow_headers=["*"]) # Habilita CORS para todas as rotas e headers para viabilizar request da web
 # configuracao do url db postgres externo ou local (arquivo ..env deve estar na raiz do projeto)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL_AZURE')
 db = SQLAlchemy(app)
@@ -32,6 +32,9 @@ verify_token = os.environ.get('VERIFY_TOKEN')
 def require_api_key(f):
     @wraps(f)
     def decorated(*args, **kwargs):
+        if request.method == 'OPTIONS':
+            return f(*args, **kwargs)
+
         expected_key = os.environ.get('PASSIS_API_KEY')
         if not expected_key:
             return f(*args, **kwargs)
