@@ -36,6 +36,8 @@ def require_api_key(f):
         if not expected_key:
             return f(*args, **kwargs)
 
+        expected_key = expected_key.strip()
+
         token_sent = (
             request.args.get('key') or
             request.args.get('api_key') or
@@ -43,6 +45,9 @@ def require_api_key(f):
             request.headers.get('Authorization', '').replace('Bearer ', '').strip() or
             (request.is_json and (request.get_json(silent=True) or {}).get('key'))
         )
+
+        if token_sent:
+            token_sent = str(token_sent).strip()
 
         if token_sent and token_sent == expected_key:
             return f(*args, **kwargs)
