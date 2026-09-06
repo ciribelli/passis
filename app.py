@@ -1160,7 +1160,6 @@ def salvar_documento_direto(nome, descricao, binario_data):
 
 # Rota para recuperar um documento binário pelo ID
 @app.route('/recuperar_documento/<int:documento_id>', methods=['GET'])
-@require_api_key
 def recuperar_documento(documento_id):
     try:
         documento = DocumentoBinario.query.get(documento_id)

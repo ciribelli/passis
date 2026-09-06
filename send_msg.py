@@ -204,6 +204,10 @@ def send_wapp_image(phone_number_id, from_number, coletor, endpoint):
     if endpoint.startswith('/'):
         endpoint = endpoint[1:]
     link = (base_url + endpoint) if base_url else endpoint
+    api_key = os.getenv('PASSIS_API_KEY')
+    if api_key:
+        sep = '&' if '?' in link else '?'
+        link = f"{link}{sep}key={api_key}"
     print('recuperando o documento em: ', link)
     fb_url = f"https://graph.facebook.com/v20.0/{phone_number_id}/messages?access_token={wapp_token}"
     
