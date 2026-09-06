@@ -193,7 +193,8 @@ def chatflow(entry):
             # para RELATORIO
             elif content.lower() in {"relatorio", "relatório", "relatorio semanal", "relatório semanal"}:
                 import weekly_report
-                coletor = weekly_report.gerar_e_enviar_relatorio(phone_number_id, from_number)
+                weekly_report.gerar_e_enviar_relatorio(phone_number_id, from_number)
+                return
             # para CLIMA
             elif content.lower() == "localização" or content.lower() == "localizacao":
                 data_inicio = datetime.strptime(str(data_atual), '%d-%m-%Y') - timedelta(days=4)
