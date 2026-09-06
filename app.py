@@ -710,13 +710,18 @@ def trigger_weekly_report():
     phone_number_id = data.get('phone_number_id') or os.getenv('PHONE_NUMBER_ID', '233405413182343')
     recipient = data.get('recipient') or os.getenv('WHATSAPP_PHONE_NUMBER', '5521983163900')
     
-    import weekly_report
-    try:
-        insight = weekly_report.gerar_e_enviar_relatorio(phone_number_id, recipient)
-        return {"status": "success", "message": "Relatório semanal gerado e enviado.", "insight": insight}, 200
-    except Exception as e:
-        current_app.logger.error(f"Erro no endpoint /v1/weekly-report: {e}", exc_info=True)
-        return {"status": "error", "message": str(e)}, 500
+    app_ctx = app.app_context()
+
+    def run_in_background():
+        with app_ctx:
+            import weekly_report
+            try:
+                weekly_report.gerar_e_enviar_relatorio(phone_number_id, recipient)
+            except Exception as e:
+                current_app.logger.error(f"Erro na geração em segundo plano do relatório semanal: {e}", exc_info=True)
+
+    threading.Thread(target=run_in_background).start()
+    return jsonify({"status": "accepted", "message": "Geração do relatório semanal iniciada em segundo plano."}), 202
 
 # ==========================================
 # SEÇÃO BANCO DOS FILHOS (Maria Antonia e José Pedro)
