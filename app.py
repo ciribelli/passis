@@ -173,7 +173,7 @@ def handle_checkin():
     elif request.method == 'GET':
         # Paginação
         try:
-            limit = min(int(request.args.get('limit', 50)), 200)  # Default 50, max 200
+            limit = min(int(request.args.get('limit', 50)), 1000)  # Default 50, max 1000
             offset = int(request.args.get('offset', 0))
         except ValueError:
             return {"error": "limit e offset devem ser números inteiros"}, 400
