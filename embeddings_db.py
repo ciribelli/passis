@@ -99,8 +99,13 @@ def atualiza_embedding():
 
     resultados = []  # Lista para armazenar os valores concatenados de todas as linhas
 
+    import os
+    headers = {'X-API-Key': (os.environ.get('PASSIS_API_KEY') or '').strip()}
+
     for table in table_list:
-        response = app.test_client().get('/'+str(table))
+        response = app.test_client().get('/'+str(table), headers=headers)
+        if response.status_code != 200:
+            raise RuntimeError("GET /%s retornou %s: %s" % (table, response.status_code, response.text[:200]))
         data = json.loads(response.text)
         df = pd.DataFrame(data)
         # Iterar pelas linhas do DataFrame
