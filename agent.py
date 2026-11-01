@@ -2,7 +2,7 @@
 agent.py — Cliente/Agent para o Passis.
 
 Descobre tools do registry em passis_tools, monta schemas OpenAI,
-chama GPT-4o e despacha tool calls diretamente (in-process).
+chama GPT-5 mini e despacha tool calls diretamente (in-process).
 Substitui context_FuncCalling.py.
 """
 
@@ -30,7 +30,7 @@ def create_context(question, df, max_len=1200):
     """Busca contexto semântico por similaridade de embeddings.
     Retorna (texto_contexto, first_item_link)."""
     q_emb = client.embeddings.create(
-        input=question, model='text-embedding-ada-002'
+        input=question, model='text-embedding-3-small'
     ).data[0].embedding
 
     df = df.copy()
@@ -146,7 +146,8 @@ def responde_mcp(
         # 1ª chamada ao modelo com as tools
         openai_tools = get_openai_tools()
         completion = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-5-mini",
+            reasoning_effort="low",
             messages=messages,
             tools=openai_tools,
             tool_choice="auto",
@@ -197,7 +198,8 @@ def responde_mcp(
 
         # 2ª chamada com os resultados das tools
         second_response = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-5-mini",
+            reasoning_effort="low",
             messages=messages,
         )
 
@@ -224,7 +226,7 @@ def responde_mcp(
 def audio_transcription():
     audio_file = open("arquivo.mp3", "rb")
     transcription = client.audio.transcriptions.create(
-        model="whisper-1",
+        model="gpt-4o-mini-transcribe",
         file=audio_file
     )
     return transcription.text
@@ -235,7 +237,8 @@ def analyze_image(image_path):
             base64_image = base64.b64encode(image_file.read()).decode('utf-8')
         
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-5-mini",
+            reasoning_effort="low",
             messages=[
                 {
                     "role": "user",
@@ -250,7 +253,7 @@ def analyze_image(image_path):
                     ]
                 }
             ],
-            max_tokens=300
+            max_completion_tokens=2000
         )
         return response.choices[0].message.content
     except Exception as e:
@@ -268,14 +271,15 @@ def analyze_pdf(pdf_path):
                     texto_extraido += texto + "\n"
                 
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-5-mini",
+            reasoning_effort="low",
             messages=[
                 {
                     "role": "user",
                     "content": f"Analise o seguinte texto extraído das primeiras páginas de um arquivo PDF. Sugira um título (curto) e uma descrição detalhada para que ele possa ser salvo em um repositório de documentos. Responda estritamente neste formato:\nTítulo: [seu titulo]\nDescrição: [sua descricao]\n\nTexto do PDF:\n{texto_extraido[:3000]}"
                 }
             ],
-            max_tokens=300
+            max_completion_tokens=2000
         )
         return response.choices[0].message.content
     except Exception as e:

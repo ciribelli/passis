@@ -402,13 +402,13 @@ def gerar_resumo_ia(metricas, metricas_ml=None):
         f"Use asteriscos para negrito e fale diretamente com o Otávio."
     )
     
-    # Usa OpenAI o3-mini
+    # Usa OpenAI gpt-5-mini
     try:
         from agent import client
         completion = client.chat.completions.create(
-            model="o3-mini",
+            model="gpt-5-mini",
             reasoning_effort="low",
-            max_completion_tokens=500,
+            max_completion_tokens=2000,
             messages=[
                 {
                     "role": "user",
@@ -418,7 +418,7 @@ def gerar_resumo_ia(metricas, metricas_ml=None):
         )
         return completion.choices[0].message.content
     except Exception as e:
-        print(f"Erro ao chamar OpenAI o3-mini: {e}")
+        print(f"Erro ao chamar OpenAI gpt-5-mini: {e}")
         
     # Fallback estático
     return (
