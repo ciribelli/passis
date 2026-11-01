@@ -1570,30 +1570,34 @@ def recuperar_dados():
 
 # busca as memorias e registros do DB
 # calcula n_tokens, embeddings e retorna para o DB
-@app.route('/inserir_dados', methods=['POST'])
-@require_api_key
-def inserir_dados():
-    # primeiro apago todos os embeddings
-    apagar_todos_os_embeddings()
-
+def recalcular_embeddings():
+    """Recalcula todos os embeddings. Pode ser chamada fora de request (ex: thread do WhatsApp).
+    Calcula tudo antes de apagar, e apaga+insere numa única transação."""
     import embeddings_db
     df = embeddings_db.atualiza_embedding()
     print(df)
 
-    for index, row in df.iterrows():
-        novo_registro = VectorEmbedding(
-            tabela=row['tabela'],
-            index=row['index'],
-            texto=row['texto'],
-            n_tokens=row['n_tokens'],
-            embeddings=row['embeddings']
-        )
-        db.session.add(novo_registro)
-
-        # Commit das alterações ao banco de dados
-    db.session.commit()
+    try:
+        db.session.query(VectorEmbedding).delete()
+        for index, row in df.iterrows():
+            db.session.add(VectorEmbedding(
+                tabela=row['tabela'],
+                index=row['index'],
+                texto=row['texto'],
+                n_tokens=row['n_tokens'],
+                embeddings=row['embeddings']
+            ))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
 
     return 'Dados atualizados ✅'
+
+@app.route('/inserir_dados', methods=['POST'])
+@require_api_key
+def inserir_dados():
+    return recalcular_embeddings()
 
 @app.route('/apagar_todos_os_embeddings', methods=['DELETE'])
 @require_api_key

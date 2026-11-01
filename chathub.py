@@ -205,7 +205,11 @@ def chatflow(entry):
                 coletor = app.salvar_memoria_recebida(content.lower())
             elif "🔄" in content.lower():
                 print(">>>> atualizando embeddings <<<<")
-                coletor = app.inserir_dados()
+                try:
+                    coletor = app.recalcular_embeddings()
+                except Exception as e:
+                    print("Erro ao recalcular embeddings:", e)
+                    coletor = "❌ Erro ao atualizar embeddings: %s" % e
             elif "📝" in content.lower():
                 coletor = app.salvar_memoria_recebida(content.lower())
             elif "❤" in content.lower():
