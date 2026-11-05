@@ -297,16 +297,17 @@ def chatflow(entry):
                     # Obter URL da mídia
                     media_url_response = send_msg.get_url_wapp_media(audio_id)
                     # Baixar a mídia
-                    send_msg.download_media(media_url_response)
+                    file_path = send_msg.download_media(media_url_response)
                     # Realizar a transcrição do áudio
-                    transcricao = agent.audio_transcription()
+                    transcricao = agent.audio_transcription(file_path)
                     # Enviar a transcrição de volta ao usuário
                     wapp_response = send_msg.send_wapp_audio_reply(phone_number_id, from_number, transcricao)
                     # 📅 registra transcrição gerada pelo sistema em threads📅
                     response_dict = wapp_response.json()
-                    wapp_id = response_dict["messages"][0]["id"]
-                    input_data = json.dumps({"role": "assistant", "content": transcricao}, ensure_ascii=False)
-                    app.salvar_thread(input_data, wapp_id)
+                    if "messages" in response_dict and response_dict["messages"]:
+                        wapp_id = response_dict["messages"][0]["id"]
+                        input_data = json.dumps({"role": "assistant", "content": transcricao}, ensure_ascii=False)
+                        app.salvar_thread(input_data, wapp_id)
                 elif media_type == 'image':
                     image_id = entry['changes'][0]['value']['messages'][0]['image']['id']
                     send_msg.send_wapp_msg(phone_number_id, from_number, "👁 _analisando imagem_ 🖼")
@@ -352,7 +353,7 @@ def chatflow(entry):
                 else:
                     print(f"Tipo de mídia não suportado: {media_type}")
                     send_msg.send_wapp_msg(phone_number_id, from_number, "Tipo de mídia não suportado. Por favor, envie um áudio ou imagem.")
-            except KeyError as e:
+            except Exception as e:
                 print(f"Erro ao processar a mensagem: {e}")
                 send_msg.send_wapp_msg(phone_number_id, from_number, "Erro ao processar a mensagem. Por favor, tente novamente.")
 

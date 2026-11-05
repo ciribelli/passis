@@ -223,13 +223,34 @@ def responde_mcp(
 # AUDIO (mantido do original)
 # ---------------------------------------------------------------------------
 
-def audio_transcription():
-    audio_file = open("arquivo.mp3", "rb")
-    transcription = client.audio.transcriptions.create(
-        model="gpt-4o-mini-transcribe",
-        file=audio_file
-    )
-    return transcription.text
+def audio_transcription(file_path="arquivo.mp3"):
+    if not file_path or not os.path.exists(file_path):
+        file_path = "arquivo.ogg" if os.path.exists("arquivo.ogg") else "arquivo.mp3"
+
+    with open(file_path, "rb") as audio_file:
+        # Áudios de voz do WhatsApp vêm em Ogg/Opus (.ogg), suportado nativamente pelo whisper-1.
+        # O gpt-4o-mini-transcribe rejeita containers Ogg/Opus ou arquivos com extensão trocada.
+        if file_path.endswith((".ogg", ".oga", ".opus")):
+            transcription = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio_file
+            )
+            return transcription.text
+
+        try:
+            transcription = client.audio.transcriptions.create(
+                model="gpt-4o-mini-transcribe",
+                file=audio_file
+            )
+            return transcription.text
+        except Exception as e:
+            print(f"[audio_transcription] Fallback para whisper-1: {e}")
+            audio_file.seek(0)
+            transcription = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio_file
+            )
+            return transcription.text
 
 def analyze_image(image_path):
     try:

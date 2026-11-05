@@ -258,7 +258,16 @@ def download_media(url, filename="arquivo"):
         if 'image' in content_type:
             file_extension = 'jpg'
         elif 'audio' in content_type:
-            file_extension = 'mp3'
+            if 'ogg' in content_type or 'opus' in content_type:
+                file_extension = 'ogg'
+            elif 'mp4' in content_type or 'm4a' in content_type or 'aac' in content_type:
+                file_extension = 'm4a'
+            elif 'wav' in content_type:
+                file_extension = 'wav'
+            elif 'webm' in content_type:
+                file_extension = 'webm'
+            else:
+                file_extension = 'mp3'
         elif 'pdf' in content_type:
             file_extension = 'pdf'
         else:
