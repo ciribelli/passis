@@ -259,13 +259,11 @@ def decode_to_wav(src: str, dst_wav: str) -> None:
 
 
 def encode_from_wav(src_wav: str, dst_m4a: str, bitrate: int = 192000) -> None:
-    if sys.platform != "darwin":
-        import imageio_ffmpeg
-        subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-v", "error", "-y", "-i",
-                        src_wav, "-c:a", "aac", "-b:a", str(bitrate), dst_m4a], check=True)
-        return
+    import imageio_ffmpeg
+
     subprocess.run(
-        ["afconvert", "-f", "m4af", "-d", "aac", "-b", str(bitrate), src_wav, dst_m4a],
+        [imageio_ffmpeg.get_ffmpeg_exe(), "-v", "error", "-y", "-i", src_wav,
+         "-c:a", "aac", "-b:a", str(bitrate), dst_m4a],
         check=True,
     )
 
