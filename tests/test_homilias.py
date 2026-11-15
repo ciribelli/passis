@@ -61,10 +61,9 @@ class EpisodesTest(unittest.TestCase):
 
     def test_preview_serves_exact_bytes_and_cancel_revokes_access(self):
         self.preview()
+        self.conn.commit()
         app = Flask(__name__)
-        class Database:
-            session = self.conn
-        app.register_blueprint(channel.preview_routes(Database))
+        app.register_blueprint(channel.preview_routes(lambda: self.engine))
         client = app.test_client()
         url = "/homilias/p/" + self.row()["preview"]
         self.assertIn("Título", client.get(url).get_data(as_text=True))
@@ -72,6 +71,7 @@ class EpisodesTest(unittest.TestCase):
         self.assertEqual(client.get(url + "/cover").data, b"image")
         self.assertEqual(client.post(url).status_code, 405)
         self.action("cancel")
+        self.conn.commit()
         self.assertEqual(client.get(url + "/audio").status_code, 404)
 
     def test_homily_and_ordinary_audio(self):

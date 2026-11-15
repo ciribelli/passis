@@ -66,27 +66,30 @@ def handle(conn, sender, action, msg):
     return None
 
 
-def preview_routes(db):
+def preview_routes(get_engine):
     bp = Blueprint("homilias", __name__, template_folder="templates")
 
     @bp.get("/homilias/p/<token>")
     @bp.get("/homilias/p/<token>/<kind>")
     def view(token, kind=None):
-        row = db.session.execute(sa.select(episodes.c.id, episodes.c.version, episodes.c.title,
-            episodes.c.description, episodes.c.source_id).where(episodes.c.preview == token,
-            episodes.c.state.in_(["preview", "approved", "publishing", "clicked", "published",
-                                  "check_spotify"]))).mappings().first()
-        if not row:
-            abort(404)
-        if kind is None:
-            return render_template("homilia.html", job=row, token=token, source_text=source_text(db.session, row["source_id"]))
-        if kind not in ("cover", "audio"):
-            abort(404)
-        data = asset(db.session, row["id"], kind)
-        if not data:
-            abort(404)
-        return send_file(io.BytesIO(data), mimetype={"cover": "image/png", "audio": "audio/mp4"}[kind],
-                         conditional=True)
+        with get_engine().connect() as conn:
+            row = conn.execute(sa.select(episodes.c.id, episodes.c.version, episodes.c.title,
+                episodes.c.description, episodes.c.source_id).where(episodes.c.preview == token,
+                episodes.c.state.in_(["preview", "approved", "publishing", "clicked", "published",
+                                      "check_spotify"]))).mappings().first()
+            if not row:
+                abort(404)
+            if kind is None:
+                return render_template("homilia.html", job=row, token=token,
+                                       source_text=source_text(conn, row["source_id"]))
+            if kind not in ("cover", "audio"):
+                abort(404)
+            data = asset(conn, row["id"], kind)
+            if not data:
+                abort(404)
+            return send_file(io.BytesIO(data),
+                             mimetype={"cover": "image/png", "audio": "audio/mp4"}[kind],
+                             conditional=True)
 
     @bp.after_request
     def private(response):

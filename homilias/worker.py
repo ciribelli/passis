@@ -119,7 +119,7 @@ def main():
         from .spotify import login
         login()
         return
-    engine = sa.create_engine(os.environ["DATABASE_URL_AZURE"], pool_pre_ping=True)
+    engine = store.get_engine()
     if args.command == "init":
         store.metadata.create_all(engine)
     elif args.command == "resume-draft":

@@ -26,7 +26,7 @@ CORS(app, origins=allowed_origins, allow_headers=["*"])
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL_AZURE')
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
-app.register_blueprint(homilia_channel.preview_routes(db))
+app.register_blueprint(homilia_channel.preview_routes(homilia_store.get_engine))
 
 # Whatsapp webhook token:
 token = os.environ.get('WHATSAPP_TOKEN')
@@ -116,7 +116,7 @@ def webhook():
                     if not verified or not homilia_channel.reviewer(sender):
                         return "", 403
                     # Confirmar a decisão no banco antes de reconhecer o webhook.
-                    with db.engine.begin() as conn:
+                    with homilia_store.get_engine().begin() as conn:
                         status = homilia_channel.handle(conn, sender, action, body)
                     if status:
                         homilia_channel.message(value["metadata"]["phone_number_id"], sender,
@@ -129,14 +129,14 @@ def webhook():
                     context = message.get("context") or {}
                     if is_audio and context.get("forwarded"):
                         phone_id = value["metadata"]["phone_number_id"]
-                        with db.engine.begin() as conn:
+                        with homilia_store.get_engine().begin() as conn:
                             homilia_store.register_audio(conn, message["id"], sender, message["timestamp"])
                             eid = homilia_store.offer(conn, message["id"], sender, phone_id,
                                                        message[kind]["id"], "")
                             homilia_store.transition(conn, eid, sender, 1, "offered", "queued")
                         continue
                     elif kind == "text" and body and (context.get("forwarded") or context.get("id")):
-                        with db.engine.begin() as conn:
+                        with homilia_store.get_engine().begin() as conn:
                             result = homilia_store.attach_text(conn, sender, message["id"],
                                 body, message["timestamp"], context.get("id"))
                         if result in ("attached", "duplicate", "ambiguous", "closed"):

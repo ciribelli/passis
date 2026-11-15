@@ -83,7 +83,8 @@ def chatflow(entry, verified=False):
             if button_id.startswith('hom:'):
                 if not podcast_owner:
                     return
-                audio_content, button_id = homilia_channel.legacy_audio_action(app.db.session, from_number, button_id)
+                with homilia_store.get_engine().connect() as conn:
+                    audio_content, button_id = homilia_channel.legacy_audio_action(conn, from_number, button_id)
                 if not button_id:
                     return
             print('>>>> ', button_id, button_action, wapp_id)

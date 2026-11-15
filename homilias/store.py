@@ -1,5 +1,7 @@
 """Estado compartilhado pelo webhook e pelo worker. O PostgreSQL arbitra cada transição."""
+import os
 import secrets
+from functools import lru_cache
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -41,6 +43,13 @@ incoming = sa.Table(
     sa.Column("text_id", sa.Text, unique=True),
     sa.Column("source_text", sa.Text),
 )
+
+
+@lru_cache(maxsize=1)
+def get_engine():
+    """Conexão exclusiva das homilias, inicializada somente quando necessária."""
+    url = os.environ["HOMILIA_DATABASE_URL"]
+    return sa.create_engine(url, pool_pre_ping=True)
 
 
 def register_audio(conn, source, owner, timestamp):
