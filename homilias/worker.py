@@ -108,11 +108,44 @@ def run(engine, once):
             time.sleep(30)
 
 
+def prepare_once(engine, episode_id=None):
+    """Prepara somente itens na fila, sem tocar em edições já aprovadas."""
+    owner = os.environ["HOMILIA_OWNER_WA_ID"]
+    query = sa.select(jobs).where(jobs.c.state == "queued", jobs.c.owner == owner)
+    if episode_id:
+        query = query.where(jobs.c.id == episode_id)
+    with engine.begin() as conn:
+        rows = conn.execute(query).mappings().all()
+    candidate_ids = [row["id"] for row in rows]
+    for row in rows:
+        try:
+            process(engine, row)
+        except Exception:
+            log.exception("Erro ao preparar homilia %s", row["id"])
+
+    # A geração e o envio da prévia ocorrem na mesma execução pontual.
+    if not candidate_ids:
+        return
+    query = sa.select(jobs).where(
+        jobs.c.id.in_(candidate_ids),
+        jobs.c.state.in_(["preview", "failed"]),
+        jobs.c.notice.in_(["preview", "failed"]),
+        jobs.c.owner == owner
+    )
+    with engine.begin() as conn:
+        pending = conn.execute(query).mappings().all()
+    for row in pending:
+        try:
+            process(engine, row)
+        except Exception:
+            log.exception("Erro ao notificar sobre a homilia %s", row["id"])
+
+
 def main():
     load_dotenv()
     logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=["init", "login", "run", "once", "resume-draft"])
+    parser.add_argument("command", choices=["init", "login", "run", "once", "prepare-once", "resume-draft"])
     parser.add_argument("--id")
     args = parser.parse_args()
     if args.command == "login":
@@ -130,6 +163,8 @@ def main():
                 jobs.c.state == "check_spotify").values(state="approved", notice=None)).rowcount
             if not n:
                 raise SystemExit("Nenhuma publicação pré-clique pendente para este ID.")
+    elif args.command == "prepare-once":
+        prepare_once(engine, args.id)
     else:
         run(engine, args.command == "once")
 
