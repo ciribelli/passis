@@ -73,7 +73,7 @@ def preview_routes(db):
     @bp.get("/homilias/p/<token>/<kind>")
     def view(token, kind=None):
         row = db.session.execute(sa.select(episodes.c.id, episodes.c.version, episodes.c.title,
-            episodes.c.description, episodes.c.transcript, episodes.c.source_id).where(episodes.c.preview == token,
+            episodes.c.description, episodes.c.source_id).where(episodes.c.preview == token,
             episodes.c.state.in_(["preview", "approved", "publishing", "clicked", "published",
                                   "check_spotify"]))).mappings().first()
         if not row:
@@ -96,23 +96,6 @@ def preview_routes(db):
     return bp
 
 
-def audio_menu(phone, owner, eid, transcript, automatic=False):
-    preparing = "Homilia reconhecida. Estou preparando sua prévia.\n\n" if automatic else ""
-    if len(preparing + transcript) > 1024:
-        for pos in range(0, len(transcript), 4000):
-            message(phone, owner, type="text", text={"body": transcript[pos:pos + 4000]})
-        body = "Transcrição enviada acima. O que deseja fazer com este áudio?"
-    else:
-        body = transcript
-    body = preparing + body
-    rows = [{"id": f"hom:{verb}:{eid}:1", "title": label} for verb, label in (
-        ("prepare", "Preparar homilia"), ("act", "Executar ação"), ("memo", "Memorizar"),
-        ("dismiss", "Cancelar ações")) if verb != "prepare" or not automatic]
-    return message(phone, owner, type="interactive", interactive={"type": "list",
-        "body": {"text": body}, "action": {"button": "Ações do áudio",
-        "sections": [{"title": "Áudio recebido", "rows": rows}]}})
-
-
 def is_edit(body):
     return bool(re.match(r"ajustar [0-9a-f]{32} v\d+\s", body, re.I))
 
@@ -127,11 +110,3 @@ def legacy_audio_action(conn, owner, action):
     return (transcript, {"act": "0", "memo": "1"}[verb]) if transcript else (None, None)
 
 
-def likely_homily(transcript):
-    """Só antecipar o preparo quando houver abertura e vocabulário compatíveis."""
-    import unicodedata
-    words = unicodedata.normalize("NFKD", transcript.casefold()).encode("ascii", "ignore").decode()
-    opening = re.search(r"\b(homilia|meus (queridos )?irmaos|carissimos irmaos|evangelho de hoje)\b",
-                        words[:900])
-    gospel = re.search(r"\b(evangelho|ano liturgico|liturgia|jesus cristo|tempo comum)\b", words)
-    return bool(opening and gospel)

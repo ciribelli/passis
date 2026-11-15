@@ -32,7 +32,7 @@ assets = sa.Table(
 )
 
 
-# Registro imediato da chegada, antes da transcrição que pode demorar minutos.
+# Registro do áudio para associar a mensagem encaminhada em seguida.
 incoming = sa.Table(
     "homilia_incoming", metadata,
     sa.Column("source_id", sa.Text, primary_key=True),
@@ -74,7 +74,10 @@ def attach_text(conn, owner, message_id, body, timestamp, reply_id=None):
         return "closed"
     conn.execute(incoming.update().where(incoming.c.source_id == source)
                  .values(text_id=message_id, source_text=body))
-    if episode and episode["state"] in ("preparing", "preview"):
+    if episode and episode["state"] == "waiting_text":
+        conn.execute(episodes.update().where(episodes.c.id == episode["id"])
+                     .values(state="queued", notice=None))
+    elif episode and episode["state"] in ("preparing", "preview"):
         conn.execute(episodes.update().where(episodes.c.id == episode["id"]).values(
             state="queued", version=episode["version"] + 1, preview=None, notice=None))
     return "attached"

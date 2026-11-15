@@ -17,7 +17,7 @@ def notify(job):
     phone, owner = job["phone"], job["owner"]
     if job["notice"] == "preview":
         url = os.environ["HOMILIA_PUBLIC_URL"].rstrip("/") + "/homilias/p/" + job["preview"]
-        body = (f"{job['title']}\n\n{job['description'][:250]}\n\nCapa, áudio e transcrição · v{version}\n{url}\n"
+        body = (f"{job['title']}\n\n{job['description'][:250]}\n\nCapa e áudio · v{version}\n{url}\n"
                 f"Para pedir uma mudança, envie: ajustar {eid} v{version} seguido do pedido.")
         channel.buttons(phone, owner, body, [(f"hom:approve:{eid}:{version}", "Aprovar e publicar"),
                                              (f"hom:cancel:{eid}:{version}", "Cancelar edição")])
@@ -43,8 +43,13 @@ def process(engine, job):
 
     if state == "queued":
         with engine.begin() as conn:
-            if not store.ready(conn, job["source_id"]):
-                return
+            text = store.source_text(conn, job["source_id"])
+            timed_out = store.ready(conn, job["source_id"])
+        if not text:
+            if timed_out and move("queued", "waiting_text"):
+                channel.message(job["phone"], owner, type="text", text={"body":
+                    "Envie o texto do padre respondendo ao áudio encaminhado para eu preparar a homilia."})
+            return
     if state == "queued" and move("queued", "preparing"):
         try:
             from .prepare import prepare

@@ -317,21 +317,7 @@ def chatflow(entry, verified=False):
                         file_path = send_msg.download_media(media_url_response, str(Path(tmp) / "audio"))
                         if not file_path:
                             raise RuntimeError("Falha ao baixar áudio.")
-                        if podcast_owner:
-                            from openai import OpenAI
-                            homilia_client = OpenAI(api_key=os.environ["HOMILIA_API_KEY"])
-                            transcricao = agent.audio_transcription(file_path, transcription_client=homilia_client)
-                        else:
-                            transcricao = agent.audio_transcription(file_path)
-                    if podcast_owner:
-                        with app.db.engine.begin() as conn:
-                            eid = homilia_store.offer(conn, wapp_id, from_number, phone_number_id,
-                                                       audio_id, transcricao)
-                            automatic = homilia_channel.likely_homily(transcricao)
-                            if automatic:
-                                homilia_store.transition(conn, eid, from_number, 1, "offered", "queued")
-                        homilia_channel.audio_menu(phone_number_id, from_number, eid, transcricao, automatic)
-                        return
+                        transcricao = agent.audio_transcription(file_path)
                     # Enviar a transcrição de volta ao usuário
                     wapp_response = send_msg.send_wapp_audio_reply(phone_number_id, from_number, transcricao)
                     # 📅 registra transcrição gerada pelo sistema em threads📅

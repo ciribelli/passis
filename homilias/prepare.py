@@ -31,19 +31,21 @@ def prepare(engine, job):
         with engine.begin() as conn:
             store.put_asset(conn, eid, "source", original)
 
+    if not source_text:
+        raise ValueError("A homilia precisa do texto encaminhado para orientar a edição.")
     client = OpenAI(api_key=os.environ["HOMILIA_API_KEY"], timeout=180)
     brief = client.chat.completions.create(
         model=os.getenv("HOMILIA_TEXT_MODEL", "gpt-4.1-mini"),
         response_format={"type": "json_object"},
         messages=[{"role": "system", "content": (
             "Edite uma homilia de Nos Passos de Cristo, Pe. Marcus Vinícius Macedo. "
-            "Use a transcrição somente como fonte. Produza JSON com title (até 150 caracteres), "
+            "Use apenas o texto encaminhado como fonte. Não atribua ao áudio detalhes que não estejam no texto. Produza JSON com title (até 150 caracteres), "
             "description (até 600 caracteres, diferente do título), scene (um motivo visual da homilia), "
             "change_cover e change_audio (booleanos), brightness_db (ajuste adicional entre -3 e 3). "
             "O pedido editorial pode solicitar ajustes na capa, textos ou brilho da voz. "
             "Em revisão preserve tudo o que o pedido não altera. Não invente referências litúrgicas." )},
             {"role": "user", "content": json.dumps({
-                "transcrição": job["transcript"], "texto_encaminhado_pelo_padre": source_text, "título_anterior": job["title"],
+                "texto_encaminhado_pelo_padre": source_text, "título_anterior": job["title"],
                 "descrição_anterior": job["description"], "pedido_editorial": job["note"]},
                 ensure_ascii=False)}])
     plan = json.loads(brief.choices[0].message.content)

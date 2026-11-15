@@ -127,9 +127,14 @@ def webhook():
                     is_audio = kind == "audio" or (kind == "document" and
                         message.get("document", {}).get("mime_type", "").startswith("audio/"))
                     context = message.get("context") or {}
-                    if is_audio:
+                    if is_audio and context.get("forwarded"):
+                        phone_id = value["metadata"]["phone_number_id"]
                         with db.engine.begin() as conn:
                             homilia_store.register_audio(conn, message["id"], sender, message["timestamp"])
+                            eid = homilia_store.offer(conn, message["id"], sender, phone_id,
+                                                       message[kind]["id"], "")
+                            homilia_store.transition(conn, eid, sender, 1, "offered", "queued")
+                        continue
                     elif kind == "text" and body and (context.get("forwarded") or context.get("id")):
                         with db.engine.begin() as conn:
                             result = homilia_store.attach_text(conn, sender, message["id"],

@@ -75,8 +75,6 @@ class EpisodesTest(unittest.TestCase):
         self.assertEqual(client.get(url + "/audio").status_code, 404)
 
     def test_homily_and_ordinary_audio(self):
-        self.assertTrue(channel.likely_homily("Meus queridos irmãos e amigos em nosso Senhor Jesus Cristo."))
-        self.assertFalse(channel.likely_homily("Passis, qual é a previsão do tempo para hoje?"))
         self.assertEqual(channel.legacy_audio_action(self.conn, "owner", f"hom:act:{self.eid}:1"),
                          ("transcrição", "0"))
         self.assertEqual(channel.legacy_audio_action(self.conn, "other", f"hom:memo:{self.eid}:1"),
@@ -116,6 +114,14 @@ class EpisodesTest(unittest.TestCase):
         self.action("approve", 2)
         self.assertEqual(store.attach_text(self.conn, "owner", "t2", "Outra", 1012, "wamid1"), "closed")
         self.assertEqual(store.source_text(self.conn, "wamid1"), "Título novo")
+
+    def test_forwarded_text_releases_episode_waiting_for_context(self):
+        store.register_audio(self.conn, "wamid1", "owner", 1000)
+        store.transition(self.conn, self.eid, "owner", 1, "offered", "waiting_text")
+        self.assertEqual(store.attach_text(self.conn, "owner", "t1", "Homilia do domingo",
+                                           1500, "wamid1"), "attached")
+        self.assertEqual(self.row()["state"], "queued")
+        self.assertEqual(store.source_text(self.conn, "wamid1"), "Homilia do domingo")
 
     @patch.dict(os.environ, {"WHATSAPP_APP_SECRET": "test-key"})
     def test_webhook_signature(self):

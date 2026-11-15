@@ -5,5 +5,4 @@
 <main><small>Nos Passos de Cristo · Prévia {{ job.version }}</small><h1>{{ job.title }}</h1>
 <img alt="Capa do episódio" src="{{ url_for('homilias.view',token=token,kind='cover') }}">
 <p>{{ job.description }}</p>{% if source_text %}<details><summary>Texto encaminhado</summary><p>{{ source_text }}</p></details>{% endif %}<audio controls preload="metadata" src="{{ url_for('homilias.view',token=token,kind='audio') }}"></audio>
-<details><summary>Transcrição</summary><p>{{ job.transcript }}</p></details>
 <p>Para publicar, aprove esta versão na conversa com o Passis.</p></main></html>
