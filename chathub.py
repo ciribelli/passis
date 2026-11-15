@@ -317,7 +317,12 @@ def chatflow(entry, verified=False):
                         file_path = send_msg.download_media(media_url_response, str(Path(tmp) / "audio"))
                         if not file_path:
                             raise RuntimeError("Falha ao baixar áudio.")
-                        transcricao = agent.audio_transcription(file_path)
+                        if podcast_owner:
+                            from openai import OpenAI
+                            homilia_client = OpenAI(api_key=os.environ["HOMILIA_API_KEY"])
+                            transcricao = agent.audio_transcription(file_path, transcription_client=homilia_client)
+                        else:
+                            transcricao = agent.audio_transcription(file_path)
                     if podcast_owner:
                         with app.db.engine.begin() as conn:
                             eid = homilia_store.offer(conn, wapp_id, from_number, phone_number_id,

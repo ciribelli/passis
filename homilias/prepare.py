@@ -31,7 +31,7 @@ def prepare(engine, job):
         with engine.begin() as conn:
             store.put_asset(conn, eid, "source", original)
 
-    client = OpenAI(timeout=180)
+    client = OpenAI(api_key=os.environ["HOMILIA_API_KEY"], timeout=180)
     brief = client.chat.completions.create(
         model=os.getenv("HOMILIA_TEXT_MODEL", "gpt-4.1-mini"),
         response_format={"type": "json_object"},
@@ -70,7 +70,7 @@ def prepare(engine, job):
                   f"Título exato: {title}. Cena: {plan['scene']}. Assine Pe. Marcus Vinícius Macedo. "
                   f"Orientação desta edição: {job['note'] or ''}")
         response = requests.post("https://api.openai.com/v1/images/generations",
-            headers={"Authorization": "Bearer " + os.environ["OPENAI_API_KEY"]},
+            headers={"Authorization": "Bearer " + os.environ["HOMILIA_API_KEY"]},
             json={"model": os.getenv("HOMILIA_IMAGE_MODEL", "gpt-image-1.5"),
                   "size": "1024x1024", "prompt": prompt, "output_format": "png"},
             timeout=(15, 300))
