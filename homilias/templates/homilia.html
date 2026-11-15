@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ job.title }} · Nos Passos de Cristo</title>
+<style>body{max-width:40rem;margin:2rem auto;padding:0 1rem;background:#faf5e9;color:#34351d;font:1.1rem/1.5 Georgia,serif}img{width:min(100%,22rem);border-radius:.4rem}audio{width:100%}details p{white-space:pre-wrap}</style>
+<main><small>Nos Passos de Cristo · Prévia {{ job.version }}</small><h1>{{ job.title }}</h1>
+<img alt="Capa do episódio" src="{{ url_for('homilias.view',token=token,kind='cover') }}">
+<p>{{ job.description }}</p><audio controls preload="metadata" src="{{ url_for('homilias.view',token=token,kind='audio') }}"></audio>
+<details><summary>Transcrição</summary><p>{{ job.transcript }}</p></details>
+<p>Para publicar, aprove esta versão na conversa com o Passis.</p></main></html>

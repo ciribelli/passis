@@ -1,3 +1,6 @@
+import tempfile
+from pathlib import Path
+from homilias import channel as homilia_channel, store as homilia_store
 import agent
 import main
 import send_msg
@@ -44,7 +47,7 @@ def responde_usuario_salva_thread(phone_number_id, from_number, coletor):
     else:
         print("Resposta sem mensagens. Nada salvo em thread.")
 
-def chatflow(entry):
+def chatflow(entry, verified=False):
     # Verifica se há mensagens na solicitação
     if 'changes' in entry and entry['changes'][0]['value'].get('messages'):
         # print('-------------------------')
@@ -62,16 +65,27 @@ def chatflow(entry):
         data_atual, hora_atual = hora_e_data(timestamp)
 
         # Verifica se há um ID de botão de resposta
-        button_reply_id = message['interactive']['button_reply']['id'] if 'interactive' in message and 'button_reply' in message['interactive'] else None
+        interactive = message.get("interactive", {})
+        reply = interactive.get("button_reply") or interactive.get("list_reply") or {}
+        button_reply_id = reply.get("id")
+        podcast_owner = verified and homilia_channel.reviewer(from_number)
+
 
         # Verifica se há um corpo de mensagem de texto
         msg_body = message['text']['body'] if 'text' in message else None
 
         if button_reply_id:
             # Tratando o conteúdo do reply:
-            button_id = message['interactive']['button_reply']['id']
-            button_action = message['interactive']['button_reply']['title']
-            wapp_id = message['context']['id']
+            button_id = button_reply_id
+            button_action = reply.get('title')
+            wapp_id = message.get('context', {}).get('id')
+            audio_content = None
+            if button_id.startswith('hom:'):
+                if not podcast_owner:
+                    return
+                audio_content, button_id = homilia_channel.legacy_audio_action(app.db.session, from_number, button_id)
+                if not button_id:
+                    return
             print('>>>> ', button_id, button_action, wapp_id)
             if button_id == "save_mem":
                 # salvar memória via botão descritivo
@@ -86,7 +100,7 @@ def chatflow(entry):
                 send_msg.send_wapp_msg(phone_number_id, from_number, "Ok, memória descartada.")
             elif button_id == "1":
                 # memorizar a informação (áudio)
-                content = app.get_thread_content_by_wapp_id(wapp_id)
+                content = audio_content or app.get_thread_content_by_wapp_id(wapp_id)
                 print(content)
                 if content:
                     coletor = app.salvar_memoria_recebida(content.lower())
@@ -96,7 +110,7 @@ def chatflow(entry):
                 responde_usuario_salva_thread(phone_number_id, from_number, coletor)
             elif button_id == "0":
                 # executar ação (áudio)
-                content = app.get_thread_content_by_wapp_id(wapp_id)
+                content = audio_content or app.get_thread_content_by_wapp_id(wapp_id)
                 print(content)
                 coletor, link, tipo_pergunta = envia_prompt_api(content, data_atual, hora_atual, phone_number_id, from_number, wapp_id)
                 responde_usuario_salva_thread(phone_number_id, from_number, coletor)
@@ -289,17 +303,30 @@ def chatflow(entry):
             try:
                 # passo 1: verificar e recuperar 'tipo' e 'id' da mídia
                 media_type = entry['changes'][0]['value']['messages'][0]['type']
-                if media_type == 'audio':
+                audio_document = (podcast_owner and media_type == 'document' and
+                                  message['document'].get('mime_type', '').startswith('audio/'))
+                if media_type == 'audio' or audio_document:
                     # Recuperar o ID do áudio
-                    audio_id = entry['changes'][0]['value']['messages'][0]['audio']['id']
+                    audio_id = message[media_type]['id']
                     # Enviar mensagem de transcrição em andamento
                     send_msg.send_wapp_msg(phone_number_id, from_number, "👂 _transcrevendo_ 🖋")
                     # Obter URL da mídia
                     media_url_response = send_msg.get_url_wapp_media(audio_id)
                     # Baixar a mídia
-                    file_path = send_msg.download_media(media_url_response)
-                    # Realizar a transcrição do áudio
-                    transcricao = agent.audio_transcription(file_path)
+                    with tempfile.TemporaryDirectory() as tmp:
+                        file_path = send_msg.download_media(media_url_response, str(Path(tmp) / "audio"))
+                        if not file_path:
+                            raise RuntimeError("Falha ao baixar áudio.")
+                        transcricao = agent.audio_transcription(file_path)
+                    if podcast_owner:
+                        with app.db.engine.begin() as conn:
+                            eid = homilia_store.offer(conn, wapp_id, from_number, phone_number_id,
+                                                       audio_id, transcricao)
+                            automatic = homilia_channel.likely_homily(transcricao)
+                            if automatic:
+                                homilia_store.transition(conn, eid, from_number, 1, "offered", "queued")
+                        homilia_channel.audio_menu(phone_number_id, from_number, eid, transcricao, automatic)
+                        return
                     # Enviar a transcrição de volta ao usuário
                     wapp_response = send_msg.send_wapp_audio_reply(phone_number_id, from_number, transcricao)
                     # 📅 registra transcrição gerada pelo sistema em threads📅
