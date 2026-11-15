@@ -1,6 +1,7 @@
 """Estado compartilhado pelo webhook e pelo worker. O PostgreSQL arbitra cada transição."""
 import secrets
 import uuid
+from datetime import datetime, timedelta, timezone
 
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import insert
@@ -29,6 +30,70 @@ assets = sa.Table(
     sa.Column("kind", sa.String(10), primary_key=True),
     sa.Column("data", sa.LargeBinary, nullable=False),
 )
+
+
+# Registro imediato da chegada, antes da transcrição que pode demorar minutos.
+incoming = sa.Table(
+    "homilia_incoming", metadata,
+    sa.Column("source_id", sa.Text, primary_key=True),
+    sa.Column("owner", sa.Text, nullable=False, index=True),
+    sa.Column("received_at", sa.DateTime(timezone=True), nullable=False),
+    sa.Column("text_id", sa.Text, unique=True),
+    sa.Column("source_text", sa.Text),
+)
+
+
+def register_audio(conn, source, owner, timestamp):
+    dt = datetime.fromtimestamp(int(timestamp), timezone.utc)
+    conn.execute(insert(incoming).values(source_id=source, owner=owner, received_at=dt)
+                 .on_conflict_do_nothing(index_elements=["source_id"]))
+
+
+def attach_text(conn, owner, message_id, body, timestamp, reply_id=None):
+    """Aceita uma resposta explícita ou texto encaminhado até 2 minutos após um áudio."""
+    if conn.execute(sa.select(incoming.c.source_id).where(incoming.c.text_id == message_id)).first():
+        return "duplicate"
+    dt = datetime.fromtimestamp(int(timestamp), timezone.utc)
+    query = sa.select(incoming).where(incoming.c.owner == owner)
+    if reply_id:
+        query = query.where(incoming.c.source_id == reply_id)
+    else:
+        query = query.where(incoming.c.received_at <= dt,
+                            incoming.c.received_at >= dt - timedelta(minutes=2),
+                            incoming.c.source_text.is_(None))
+    rows = conn.execute(query.with_for_update()).mappings().all()
+    if len(rows) != 1:
+        return "ambiguous" if len(rows) > 1 else "none"
+    source = rows[0]["source_id"]
+    # Uma mensagem encaminhada não substitui outra que já foi associada.
+    if rows[0]["source_text"] and not reply_id:
+        return "none"
+    episode = conn.execute(sa.select(episodes).where(episodes.c.source_id == source)
+                           .with_for_update()).mappings().first()
+    if episode and episode["state"] in ("approved", "publishing", "clicked", "published", "check_spotify"):
+        return "closed"
+    conn.execute(incoming.update().where(incoming.c.source_id == source)
+                 .values(text_id=message_id, source_text=body))
+    if episode and episode["state"] in ("preparing", "preview"):
+        conn.execute(episodes.update().where(episodes.c.id == episode["id"]).values(
+            state="queued", version=episode["version"] + 1, preview=None, notice=None))
+    return "attached"
+
+
+def source_text(conn, source):
+    return conn.execute(sa.select(incoming.c.source_text).where(
+        incoming.c.source_id == source)).scalar_one_or_none()
+
+
+def ready(conn, source, now=None):
+    row = conn.execute(sa.select(incoming).where(incoming.c.source_id == source)).mappings().first()
+    if not row or row["source_text"]:
+        return True
+    current = now or datetime.now(timezone.utc)
+    received = row["received_at"]
+    if received.tzinfo is None:
+        received = received.replace(tzinfo=timezone.utc)
+    return current >= received + timedelta(minutes=2)
 
 
 def offer(conn, source, owner, phone, media, transcript):

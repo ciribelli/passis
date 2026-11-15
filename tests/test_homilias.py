@@ -82,6 +82,41 @@ class EpisodesTest(unittest.TestCase):
         self.assertEqual(channel.legacy_audio_action(self.conn, "other", f"hom:memo:{self.eid}:1"),
                          (None, None))
 
+    def test_text_arrives_before_transcription_and_duplicate_delivery(self):
+        store.register_audio(self.conn, "audio2", "owner", 1000)
+        self.assertFalse(store.ready(self.conn, "audio2",
+            __import__("datetime").datetime.fromtimestamp(1050, __import__("datetime").timezone.utc)))
+        self.assertEqual(store.attach_text(self.conn, "owner", "text2", "Domingo comum", 1010), "attached")
+        self.assertEqual(store.attach_text(self.conn, "owner", "text2", "Domingo comum", 1010), "duplicate")
+        eid = store.offer(self.conn, "audio2", "owner", "phone", "media2", "homilia")
+        self.assertTrue(eid)
+        self.assertEqual(store.source_text(self.conn, "audio2"), "Domingo comum")
+        self.assertTrue(store.ready(self.conn, "audio2"))
+
+    def test_ambiguous_audio_requires_reply(self):
+        store.register_audio(self.conn, "a1", "owner", 1000)
+        store.register_audio(self.conn, "a2", "owner", 1001)
+        self.assertEqual(store.attach_text(self.conn, "owner", "t1", "Título", 1010), "ambiguous")
+        self.assertEqual(store.attach_text(self.conn, "owner", "t2", "Título", 1011, "a1"), "attached")
+        self.assertEqual(store.source_text(self.conn, "a1"), "Título")
+        self.assertIsNone(store.source_text(self.conn, "a2"))
+
+    def test_late_text_revokes_preview_and_approved_episode_stays_closed(self):
+        store.register_audio(self.conn, "wamid1", "owner", 1000)
+        self.preview()
+        old_link = self.row()["preview"]
+        self.assertEqual(store.attach_text(self.conn, "owner", "t1", "Título novo", 1010), "attached")
+        self.assertEqual(self.row()["state"], "queued")
+        self.assertEqual(self.row()["version"], 2)
+        self.assertIsNone(self.row()["preview"])
+        self.action("approve", 1)
+        self.assertEqual(self.row()["state"], "queued")
+        store.transition(self.conn, self.eid, "owner", 2, "queued", "preparing")
+        store.save_preview(self.conn, self.row(), b"audio", b"cover", "Título", "Descrição")
+        self.action("approve", 2)
+        self.assertEqual(store.attach_text(self.conn, "owner", "t2", "Outra", 1012, "wamid1"), "closed")
+        self.assertEqual(store.source_text(self.conn, "wamid1"), "Título novo")
+
     @patch.dict(os.environ, {"WHATSAPP_APP_SECRET": "test-key"})
     def test_webhook_signature(self):
         signature = "sha256=" + hmac.new(b"test-key", b"payload", hashlib.sha256).hexdigest()

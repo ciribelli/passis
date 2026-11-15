@@ -8,7 +8,7 @@ import requests
 import sqlalchemy as sa
 from flask import Blueprint, abort, render_template, send_file
 
-from .store import asset, episodes, transition
+from .store import asset, episodes, source_text, transition
 
 
 def signed(body, signature):
@@ -73,13 +73,13 @@ def preview_routes(db):
     @bp.get("/homilias/p/<token>/<kind>")
     def view(token, kind=None):
         row = db.session.execute(sa.select(episodes.c.id, episodes.c.version, episodes.c.title,
-            episodes.c.description, episodes.c.transcript).where(episodes.c.preview == token,
+            episodes.c.description, episodes.c.transcript, episodes.c.source_id).where(episodes.c.preview == token,
             episodes.c.state.in_(["preview", "approved", "publishing", "clicked", "published",
                                   "check_spotify"]))).mappings().first()
         if not row:
             abort(404)
         if kind is None:
-            return render_template("homilia.html", job=row, token=token)
+            return render_template("homilia.html", job=row, token=token, source_text=source_text(db.session, row["source_id"]))
         if kind not in ("cover", "audio"):
             abort(404)
         data = asset(db.session, row["id"], kind)

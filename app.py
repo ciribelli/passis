@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 import os
 import pandas as pd
 import agent
-from homilias import channel as homilia_channel
+from homilias import channel as homilia_channel, store as homilia_store
 import main, chathub
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
@@ -122,6 +122,28 @@ def webhook():
                         homilia_channel.message(value["metadata"]["phone_number_id"], sender,
                                                 type="text", text={"body": status})
                         continue
+                if verified and homilia_channel.reviewer(sender):
+                    kind = message.get("type")
+                    is_audio = kind == "audio" or (kind == "document" and
+                        message.get("document", {}).get("mime_type", "").startswith("audio/"))
+                    context = message.get("context") or {}
+                    if is_audio:
+                        with db.engine.begin() as conn:
+                            homilia_store.register_audio(conn, message["id"], sender, message["timestamp"])
+                    elif kind == "text" and body and (context.get("forwarded") or context.get("id")):
+                        with db.engine.begin() as conn:
+                            result = homilia_store.attach_text(conn, sender, message["id"],
+                                body, message["timestamp"], context.get("id"))
+                        if result in ("attached", "duplicate", "ambiguous", "closed"):
+                            if result != "duplicate":
+                                replies = {
+                                    "attached": "Texto associado ao áudio da homilia.",
+                                    "ambiguous": "Há mais de um áudio aguardando texto. Responda ao áudio correspondente com o título.",
+                                    "closed": "Esse episódio já foi aprovado. Para alterar o título, crie uma nova edição."
+                                }
+                                homilia_channel.message(value["metadata"]["phone_number_id"], sender,
+                                                        type="text", text={"body": replies[result]})
+                            continue
                 single = {**entry, "changes": [{**change, "value": {**value, "messages": [message]}}]}
                 threading.Thread(target=process_message, args=(single, verified)).start()
 

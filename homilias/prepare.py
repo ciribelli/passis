@@ -18,6 +18,7 @@ HERE = Path(__file__).parent
 def prepare(engine, job):
     eid = job["id"]
     with engine.begin() as conn:
+        source_text = store.source_text(conn, job["source_id"])
         original = store.asset(conn, eid, "source")
         previous_audio = store.asset(conn, eid, "audio")
         previous_cover = store.asset(conn, eid, "cover")
@@ -42,7 +43,7 @@ def prepare(engine, job):
             "O pedido editorial pode solicitar ajustes na capa, textos ou brilho da voz. "
             "Em revisão preserve tudo o que o pedido não altera. Não invente referências litúrgicas." )},
             {"role": "user", "content": json.dumps({
-                "transcrição": job["transcript"], "título_anterior": job["title"],
+                "transcrição": job["transcript"], "texto_encaminhado_pelo_padre": source_text, "título_anterior": job["title"],
                 "descrição_anterior": job["description"], "pedido_editorial": job["note"]},
                 ensure_ascii=False)}])
     plan = json.loads(brief.choices[0].message.content)

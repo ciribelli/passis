@@ -41,6 +41,10 @@ def process(engine, job):
         with engine.begin() as conn:
             return store.transition(conn, eid, owner, version, before, after, **values)
 
+    if state == "queued":
+        with engine.begin() as conn:
+            if not store.ready(conn, job["source_id"]):
+                return
     if state == "queued" and move("queued", "preparing"):
         try:
             from .prepare import prepare
