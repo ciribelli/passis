@@ -40,6 +40,12 @@ def buttons(phone, owner, body, options):
 
 def handle(conn, sender, action, msg):
     # O remetente e a assinatura do webhook são conferidos antes do dispatch.
+    dismiss = re.fullmatch(r"hom:dismiss:([0-9a-f]{32}):1", action)
+    if dismiss:
+        for before in ("offered", "queued", "preparing", "preview"):
+            if transition(conn, dismiss[1], sender, 1, before, "cancelled", preview=None, notice=None):
+                return "Edição cancelada."
+        return "Essa edição já mudou de estado."
     match = re.fullmatch(r"hom:(prepare|approve|cancel|retry):([0-9a-f]{32}):(\d{1,9})", action)
     if match:
         verb, eid, version = match.groups()
