@@ -139,10 +139,11 @@ def webhook():
                         with homilia_store.get_engine().begin() as conn:
                             result = homilia_store.attach_text(conn, sender, message["id"],
                                 body, message["timestamp"], context.get("id"))
-                        if result in ("attached", "duplicate", "ambiguous", "closed"):
+                        if result in ("attached", "duplicate", "ambiguous", "closed", "waiting_audio"):
                             if result != "duplicate":
                                 replies = {
                                     "attached": "Texto associado ao áudio da homilia.",
+                                    "waiting_audio": "Texto recebido. Aguardando o áudio da homilia.",
                                     "ambiguous": "Há mais de um áudio aguardando texto. Responda ao áudio correspondente com o título.",
                                     "closed": "Esse episódio já foi aprovado. Para alterar o título, crie uma nova edição."
                                 }

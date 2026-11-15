@@ -56,14 +56,30 @@ def prepare(engine, job):
     audio = previous_audio
     if not audio or plan.get("change_audio") is True:
         with tempfile.TemporaryDirectory() as d:
-            source, wav, out = (Path(d) / name for name in ("source", "source.wav", "tratado.m4a"))
+            source = Path(d) / "source"
+            out = Path(d) / "tratado.m4a"
             source.write_bytes(original)
             ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
-            subprocess.run([ffmpeg, "-v", "error", "-y", "-i", str(source),
-                        "-vn", "-ar", "48000", "-ac", "2", "-c:a", "pcm_s16le", str(wav)], check=True)
+            # Partes limitam a memória usada pelos filtros para gravações longas.
+            subprocess.run([ffmpeg, "-v", "error", "-y", "-i", str(source), "-vn",
+                            "-ar", "48000", "-ac", "2", "-c:a", "pcm_s16le",
+                            "-f", "segment", "-segment_time", "30", "-reset_timestamps", "1",
+                            str(Path(d) / "parte_%04d.wav")], check=True)
+            segments = sorted(Path(d).glob("parte_*.wav"))
+            if not segments:
+                raise ValueError("Não foi possível decodificar o áudio.")
             brightness = max(-3.0, min(3.0, float(plan.get("brightness_db", 0)))) if previous_audio else 0
-            subprocess.run([sys.executable, str(HERE / "tratar_audio.py"), str(wav),
-                            "-o", str(out), "--brilho-adicional", str(brightness)], check=True)
+            processed = []
+            for index, segment in enumerate(segments):
+                result = Path(d) / f"tratado_{index:04d}.m4a"
+                subprocess.run([sys.executable, str(HERE / "tratar_audio.py"), str(segment),
+                                "-o", str(result), "--brilho-adicional", str(brightness)], check=True)
+                processed.append(result)
+            listing = Path(d) / "partes.txt"
+            listing.write_text("".join(f"file '{path.name}'\n" for path in processed))
+            subprocess.run([ffmpeg, "-v", "error", "-y", "-f", "concat", "-safe", "1",
+                            "-i", str(listing), "-c:a", "aac", "-b:a", "192k", str(out)],
+                           check=True)
             audio = out.read_bytes()
 
     cover = previous_cover

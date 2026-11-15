@@ -123,6 +123,15 @@ class EpisodesTest(unittest.TestCase):
         self.assertEqual(self.row()["state"], "queued")
         self.assertEqual(store.source_text(self.conn, "wamid1"), "Homilia do domingo")
 
+    def test_forwarded_liturgical_text_before_audio_is_matched(self):
+        self.assertEqual(store.attach_text(self.conn, "owner", "text-first",
+                         "32º Domingo do Tempo Comum", 1000), "waiting_audio")
+        store.register_audio(self.conn, "audio-late", "owner", 1040)
+        self.assertEqual(store.source_text(self.conn, "audio-late"),
+                         "32º Domingo do Tempo Comum")
+        self.assertEqual(store.attach_text(self.conn, "owner", "text-first",
+                         "32º Domingo do Tempo Comum", 1000), "duplicate")
+
     @patch.dict(os.environ, {"WHATSAPP_APP_SECRET": "test-key"})
     def test_webhook_signature(self):
         signature = "sha256=" + hmac.new(b"test-key", b"payload", hashlib.sha256).hexdigest()

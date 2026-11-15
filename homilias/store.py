@@ -54,8 +54,20 @@ def get_engine():
 
 def register_audio(conn, source, owner, timestamp):
     dt = datetime.fromtimestamp(int(timestamp), timezone.utc)
-    conn.execute(insert(incoming).values(source_id=source, owner=owner, received_at=dt)
-                 .on_conflict_do_nothing(index_elements=["source_id"]))
+    result = conn.execute(insert(incoming).values(source_id=source, owner=owner, received_at=dt)
+                          .on_conflict_do_nothing(index_elements=["source_id"]))
+    if not result.rowcount:
+        return
+    pending = conn.execute(sa.select(incoming).where(
+        incoming.c.owner == owner, incoming.c.source_id.like("text:%"),
+        incoming.c.received_at >= dt - timedelta(minutes=5),
+        incoming.c.received_at <= dt).with_for_update()).mappings().all()
+    if len(pending) == 1:
+        entry = pending[0]
+        # Remover a linha temporária primeiro libera a restrição única de text_id.
+        conn.execute(incoming.delete().where(incoming.c.source_id == entry["source_id"]))
+        conn.execute(incoming.update().where(incoming.c.source_id == source).values(
+            source_text=entry["source_text"], text_id=entry["text_id"]))
 
 
 def attach_text(conn, owner, message_id, body, timestamp, reply_id=None):
@@ -63,7 +75,7 @@ def attach_text(conn, owner, message_id, body, timestamp, reply_id=None):
     if conn.execute(sa.select(incoming.c.source_id).where(incoming.c.text_id == message_id)).first():
         return "duplicate"
     dt = datetime.fromtimestamp(int(timestamp), timezone.utc)
-    query = sa.select(incoming).where(incoming.c.owner == owner)
+    query = sa.select(incoming).where(incoming.c.owner == owner, ~incoming.c.source_id.like("text:%"))
     if reply_id:
         query = query.where(incoming.c.source_id == reply_id)
     else:
@@ -72,6 +84,13 @@ def attach_text(conn, owner, message_id, body, timestamp, reply_id=None):
                             incoming.c.source_text.is_(None))
     rows = conn.execute(query.with_for_update()).mappings().all()
     if len(rows) != 1:
+        if not rows and not reply_id:
+            import re
+            if re.search(r"\b(homilia|evangelho|domingo)\b", body, re.IGNORECASE):
+                conn.execute(insert(incoming).values(source_id="text:" + message_id,
+                    owner=owner, received_at=dt, text_id=message_id, source_text=body)
+                    .on_conflict_do_nothing())
+                return "waiting_audio"
         return "ambiguous" if len(rows) > 1 else "none"
     source = rows[0]["source_id"]
     # Uma mensagem encaminhada não substitui outra que já foi associada.
