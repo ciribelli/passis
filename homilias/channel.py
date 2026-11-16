@@ -4,12 +4,15 @@ import io
 import os
 import re
 import unicodedata
+import subprocess
+import sys
+from zoneinfo import ZoneInfo
 
 import requests
 import sqlalchemy as sa
-from flask import Blueprint, abort, render_template, request, send_file
+from flask import Blueprint, abort, redirect, render_template, request, send_file, url_for
 
-from .store import asset, episodes, source_text, transition
+from .store import asset, episodes, incoming, source_text, transition
 
 
 STATES = {
@@ -20,6 +23,8 @@ STATES = {
     "published": "Publicado", "check_spotify": "Conferir no Spotify",
     "failed": "Falha no preparo", "cancelled": "Cancelado",
 }
+TRASHABLE = ("offered", "queued", "waiting_text", "failed", "preview", "approved", "cancelled")
+PREPARABLE = ("offered", "queued", "failed", "waiting_text")
 PREVIEW_STATES = ("preview", "approved", "publishing", "clicked", "published", "check_spotify")
 
 
@@ -129,17 +134,54 @@ def preview_routes(get_engine):
         check_stage(token)
         with get_engine().connect() as conn:
             rows = conn.execute(sa.select(episodes.c.id, episodes.c.title, episodes.c.state,
-                episodes.c.version, episodes.c.preview, episodes.c.spotify_id,
-                episodes.c.source_id).where(episodes.c.owner == os.environ["HOMILIA_OWNER_WA_ID"])
-                .order_by(episodes.c.title, episodes.c.id)).mappings().all()
-        return render_template("homilias_stage.html", jobs=rows, states=STATES, stage_token=token)
+                episodes.c.version, episodes.c.notice, incoming.c.received_at, incoming.c.source_text)
+                .outerjoin(incoming, episodes.c.source_id == incoming.c.source_id)
+                .where(episodes.c.owner == os.environ["HOMILIA_OWNER_WA_ID"], episodes.c.state != "trashed")
+                .order_by(episodes.c.title, incoming.c.received_at, episodes.c.id)).mappings().all()
+        return render_template("homilias_stage.html", jobs=rows, states=STATES, stage_token=token,
+            preparable=PREPARABLE, trashable=TRASHABLE, timezone=ZoneInfo("America/Sao_Paulo"))
+
+    @bp.post("/homilias/stage/<token>/episode/<eid>/<action>")
+    def stage_action(token, eid, action):
+        check_stage(token)
+        if action not in ("trash", "prepare") or not re.fullmatch(r"[0-9a-f]{32}", eid):
+            abort(404)
+        version = request.form.get("version", type=int)
+        expected_state = request.form.get("state")
+        with get_engine().begin() as conn:
+            row = conn.execute(sa.select(episodes).where(episodes.c.id == eid,
+                episodes.c.owner == os.environ["HOMILIA_OWNER_WA_ID"]).with_for_update()).mappings().first()
+            if not row:
+                abort(404)
+            if row["state"] != expected_state or row["version"] != version:
+                abort(409, "A edição mudou. Atualize o painel.")
+            if action == "trash":
+                if expected_state not in TRASHABLE:
+                    abort(409, "Esta edição não pode ser movida para a lixeira agora.")
+                transition(conn, eid, row["owner"], version, expected_state, "trashed",
+                           preview=None, notice=None, version=version + 1)
+            else:
+                retry = expected_state == "preparing" and row["notice"] == "panel"
+                if expected_state not in PREPARABLE and not retry:
+                    abort(409, "Esta edição não está disponível para preparo.")
+                if not source_text(conn, row["source_id"]):
+                    abort(409, "Responda ao áudio no WhatsApp com o texto da homilia.")
+                # O filho aguarda o commit antes de assumir a edição.
+                if not retry:
+                    transition(conn, eid, row["owner"], version, expected_state, "preparing", notice="panel")
+                try:
+                    subprocess.Popen([sys.executable, "-m", "homilias.worker", "prepare-panel",
+                                      "--id", eid, "--version", str(version)], start_new_session=True)
+                except OSError:
+                    abort(503, "Não foi possível iniciar o preparo. Tente novamente.")
+        return redirect(url_for("homilias.stage", token=token), code=303)
 
     @bp.get("/homilias/stage/<token>/episode/<eid>")
     def stage_episode(token, eid):
         check_stage(token)
         with get_engine().connect() as conn:
             row = conn.execute(sa.select(episodes).where(episodes.c.id == eid,
-                episodes.c.owner == os.environ["HOMILIA_OWNER_WA_ID"])).mappings().first()
+                episodes.c.owner == os.environ["HOMILIA_OWNER_WA_ID"], episodes.c.state != "trashed")).mappings().first()
             if not row:
                 abort(404)
             return render_template("homilia.html", job=row, states=STATES, stage_token=token,

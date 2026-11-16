@@ -79,7 +79,9 @@ def attach_text(conn, owner, message_id, body, timestamp, reply_id=None):
     if reply_id:
         query = query.where(incoming.c.source_id == reply_id)
     else:
-        query = query.where(incoming.c.received_at <= dt,
+        query = query.where(~sa.exists(sa.select(episodes.c.id).where(
+            episodes.c.source_id == incoming.c.source_id, episodes.c.state == "trashed")),
+                            incoming.c.received_at <= dt,
                             incoming.c.received_at >= dt - timedelta(minutes=2),
                             incoming.c.source_text.is_(None))
     rows = conn.execute(query.with_for_update()).mappings().all()
@@ -98,7 +100,7 @@ def attach_text(conn, owner, message_id, body, timestamp, reply_id=None):
         return "none"
     episode = conn.execute(sa.select(episodes).where(episodes.c.source_id == source)
                            .with_for_update()).mappings().first()
-    if episode and episode["state"] in ("approved", "publishing", "clicked", "published", "check_spotify"):
+    if episode and episode["state"] in ("trashed", "approved", "publishing", "clicked", "published", "check_spotify"):
         return "closed"
     conn.execute(incoming.update().where(incoming.c.source_id == source)
                  .values(text_id=message_id, source_text=body))

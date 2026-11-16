@@ -87,7 +87,8 @@ def run(engine, once):
             raise SystemExit("Outro worker de homilias já está ativo.")
         lock.commit()
         with engine.begin() as conn:
-            conn.execute(jobs.update().where(jobs.c.state == "preparing").values(state="queued"))
+            conn.execute(jobs.update().where(jobs.c.state == "preparing",
+                jobs.c.notice.is_distinct_from("panel")).values(state="queued"))
             conn.execute(jobs.update().where(jobs.c.state == "publishing")
                          .values(state="check_spotify", notice="check"))
         while True:
@@ -141,12 +142,39 @@ def prepare_once(engine, episode_id=None):
             log.exception("Erro ao notificar sobre a homilia %s", row["id"])
 
 
+def prepare_panel(engine, eid, version):
+    """Um lock por episódio permite retomar o preparo após reinício do dyno."""
+    owner = os.environ["HOMILIA_OWNER_WA_ID"]
+    with engine.begin() as lock:
+        if not lock.scalar(sa.text("SELECT pg_try_advisory_xact_lock(:key)"),
+                           {"key": int(eid[:15], 16)}):
+            return
+        with engine.begin() as conn:
+            row = conn.execute(sa.select(jobs).where(jobs.c.id == eid, jobs.c.owner == owner)
+                               .with_for_update()).mappings().one_or_none()
+        if not row or row["version"] != version or row["state"] != "preparing" or row["notice"] != "panel":
+            return
+        try:
+            from .prepare import prepare
+            prepare(engine, row)
+        except Exception:
+            log.exception("Falha no preparo de %s", eid)
+            with engine.begin() as conn:
+                store.transition(conn, eid, owner, version, "preparing", "failed", notice="failed")
+        with engine.begin() as conn:
+            row = conn.execute(sa.select(jobs).where(jobs.c.id == eid, jobs.c.version == version,
+                jobs.c.notice.in_(["preview", "failed"]))).mappings().one_or_none()
+        if row:
+            process(engine, row)
+
+
 def main():
     load_dotenv()
     logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=["init", "login", "run", "once", "prepare-once", "resume-draft", "stage-url"])
+    parser.add_argument("command", choices=["init", "login", "run", "once", "prepare-once", "prepare-panel", "resume-draft", "stage-url"])
     parser.add_argument("--id")
+    parser.add_argument("--version", type=int)
     args = parser.parse_args()
     if args.command == "stage-url":
         url = channel.stage_url()
@@ -169,6 +197,10 @@ def main():
                 jobs.c.state == "check_spotify").values(state="approved", notice=None)).rowcount
             if not n:
                 raise SystemExit("Nenhuma publicação pré-clique pendente para este ID.")
+    elif args.command == "prepare-panel":
+        if not args.id or not args.version:
+            parser.error("prepare-panel exige --id e --version")
+        prepare_panel(engine, args.id, args.version)
     elif args.command == "prepare-once":
         prepare_once(engine, args.id)
     else:

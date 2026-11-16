@@ -75,6 +75,71 @@ class EpisodesTest(unittest.TestCase):
         self.conn.commit()
         self.assertEqual(client.get(url + "/audio").status_code, 404)
 
+    @patch.dict(os.environ, {"HOMILIA_STAGE_TOKEN": "stage", "HOMILIA_OWNER_WA_ID": "owner"})
+    @patch("homilias.channel.subprocess.Popen")
+    def test_panel_actions_affect_only_selected_copy(self, launch):
+        store.register_audio(self.conn, "wamid1", "owner", 1000)
+        store.attach_text(self.conn, "owner", "title1", "28º Domingo", 1010)
+        self.action("prepare")
+        duplicate = store.offer(self.conn, "wamid2", "owner", "phone", "media2", "")
+        store.transition(self.conn, duplicate, "owner", 1, "offered", "queued")
+        self.conn.commit()
+        app = Flask(__name__)
+        app.register_blueprint(channel.preview_routes(lambda: self.engine))
+        client = app.test_client()
+        panel = "/homilias/stage/stage"
+        form = {"state": "queued", "version": "1"}
+        trash = f"{panel}/episode/{duplicate}/trash"
+        self.assertEqual(client.get(trash).status_code, 405)
+        self.assertEqual(client.post(trash, data=form).status_code, 303)
+        self.assertNotIn(duplicate, client.get(panel).get_data(as_text=True))
+        prepare = f"{panel}/episode/{self.eid}/prepare"
+        launch.side_effect = OSError("cannot spawn")
+        self.assertEqual(client.post(prepare, data=form).status_code, 503)
+        launch.side_effect = None
+        self.assertEqual(client.post(prepare, data=form).status_code, 303)
+        self.assertEqual(launch.call_args.args[0][-5:], ["prepare-panel", "--id", self.eid, "--version", "1"])
+        self.assertEqual(client.post(prepare, data=form).status_code, 409)
+        self.assertEqual(client.post(prepare.replace("/stage/stage", "/stage/wrong"), data=form).status_code, 404)
+        self.assertEqual(client.post(f"{panel}/episode/{duplicate}/prepare", data=form).status_code, 409)
+
+    @patch.dict(os.environ, {"HOMILIA_STAGE_TOKEN": "stage", "HOMILIA_OWNER_WA_ID": "owner"})
+    def test_trashing_preview_revokes_link_and_old_approval(self):
+        self.preview()
+        preview = self.row()["preview"]
+        self.conn.commit()
+        app = Flask(__name__)
+        app.register_blueprint(channel.preview_routes(lambda: self.engine))
+        client = app.test_client()
+        url = f"/homilias/stage/stage/episode/{self.eid}/trash"
+        self.assertEqual(client.post(url, data={"state": "preview", "version": 1}).status_code, 303)
+        self.assertEqual(client.get("/homilias/p/" + preview + "/audio").status_code, 404)
+        self.action("approve")
+        self.assertEqual(self.row()["state"], "trashed")
+
+    @patch.dict(os.environ, {"HOMILIA_OWNER_WA_ID": "owner"})
+    @patch("homilias.worker.notify")
+    def test_panel_worker_prepares_and_notifies_once(self, notify):
+        from unittest.mock import Mock
+        import sys
+
+        self.conn.connection.driver_connection.create_function("pg_try_advisory_xact_lock", 1, lambda key: 1)
+        self.assertTrue(store.transition(self.conn, self.eid, "owner", 1, "offered", "preparing", notice="panel"))
+        self.conn.commit()
+
+        def save(engine, job):
+            with engine.begin() as conn:
+                store.save_preview(conn, job, b"audio", b"cover", "Homilia", "Texto")
+
+        module = Mock()
+        module.prepare.side_effect = save
+        with patch.dict(sys.modules, {"homilias.prepare": module}):
+            worker.prepare_panel(self.engine, self.eid, 1)
+            worker.prepare_panel(self.engine, self.eid, 1)
+        module.prepare.assert_called_once()
+        notify.assert_called_once()
+        self.assertEqual(self.row()["state"], "preview")
+
     def test_homily_and_ordinary_audio(self):
         self.assertEqual(channel.legacy_audio_action(self.conn, "owner", f"hom:act:{self.eid}:1"),
                          ("transcrição", "0"))

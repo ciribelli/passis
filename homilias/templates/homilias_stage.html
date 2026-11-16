@@ -6,7 +6,36 @@
 <p class="counts">{{ jobs|length }} episódio(s) · {{ jobs|selectattr('state', 'equalto', 'preview')|list|length }} aguardando aprovação · {{ jobs|selectattr('state', 'equalto', 'approved')|list|length }} aprovado(s) · {{ jobs|selectattr('state', 'equalto', 'published')|list|length }} publicado(s)</p>
 <section class="card"><div class="filters"><input type="search" id="search" placeholder="Buscar por título ou identificação…" aria-label="Buscar episódio"><select id="state" aria-label="Filtrar por status"><option value="">Todos os status</option>{% for key, label in states.items() %}<option value="{{ key }}">{{ label }}</option>{% endfor %}</select></div>
 <div class="table-wrap"><table><thead><tr><th scope="col">Episódio</th><th scope="col">Status</th><th scope="col">Versão</th><th scope="col">Material</th></tr></thead><tbody>
-{% for job in jobs %}<tr data-state="{{ job.state }}" data-search="{{ ((job.title or '') ~ ' ' ~ job.id)|lower }}"><td>{{ job.title or 'Aguardando título' }}<br><small class="muted">{{ job.id }}</small></td><td><span class="badge">{{ states.get(job.state, job.state) }}</span></td><td>v{{ job.version }}</td><td><a href="{{ url_for('homilias.stage_episode',token=stage_token,eid=job.id) }}">Abrir episódio →</a></td></tr>{% endfor %}
+{% for job in jobs %}
+{% set label = job.title or job.source_text or 'Aguardando título' %}
+{% set received = job.received_at.astimezone(timezone).strftime('%d/%m/%Y às %H:%M') if job.received_at else '' %}
+<tr data-state="{{ job.state }}" data-search="{{ (label ~ ' ' ~ job.id)|lower }}">
+  <td>{{ label }}<br>{% if received %}<small>Recebido em {{ received }} (Brasília)</small><br>{% endif %}
+    <small class="muted">{{ job.id }}</small></td>
+  <td><span class="badge">{{ states.get(job.state, job.state) }}</span></td>
+  <td>v{{ job.version }}</td>
+  <td><a href="{{ url_for('homilias.stage_episode',token=stage_token,eid=job.id) }}">Abrir episódio →</a>
+    <div class="actions">
+    {% set resume = job.state == 'preparing' and job.notice == 'panel' %}
+    {% if (job.state in preparable or resume) and job.source_text %}
+    <form method="post" action="{{ url_for('homilias.stage_action',token=stage_token,eid=job.id,action='prepare') }}">
+      <input type="hidden" name="version" value="{{ job.version }}"><input type="hidden" name="state" value="{{ job.state }}">
+      <button type="submit">{{ 'Retomar preparo' if resume else 'Preparar' }}</button>
+    </form>
+    {% endif %}
+    {% if job.state in trashable %}
+    <details><summary>🗑 Lixeira</summary>
+      <form method="post" action="{{ url_for('homilias.stage_action',token=stage_token,eid=job.id,action='trash') }}">
+        <p>Retirar esta cópia do painel e da fila? {{ received }} · {{ job.id[:8] }}</p>
+        <input type="hidden" name="version" value="{{ job.version }}"><input type="hidden" name="state" value="{{ job.state }}">
+        <button type="submit">Confirmar remoção</button>
+      </form>
+    </details>
+    {% endif %}
+    </div>
+  </td>
+</tr>
+{% endfor %}
 </tbody></table></div><p id="empty" class="empty" {% if jobs %}hidden{% endif %}>Nenhum episódio encontrado.</p><p id="results" class="help" role="status" aria-live="polite"></p></section>
 <p class="help">Guarde este link para voltar ao painel. Ele dá acesso aos materiais de todos os episódios do canal. Os status refletem o registro do Passis; uma publicação feita manualmente no Spotify pode precisar de conferência.</p>
 {% endblock %}

@@ -28,4 +28,4 @@ Por padrão, o token do stage é derivado com HMAC de `WHATSAPP_APP_SECRET` e `H
 python -c 'import secrets; print(secrets.token_urlsafe(32))'
 ```
 
-O token do stage é diferente dos tokens de prévia. Todas as páginas são somente de consulta, não são indexadas e enviam `Cache-Control: private, no-store` e `Referrer-Policy: no-referrer`. Os downloads mantêm as regras atuais de acesso à edição: uma prévia cancelada ou substituída deixa de fornecer arquivos.
+O token do stage é diferente dos tokens de prévia. A prévia individual é somente de consulta. No painel privado, Preparar inicia o worker da edição no dyno atual. Se o dyno reiniciar durante o preparo, use Retomar preparo. Lixeira retira a cópia da fila e da lista após confirmação e revoga a prévia. O registro é preservado para reconhecer novas entregas da mesma mensagem. As páginas não são indexadas e enviam `Cache-Control: private, no-store` e `Referrer-Policy: no-referrer`. Os downloads mantêm as regras atuais de acesso à edição: uma prévia cancelada ou substituída deixa de fornecer arquivos.
