@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 import os
 import pandas as pd
 import agent
+from homilias import channel as homilia_channel, store as homilia_store
 import main, chathub
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
@@ -25,6 +26,7 @@ CORS(app, origins=allowed_origins, allow_headers=["*"])
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL_AZURE')
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+app.register_blueprint(homilia_channel.preview_routes(homilia_store.get_engine))
 
 # Whatsapp webhook token:
 token = os.environ.get('WHATSAPP_TOKEN')
@@ -93,27 +95,66 @@ def get_clima():
     coletor, resposta = main.busca_Clima(token)
     return Response(response=resposta, status=200, mimetype='application/json')
 
-def process_message(entry):
+def process_message(entry, verified=False):
     # Cria um contexto da app dentro da thread
     with app.app_context():
-        chathub.chatflow(entry)  # agora sua função pode acessar db.session
+        chathub.chatflow(entry, verified=verified)
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    data = request.json
-    print('-------------------------')
-    print(data)
-    print('-------------------------')
-
-    if 'object' in data:
-        entry = data.get('entry', [])[0]
-        changes = entry.get("changes", [{}])[0]
-        value = changes.get("value", {})
-
-        # Processa apenas se houver 'messages'
-        if "messages" in value:
-            # Passa somente a entrada que contém a mensagem
-            threading.Thread(target=process_message, args=(entry,)).start()
+    verified = homilia_channel.signed(request.get_data(), request.headers.get("X-Hub-Signature-256"))
+    for entry in (request.get_json() or {}).get("entry", []):
+        for change in entry.get("changes", []):
+            value = change.get("value", {})
+            for message in value.get("messages", []):
+                sender = message.get("from")
+                interactive = message.get("interactive", {})
+                reply = interactive.get("button_reply") or interactive.get("list_reply") or {}
+                action = reply.get("id", "")
+                body = message.get("text", {}).get("body", "")
+                if homilia_channel.stage_request(value["metadata"]["phone_number_id"],
+                                                 sender, body, verified):
+                    continue
+                if action.startswith("hom:") or body.lower().startswith("ajustar ") and homilia_channel.is_edit(body):
+                    if not verified or not homilia_channel.reviewer(sender):
+                        return "", 403
+                    # Confirmar a decisão no banco antes de reconhecer o webhook.
+                    with homilia_store.get_engine().begin() as conn:
+                        status = homilia_channel.handle(conn, sender, action, body)
+                    if status:
+                        homilia_channel.message(value["metadata"]["phone_number_id"], sender,
+                                                type="text", text={"body": status})
+                        continue
+                if verified and homilia_channel.reviewer(sender):
+                    kind = message.get("type")
+                    is_audio = kind == "audio" or (kind == "document" and
+                        message.get("document", {}).get("mime_type", "").startswith("audio/"))
+                    context = message.get("context") or {}
+                    if is_audio and context.get("forwarded"):
+                        phone_id = value["metadata"]["phone_number_id"]
+                        with homilia_store.get_engine().begin() as conn:
+                            homilia_store.register_audio(conn, message["id"], sender, message["timestamp"])
+                            eid = homilia_store.offer(conn, message["id"], sender, phone_id,
+                                                       message[kind]["id"], "")
+                            homilia_store.transition(conn, eid, sender, 1, "offered", "queued")
+                        continue
+                    elif kind == "text" and body and (context.get("forwarded") or context.get("id")):
+                        with homilia_store.get_engine().begin() as conn:
+                            result = homilia_store.attach_text(conn, sender, message["id"],
+                                body, message["timestamp"], context.get("id"))
+                        if result in ("attached", "duplicate", "ambiguous", "closed", "waiting_audio"):
+                            if result != "duplicate":
+                                replies = {
+                                    "attached": "Texto associado ao áudio da homilia.",
+                                    "waiting_audio": "Texto recebido. Aguardando o áudio da homilia.",
+                                    "ambiguous": "Há mais de um áudio aguardando texto. Responda ao áudio correspondente com o título.",
+                                    "closed": "Esse episódio já foi aprovado. Para alterar o título, crie uma nova edição."
+                                }
+                                homilia_channel.message(value["metadata"]["phone_number_id"], sender,
+                                                        type="text", text={"body": replies[result]})
+                            continue
+                single = {**entry, "changes": [{**change, "value": {**value, "messages": [message]}}]}
+                threading.Thread(target=process_message, args=(single, verified)).start()
 
     return '', 200
 

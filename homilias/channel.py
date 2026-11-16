@@ -1,0 +1,194 @@
+import hashlib
+import hmac
+import io
+import os
+import re
+import unicodedata
+
+import requests
+import sqlalchemy as sa
+from flask import Blueprint, abort, render_template, request, send_file
+
+from .store import asset, episodes, source_text, transition
+
+
+STATES = {
+    "offered": "Aguardando preparo", "queued": "Na fila de preparo",
+    "waiting_text": "Aguardando texto", "preparing": "Preparando",
+    "preview": "Aguardando aprovação", "approved": "Aprovado para publicar",
+    "publishing": "Publicando", "clicked": "Confirmando publicação",
+    "published": "Publicado", "check_spotify": "Conferir no Spotify",
+    "failed": "Falha no preparo", "cancelled": "Cancelado",
+}
+PREVIEW_STATES = ("preview", "approved", "publishing", "clicked", "published", "check_spotify")
+
+
+def stage_token():
+    """Link privado independente dos tokens de prévia de cada edição."""
+    configured = os.getenv("HOMILIA_STAGE_TOKEN")
+    if configured:
+        return configured
+    secret, owner = os.getenv("WHATSAPP_APP_SECRET"), os.getenv("HOMILIA_OWNER_WA_ID")
+    if not secret or not owner:
+        return None
+    return hmac.new(secret.encode(), ("homilias-stage:" + owner).encode(), hashlib.sha256).hexdigest()
+
+
+def stage_url():
+    token = stage_token()
+    base = os.getenv("HOMILIA_PUBLIC_URL", "").strip().rstrip("/")
+    if not token or not base or not os.getenv("HOMILIA_OWNER_WA_ID"):
+        return None
+    return base + "/homilias/stage/" + token
+
+
+def stage_request(phone, sender, body, verified):
+    """Atalho determinístico do WhatsApp, sem banco nem chamada ao modelo."""
+    normalized = unicodedata.normalize("NFKD", body.casefold())
+    normalized = "".join(c for c in normalized if not unicodedata.combining(c))
+    normalized = " ".join(normalized.split()).rstrip(".!?")
+    if normalized not in ("painel homilias", "painel de homilias", "painel das homilias",
+                          "stage homilias", "painel do podcast"):
+        return False
+    if not verified or not reviewer(sender):
+        abort(403)
+    url = stage_url()
+    body = ("Painel de homilias · Nos Passos de Cristo\n\n" + url +
+            "\n\nTodos os episódios, status e materiais para publicação. Guarde este link privado.") if url else (
+            "O painel de homilias ainda precisa de configuração no servidor. "
+            "Confira HOMILIA_PUBLIC_URL e as variáveis de acesso ao painel.")
+    message(phone, sender, type="text", text={"body": body})
+    return True
+
+
+def signed(body, signature):
+    secret = os.getenv("WHATSAPP_APP_SECRET")
+    if not secret:
+        return False
+    digest = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest("sha256=" + digest, signature or "")
+
+
+def reviewer(sender):
+    return bool(sender and sender == os.getenv("HOMILIA_OWNER_WA_ID"))
+
+
+def message(phone, owner, **fields):
+    response = requests.post(
+        f"https://graph.facebook.com/v20.0/{phone}/messages",
+        headers={"Authorization": "Bearer " + os.environ["WHATSAPP_TOKEN"]},
+        json={"messaging_product": "whatsapp", "to": owner, **fields}, timeout=25)
+    response.raise_for_status()
+    return response.json()["messages"][0]["id"]
+
+
+def buttons(phone, owner, body, options):
+    rows = [{"type": "reply", "reply": {"id": key, "title": label}} for key, label in options]
+    return message(phone, owner, type="interactive", interactive={
+        "type": "button", "body": {"text": body}, "action": {"buttons": rows}})
+
+
+def handle(conn, sender, action, msg):
+    # O remetente e a assinatura do webhook são conferidos antes do dispatch.
+    dismiss = re.fullmatch(r"hom:dismiss:([0-9a-f]{32}):1", action)
+    if dismiss:
+        for before in ("offered", "queued", "preparing", "preview"):
+            if transition(conn, dismiss[1], sender, 1, before, "cancelled", preview=None, notice=None):
+                return "Edição cancelada."
+        return "Essa edição já mudou de estado."
+    match = re.fullmatch(r"hom:(prepare|approve|cancel|retry):([0-9a-f]{32}):(\d{1,9})", action)
+    if match:
+        verb, eid, version = match.groups()
+        before, after = {"prepare": ("offered", "queued"), "approve": ("preview", "approved"),
+                         "cancel": ("preview", "cancelled"), "retry": ("failed", "queued")}[verb]
+        ok = transition(conn, eid, sender, int(version), before, after, notice=None)
+        if ok:
+            return {"prepare": "Homilia na fila de preparo.", "approve": "Edição aprovada para publicação.",
+                    "cancel": "Edição cancelada.", "retry": "Preparo solicitado novamente."}[verb]
+        return "Este botão já foi usado ou pertence a outra versão."
+    edit = re.fullmatch(r"ajustar ([0-9a-f]{32}) v(\d{1,9})\s+(.+)", msg.strip(), re.S | re.I)
+    if edit:
+        eid, version, note = edit.groups()
+        if transition(conn, eid.lower(), sender, int(version), "preview", "queued",
+                      version=int(version) + 1, note=note.strip(), preview=None, notice=None):
+            return "Pedido recebido. Você receberá uma nova prévia para aprovar."
+        return "Essa prévia já foi encerrada."
+    return None
+
+
+def preview_routes(get_engine):
+    bp = Blueprint("homilias", __name__, template_folder="templates")
+
+    def check_stage(token):
+        expected = stage_token()
+        if not expected or not hmac.compare_digest(expected, token) or not os.getenv("HOMILIA_OWNER_WA_ID"):
+            abort(404)
+
+    @bp.get("/homilias/stage/<token>")
+    def stage(token):
+        check_stage(token)
+        with get_engine().connect() as conn:
+            rows = conn.execute(sa.select(episodes.c.id, episodes.c.title, episodes.c.state,
+                episodes.c.version, episodes.c.preview, episodes.c.spotify_id,
+                episodes.c.source_id).where(episodes.c.owner == os.environ["HOMILIA_OWNER_WA_ID"])
+                .order_by(episodes.c.title, episodes.c.id)).mappings().all()
+        return render_template("homilias_stage.html", jobs=rows, states=STATES, stage_token=token)
+
+    @bp.get("/homilias/stage/<token>/episode/<eid>")
+    def stage_episode(token, eid):
+        check_stage(token)
+        with get_engine().connect() as conn:
+            row = conn.execute(sa.select(episodes).where(episodes.c.id == eid,
+                episodes.c.owner == os.environ["HOMILIA_OWNER_WA_ID"])).mappings().first()
+            if not row:
+                abort(404)
+            return render_template("homilia.html", job=row, states=STATES, stage_token=token,
+                token=row["preview"] if row["state"] in PREVIEW_STATES else None,
+                source_text=source_text(conn, row["source_id"]))
+
+    @bp.get("/homilias/p/<token>")
+    @bp.get("/homilias/p/<token>/<kind>")
+    def view(token, kind=None):
+        with get_engine().connect() as conn:
+            row = conn.execute(sa.select(episodes.c.id, episodes.c.version, episodes.c.title,
+                episodes.c.description, episodes.c.source_id, episodes.c.state,
+                episodes.c.spotify_id).where(episodes.c.preview == token,
+                episodes.c.state.in_(PREVIEW_STATES))).mappings().first()
+            if not row:
+                abort(404)
+            if kind is None:
+                return render_template("homilia.html", job=row, token=token, states=STATES,
+                                       source_text=source_text(conn, row["source_id"]))
+            if kind not in ("cover", "audio"):
+                abort(404)
+            data = asset(conn, row["id"], kind)
+            if not data:
+                abort(404)
+            return send_file(io.BytesIO(data),
+                             mimetype={"cover": "image/png", "audio": "audio/mp4"}[kind],
+                             as_attachment=request.args.get("download") == "1",
+                             download_name=f"homilia-{row['id']}-v{row['version']}-{'capa.png' if kind == 'cover' else 'audio.m4a'}",
+                             conditional=True)
+
+    @bp.after_request
+    def private(response):
+        response.headers.update({"Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer",
+                                 "X-Robots-Tag": "noindex, nofollow"})
+        return response
+    return bp
+
+
+def is_edit(body):
+    return bool(re.match(r"ajustar [0-9a-f]{32} v\d+\s", body, re.I))
+
+
+def legacy_audio_action(conn, owner, action):
+    match = re.fullmatch(r"hom:(act|memo):([0-9a-f]{32}):1", action)
+    if not match:
+        return None, None
+    verb, eid = match.groups()
+    transcript = conn.execute(sa.select(episodes.c.transcript).where(
+        episodes.c.id == eid, episodes.c.owner == owner)).scalar_one_or_none()
+    return (transcript, {"act": "0", "memo": "1"}[verb]) if transcript else (None, None)
+
+

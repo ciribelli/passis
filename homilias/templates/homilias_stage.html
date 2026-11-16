@@ -1,0 +1,25 @@
+{% extends "homilias_base.html" %}
+{% block title %}Stage de episódios · Nos Passos de Cristo{% endblock %}
+{% block content %}
+<div class="eyebrow">Nos Passos de Cristo · Painel privado</div><h1>Stage de episódios</h1>
+<p class="muted">Todos os episódios do canal, desde o recebimento até a publicação. Abra um episódio para conferir seus textos e baixar os arquivos disponíveis.</p>
+<p class="counts">{{ jobs|length }} episódio(s) · {{ jobs|selectattr('state', 'equalto', 'preview')|list|length }} aguardando aprovação · {{ jobs|selectattr('state', 'equalto', 'approved')|list|length }} aprovado(s) · {{ jobs|selectattr('state', 'equalto', 'published')|list|length }} publicado(s)</p>
+<section class="card"><div class="filters"><input type="search" id="search" placeholder="Buscar por título ou identificação…" aria-label="Buscar episódio"><select id="state" aria-label="Filtrar por status"><option value="">Todos os status</option>{% for key, label in states.items() %}<option value="{{ key }}">{{ label }}</option>{% endfor %}</select></div>
+<div class="table-wrap"><table><thead><tr><th scope="col">Episódio</th><th scope="col">Status</th><th scope="col">Versão</th><th scope="col">Material</th></tr></thead><tbody>
+{% for job in jobs %}<tr data-state="{{ job.state }}" data-search="{{ ((job.title or '') ~ ' ' ~ job.id)|lower }}"><td>{{ job.title or 'Aguardando título' }}<br><small class="muted">{{ job.id }}</small></td><td><span class="badge">{{ states.get(job.state, job.state) }}</span></td><td>v{{ job.version }}</td><td><a href="{{ url_for('homilias.stage_episode',token=stage_token,eid=job.id) }}">Abrir episódio →</a></td></tr>{% endfor %}
+</tbody></table></div><p id="empty" class="empty" {% if jobs %}hidden{% endif %}>Nenhum episódio encontrado.</p><p id="results" class="help" role="status" aria-live="polite"></p></section>
+<p class="help">Guarde este link para voltar ao painel. Ele dá acesso aos materiais de todos os episódios do canal. Os status refletem o registro do Passis; uma publicação feita manualmente no Spotify pode precisar de conferência.</p>
+{% endblock %}
+{% block scripts %}<script>
+const search = document.getElementById('search'), state = document.getElementById('state');
+function filter() {
+  let count = 0;
+  document.querySelectorAll('tr[data-state]').forEach(row => {
+    row.hidden = !(row.dataset.search.includes(search.value.trim().toLocaleLowerCase('pt-BR')) && (!state.value || row.dataset.state === state.value));
+    if (!row.hidden) count++;
+  });
+  document.getElementById('empty').hidden = count !== 0;
+  document.getElementById('results').textContent = count + ' episódio(s) exibido(s).';
+}
+search.addEventListener('input', filter); state.addEventListener('change', filter);
+</script>{% endblock %}

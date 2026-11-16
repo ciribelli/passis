@@ -1,0 +1,10 @@
+SQLAlchemy>=2.0,<3
+psycopg2-binary>=2.9,<3
+openai>=1.58,<3
+requests>=2.31,<3
+Flask>=2.3,<4
+python-dotenv>=1,<2
+numpy>=1.25,<3
+scipy>=1.11,<2
+imageio-ffmpeg>=0.5,<1
+playwright>=1.48,<2
