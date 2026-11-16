@@ -3,6 +3,7 @@ import hmac
 import io
 import os
 import re
+import unicodedata
 
 import requests
 import sqlalchemy as sa
@@ -31,6 +32,33 @@ def stage_token():
     if not secret or not owner:
         return None
     return hmac.new(secret.encode(), ("homilias-stage:" + owner).encode(), hashlib.sha256).hexdigest()
+
+
+def stage_url():
+    token = stage_token()
+    base = os.getenv("HOMILIA_PUBLIC_URL", "").strip().rstrip("/")
+    if not token or not base or not os.getenv("HOMILIA_OWNER_WA_ID"):
+        return None
+    return base + "/homilias/stage/" + token
+
+
+def stage_request(phone, sender, body, verified):
+    """Atalho determinístico do WhatsApp, sem banco nem chamada ao modelo."""
+    normalized = unicodedata.normalize("NFKD", body.casefold())
+    normalized = "".join(c for c in normalized if not unicodedata.combining(c))
+    normalized = " ".join(normalized.split()).rstrip(".!?")
+    if normalized not in ("painel homilias", "painel de homilias", "painel das homilias",
+                          "stage homilias", "painel do podcast"):
+        return False
+    if not verified or not reviewer(sender):
+        abort(403)
+    url = stage_url()
+    body = ("Painel de homilias · Nos Passos de Cristo\n\n" + url +
+            "\n\nTodos os episódios, status e materiais para publicação. Guarde este link privado.") if url else (
+            "O painel de homilias ainda precisa de configuração no servidor. "
+            "Confira HOMILIA_PUBLIC_URL e as variáveis de acesso ao painel.")
+    message(phone, sender, type="text", text={"body": body})
+    return True
 
 
 def signed(body, signature):

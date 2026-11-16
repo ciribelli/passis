@@ -6,6 +6,8 @@ O painel privado em `/homilias/stage/<token-do-stage>` lista todos os episódios
 
 ## Obter o link do painel
 
+Envie **painel homilias** ao Passis pelo WhatsApp. Ele responde com o link privado do painel. Também aceita “painel de homilias”, “painel das homilias”, “stage homilias” e “painel do podcast”. O atalho exige o número proprietário (`HOMILIA_OWNER_WA_ID`) e a assinatura válida do webhook. Funciona sem consultar banco ou modelo e tem prioridade sobre a associação de textos a áudios, inclusive ao responder outra mensagem.
+
 No ambiente com as variáveis do servidor:
 
 ```sh

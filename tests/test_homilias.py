@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from flask import Flask
 import sqlalchemy as sa
+from werkzeug.exceptions import Forbidden
 
 from homilias import channel, store, worker
 
@@ -79,6 +80,35 @@ class EpisodesTest(unittest.TestCase):
                          ("transcrição", "0"))
         self.assertEqual(channel.legacy_audio_action(self.conn, "other", f"hom:memo:{self.eid}:1"),
                          (None, None))
+
+    @patch.dict(os.environ, {"HOMILIA_STAGE_TOKEN": "panel-secret", "HOMILIA_OWNER_WA_ID": "owner",
+                             "HOMILIA_PUBLIC_URL": "https://example.test/"}, clear=True)
+    @patch.object(channel, "message")
+    def test_whatsapp_panel_command_returns_private_link(self, send):
+        for text in ("painel homilias", "Painel de Homilias", " PAINEL DAS HOMÍLIAS! ",
+                     "painel do podcast", "stage homilias"):
+            self.assertTrue(channel.stage_request("phone", "owner", text, True))
+            args, fields = send.call_args
+            self.assertEqual(args, ("phone", "owner"))
+            self.assertIn("https://example.test/homilias/stage/panel-secret", fields["text"]["body"])
+        self.assertFalse(channel.stage_request("phone", "owner", "32º Domingo do Tempo Comum", True))
+        self.assertEqual(send.call_count, 5)
+
+    @patch.dict(os.environ, {"HOMILIA_OWNER_WA_ID": "owner"}, clear=True)
+    @patch.object(channel, "message")
+    def test_whatsapp_panel_command_rejects_unverified_and_other_senders(self, send):
+        for sender, verified in (("other", True), ("owner", False), (None, True)):
+            with self.assertRaises(Forbidden):
+                channel.stage_request("phone", sender, "painel homilias", verified)
+        send.assert_not_called()
+        self.assertTrue(channel.stage_request("phone", "owner", "painel homilias", True))
+        self.assertIn("configuração", send.call_args.kwargs["text"]["body"])
+
+    @patch.dict(os.environ, {"HOMILIA_OWNER_WA_ID": "owner", "WHATSAPP_APP_SECRET": "app-secret",
+                             "HOMILIA_PUBLIC_URL": "https://example.test"}, clear=True)
+    def test_panel_link_uses_existing_configuration_without_database(self):
+        expected = hmac.new(b"app-secret", b"homilias-stage:owner", hashlib.sha256).hexdigest()
+        self.assertEqual(channel.stage_url(), "https://example.test/homilias/stage/" + expected)
 
     def test_downloads_have_attachment_names_and_copy_fields(self):
         self.preview()

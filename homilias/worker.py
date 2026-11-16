@@ -149,10 +149,10 @@ def main():
     parser.add_argument("--id")
     args = parser.parse_args()
     if args.command == "stage-url":
-        token = channel.stage_token()
-        if not token or not os.getenv("HOMILIA_OWNER_WA_ID"):
-            raise SystemExit("Configure HOMILIA_OWNER_WA_ID e HOMILIA_STAGE_TOKEN (ou WHATSAPP_APP_SECRET).")
-        print(os.environ["HOMILIA_PUBLIC_URL"].rstrip("/") + "/homilias/stage/" + token)
+        url = channel.stage_url()
+        if not url:
+            raise SystemExit("Configure HOMILIA_PUBLIC_URL, HOMILIA_OWNER_WA_ID e HOMILIA_STAGE_TOKEN (ou WHATSAPP_APP_SECRET).")
+        print(url)
         return
     if args.command == "login":
         from .spotify import login

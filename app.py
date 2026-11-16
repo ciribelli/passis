@@ -112,6 +112,9 @@ def webhook():
                 reply = interactive.get("button_reply") or interactive.get("list_reply") or {}
                 action = reply.get("id", "")
                 body = message.get("text", {}).get("body", "")
+                if homilia_channel.stage_request(value["metadata"]["phone_number_id"],
+                                                 sender, body, verified):
+                    continue
                 if action.startswith("hom:") or body.lower().startswith("ajustar ") and homilia_channel.is_edit(body):
                     if not verified or not homilia_channel.reviewer(sender):
                         return "", 403
