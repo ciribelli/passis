@@ -1,7 +1,7 @@
 {% extends "homilias_base.html" %}
 {% block title %}{{ job.title or 'Episódio em preparo' }} · Nos Passos de Cristo{% endblock %}
-{% macro copy_button(target, label) %}
-<button type="button" class="copy" data-copy="{{ target }}" aria-label="Copiar {{ label }}"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h3"/></svg>Copiar</button>
+{% macro copy_button(target, label, caption='Copiar') %}
+<button type="button" class="copy" data-copy="{{ target }}" aria-label="Copiar {{ label }}"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h3"/></svg>{{ caption }}</button>
 {% endmacro %}
 {% block content %}
 {% if stage_token %}<p><a href="{{ url_for('homilias.stage',token=stage_token) }}">← Todos os episódios</a></p>{% endif %}
@@ -20,6 +20,22 @@
 <section class="card" aria-labelledby="files-heading"><h2 id="files-heading">Baixe os arquivos para enviar ao Spotify</h2>
 <div class="assets"><div><img alt="Capa do episódio" src="{{ url_for('homilias.view',token=token,kind='cover') }}"><a class="button" href="{{ url_for('homilias.view',token=token,kind='cover',download=1) }}">Baixar capa · PNG</a><p class="help">Use como imagem deste episódio.</p></div>
 <div><h3>Áudio tratado</h3><p class="muted">Ouça para conferir a qualidade da voz antes de publicar.</p><audio controls preload="metadata" src="{{ url_for('homilias.view',token=token,kind='audio') }}"></audio><a class="button primary" href="{{ url_for('homilias.view',token=token,kind='audio',download=1) }}">Baixar áudio · M4A</a><p class="help">Envie este arquivo na etapa de upload do episódio.</p></div></div></section>
+<section class="card" aria-labelledby="transcript-heading">
+<h2 id="transcript-heading">Transcrição da homilia</h2>
+{% if transcript and transcript.strip() %}
+<div class="field-head"><label for="episode-transcript">Texto completo do áudio</label>
+{{ copy_button('episode-transcript', 'transcrição', 'Copiar transcrição') }}</div>
+<textarea id="episode-transcript" readonly rows="10">{{ transcript }}</textarea>
+<p class="live" id="transcript-status" role="status"></p>
+{% elif stage_token %}
+{% if request.args.get('transcricao') == 'solicitada' %}
+<p role="status">Transcrição solicitada. <a href="{{ url_for('homilias.stage_episode',token=stage_token,eid=job.id) }}">Atualizar para conferir</a></p>
+{% else %}<p>Esta edição ainda não tem transcrição.</p>{% endif %}
+<form method="post" action="{{ url_for('homilias.stage_action',token=stage_token,eid=job.id,action='transcribe') }}">
+<input type="hidden" name="version" value="{{ job.version }}"><input type="hidden" name="state" value="{{ job.state }}">
+<button type="submit">Gerar transcrição</button></form>
+{% else %}<p>Esta edição ainda não tem transcrição. Você pode gerá-la na página do episódio pelo painel de homilias.</p>{% endif %}
+</section>
 {% endif %}
 <section class="card reference" aria-labelledby="input-heading"><div class="eyebrow">Dados de entrada · Referência</div><h2 id="input-heading">Texto recebido</h2><p class="muted">Mensagem encaminhada para preparar esta edição. Para preencher o Spotify, use o título e a descrição em “Material de publicação”.</p><details><summary>Ver mensagem original</summary><p class="source">{{ source_text or 'Nenhum texto associado ao áudio até o momento.' }}</p></details><p class="help">Identificação interna: {{ job.id }} · versão {{ job.version }}</p></section>
 {% endblock %}
@@ -27,11 +43,12 @@
 <script>
 document.querySelectorAll('[data-copy]').forEach(button => button.addEventListener('click', async () => {
   const field = document.getElementById(button.dataset.copy);
-  const status = document.getElementById('copy-status');
+  const isTranscript = field.id === 'episode-transcript';
+  const status = document.getElementById(isTranscript ? 'transcript-status' : 'copy-status');
   try {
     if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(field.value);
     else { field.focus(); field.select(); if (!document.execCommand('copy')) throw new Error('copy'); }
-    status.textContent = (field.id === 'spotify-title' ? 'Título copiado.' : 'Descrição copiada.') + ' Cole no campo correspondente do Spotify.';
+    status.textContent = isTranscript ? 'Transcrição copiada.' : (field.id === 'spotify-title' ? 'Título copiado.' : 'Descrição copiada.') + ' Cole no campo correspondente do Spotify.';
   } catch (_) { field.focus(); field.select(); status.textContent = 'Texto selecionado. Use Ctrl+C ou ⌘C para copiar.'; }
 }));
 </script>

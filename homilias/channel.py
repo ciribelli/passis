@@ -144,7 +144,7 @@ def preview_routes(get_engine):
     @bp.post("/homilias/stage/<token>/episode/<eid>/<action>")
     def stage_action(token, eid, action):
         check_stage(token)
-        if action not in ("trash", "prepare") or not re.fullmatch(r"[0-9a-f]{32}", eid):
+        if action not in ("trash", "prepare", "transcribe") or not re.fullmatch(r"[0-9a-f]{32}", eid):
             abort(404)
         version = request.form.get("version", type=int)
         expected_state = request.form.get("state")
@@ -155,6 +155,17 @@ def preview_routes(get_engine):
                 abort(404)
             if row["state"] != expected_state or row["version"] != version:
                 abort(409, "A edição mudou. Atualize o painel.")
+            if action == "transcribe":
+                if row["state"] not in PREVIEW_STATES:
+                    abort(409, "A edição ainda não tem prévia.")
+                if not row["transcript"].strip():
+                    try:
+                        subprocess.Popen([sys.executable, "-m", "homilias.worker", "transcribe-preview",
+                                          "--id", eid], start_new_session=True)
+                    except OSError:
+                        abort(503, "Não foi possível iniciar a transcrição.")
+                return redirect(url_for("homilias.stage_episode", token=token, eid=eid,
+                                        transcricao="solicitada"), code=303)
             if action == "trash":
                 if expected_state not in TRASHABLE:
                     abort(409, "Esta edição não pode ser movida para a lixeira agora.")
@@ -184,7 +195,7 @@ def preview_routes(get_engine):
                 episodes.c.owner == os.environ["HOMILIA_OWNER_WA_ID"], episodes.c.state != "trashed")).mappings().first()
             if not row:
                 abort(404)
-            return render_template("homilia.html", job=row, states=STATES, stage_token=token,
+            return render_template("homilia.html", job=row, transcript=row["transcript"], states=STATES, stage_token=token,
                 token=row["preview"] if row["state"] in PREVIEW_STATES else None,
                 source_text=source_text(conn, row["source_id"]))
 
@@ -192,14 +203,16 @@ def preview_routes(get_engine):
     @bp.get("/homilias/p/<token>/<kind>")
     def view(token, kind=None):
         with get_engine().connect() as conn:
-            row = conn.execute(sa.select(episodes.c.id, episodes.c.version, episodes.c.title,
-                episodes.c.description, episodes.c.source_id, episodes.c.state,
-                episodes.c.spotify_id).where(episodes.c.preview == token,
+            query = sa.select(episodes.c.id, episodes.c.version, episodes.c.title,
+                episodes.c.description, episodes.c.source_id, episodes.c.state, episodes.c.spotify_id)
+            if kind is None:
+                query = query.add_columns(episodes.c.transcript)
+            row = conn.execute(query.where(episodes.c.preview == token,
                 episodes.c.state.in_(PREVIEW_STATES))).mappings().first()
             if not row:
                 abort(404)
             if kind is None:
-                return render_template("homilia.html", job=row, token=token, states=STATES,
+                return render_template("homilia.html", job=row, transcript=row["transcript"], token=token, states=STATES,
                                        source_text=source_text(conn, row["source_id"]))
             if kind not in ("cover", "audio"):
                 abort(404)

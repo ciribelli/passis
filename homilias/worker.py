@@ -168,11 +168,31 @@ def prepare_panel(engine, eid, version):
             process(engine, row)
 
 
+def transcribe_preview(engine, eid):
+    from openai import OpenAI
+    from .transcricao import episode_transcript
+
+    with engine.begin() as lock:
+        # Usa o mesmo lock do preparo pelo painel para ignorar cliques concorrentes.
+        if not lock.scalar(sa.text("SELECT pg_try_advisory_xact_lock(:key)"), {"key": int(eid[:15], 16)}):
+            return
+        row = lock.execute(sa.select(jobs).where(jobs.c.id == eid,
+            jobs.c.owner == os.environ["HOMILIA_OWNER_WA_ID"],
+            jobs.c.state.in_(channel.PREVIEW_STATES))).mappings().one_or_none()
+        if not row or row["transcript"].strip():
+            return
+        audio = store.asset(lock, eid, "source") or store.asset(lock, eid, "audio")
+        if not audio:
+            raise ValueError("O episódio não tem áudio armazenado para transcrever.")
+        with OpenAI(api_key=os.environ["HOMILIA_API_KEY"], timeout=180) as client:
+            episode_transcript(engine, client, row, audio)
+
+
 def main():
     load_dotenv()
     logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=["init", "login", "run", "once", "prepare-once", "prepare-panel", "resume-draft", "stage-url"])
+    parser.add_argument("command", choices=["init", "login", "run", "once", "prepare-once", "prepare-panel", "transcribe-preview", "resume-draft", "stage-url"])
     parser.add_argument("--id")
     parser.add_argument("--version", type=int)
     args = parser.parse_args()
@@ -197,6 +217,10 @@ def main():
                 jobs.c.state == "check_spotify").values(state="approved", notice=None)).rowcount
             if not n:
                 raise SystemExit("Nenhuma publicação pré-clique pendente para este ID.")
+    elif args.command == "transcribe-preview":
+        if not args.id:
+            parser.error("transcribe-preview exige --id")
+        transcribe_preview(engine, args.id)
     elif args.command == "prepare-panel":
         if not args.id or not args.version:
             parser.error("prepare-panel exige --id e --version")
