@@ -1,8 +1,38 @@
-<!doctype html>
-<html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ job.title }} · Nos Passos de Cristo</title>
-<style>body{max-width:40rem;margin:2rem auto;padding:0 1rem;background:#faf5e9;color:#34351d;font:1.1rem/1.5 Georgia,serif}img{width:min(100%,22rem);border-radius:.4rem}audio{width:100%}details p{white-space:pre-wrap}</style>
-<main><small>Nos Passos de Cristo · Prévia {{ job.version }}</small><h1>{{ job.title }}</h1>
-<img alt="Capa do episódio" src="{{ url_for('homilias.view',token=token,kind='cover') }}">
-<p>{{ job.description }}</p>{% if source_text %}<details><summary>Texto encaminhado</summary><p>{{ source_text }}</p></details>{% endif %}<audio controls preload="metadata" src="{{ url_for('homilias.view',token=token,kind='audio') }}"></audio>
-<p>Para publicar, aprove esta versão na conversa com o Passis.</p></main></html>
+{% extends "homilias_base.html" %}
+{% block title %}{{ job.title or 'Episódio em preparo' }} · Nos Passos de Cristo{% endblock %}
+{% macro copy_button(target, label) %}
+<button type="button" class="copy" data-copy="{{ target }}" aria-label="Copiar {{ label }}"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h3"/></svg>Copiar</button>
+{% endmacro %}
+{% block content %}
+{% if stage_token %}<p><a href="{{ url_for('homilias.stage',token=stage_token) }}">← Todos os episódios</a></p>{% endif %}
+<div class="eyebrow">Nos Passos de Cristo · Episódio · v{{ job.version }}</div>
+<h1>{{ job.title or 'Episódio em preparo' }}</h1>
+<span class="badge">{{ states.get(job.state, job.state) }}</span>
+<p class="status-message">{% if job.state == 'preview' %}Confira os textos, a capa e o áudio. Para autorizar a publicação desta versão, aprove na conversa com o Passis.{% elif job.state == 'approved' %}Esta versão foi aprovada para publicação. Aprovação e publicação são etapas diferentes; aguarde a confirmação do Spotify.{% elif job.state == 'published' %}A publicação deste episódio foi confirmada.{% elif job.state in ['clicked', 'check_spotify'] %}Confira o episódio no Spotify antes de tentar publicar novamente.{% else %}Acompanhe o status acima. Os arquivos ficam disponíveis quando a prévia está pronta.{% endif %}</p>
+{% if token %}
+<section class="card" aria-labelledby="spotify-heading">
+<div class="eyebrow">Material de publicação</div><h2 id="spotify-heading">Leve estes campos para o Spotify</h2>
+<p class="muted">Copie cada texto para o campo com o mesmo nome na tela de detalhes do episódio no Spotify for Creators. Os botões copiam somente o conteúdo do campo.</p>
+<div class="field"><div class="field-head"><label for="spotify-title">Título do episódio</label>{{ copy_button('spotify-title', 'título') }}</div><textarea id="spotify-title" readonly rows="3">{{ job.title }}</textarea><p class="help">Destino: campo “Título” no Spotify.</p></div>
+<div class="field"><div class="field-head"><label for="spotify-description">Descrição do episódio</label>{{ copy_button('spotify-description', 'descrição') }}</div><textarea id="spotify-description" readonly rows="6">{{ job.description }}</textarea><p class="help">Destino: campo “Descrição” no Spotify.</p></div>
+<div class="live" id="copy-status" role="status" aria-live="polite"></div>
+</section>
+<section class="card" aria-labelledby="files-heading"><h2 id="files-heading">Baixe os arquivos para enviar ao Spotify</h2>
+<div class="assets"><div><img alt="Capa do episódio" src="{{ url_for('homilias.view',token=token,kind='cover') }}"><a class="button" href="{{ url_for('homilias.view',token=token,kind='cover',download=1) }}">Baixar capa · PNG</a><p class="help">Use como imagem deste episódio.</p></div>
+<div><h3>Áudio tratado</h3><p class="muted">Ouça para conferir a qualidade da voz antes de publicar.</p><audio controls preload="metadata" src="{{ url_for('homilias.view',token=token,kind='audio') }}"></audio><a class="button primary" href="{{ url_for('homilias.view',token=token,kind='audio',download=1) }}">Baixar áudio · M4A</a><p class="help">Envie este arquivo na etapa de upload do episódio.</p></div></div></section>
+{% endif %}
+<section class="card reference" aria-labelledby="input-heading"><div class="eyebrow">Dados de entrada · Referência</div><h2 id="input-heading">Texto recebido</h2><p class="muted">Mensagem encaminhada para preparar esta edição. Para preencher o Spotify, use o título e a descrição em “Material de publicação”.</p><details><summary>Ver mensagem original</summary><p class="source">{{ source_text or 'Nenhum texto associado ao áudio até o momento.' }}</p></details><p class="help">Identificação interna: {{ job.id }} · versão {{ job.version }}</p></section>
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelectorAll('[data-copy]').forEach(button => button.addEventListener('click', async () => {
+  const field = document.getElementById(button.dataset.copy);
+  const status = document.getElementById('copy-status');
+  try {
+    if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(field.value);
+    else { field.focus(); field.select(); if (!document.execCommand('copy')) throw new Error('copy'); }
+    status.textContent = (field.id === 'spotify-title' ? 'Título copiado.' : 'Descrição copiada.') + ' Cole no campo correspondente do Spotify.';
+  } catch (_) { field.focus(); field.select(); status.textContent = 'Texto selecionado. Use Ctrl+C ou ⌘C para copiar.'; }
+}));
+</script>
+{% endblock %}

@@ -80,6 +80,47 @@ class EpisodesTest(unittest.TestCase):
         self.assertEqual(channel.legacy_audio_action(self.conn, "other", f"hom:memo:{self.eid}:1"),
                          (None, None))
 
+    def test_downloads_have_attachment_names_and_copy_fields(self):
+        self.preview()
+        self.conn.commit()
+        app = Flask(__name__)
+        app.register_blueprint(channel.preview_routes(lambda: self.engine))
+        client = app.test_client()
+        url = "/homilias/p/" + self.row()["preview"]
+        page = client.get(url).get_data(as_text=True)
+        self.assertIn('data-copy="spotify-title"', page)
+        self.assertIn('data-copy="spotify-description"', page)
+        for kind, extension, data in (("audio", ".m4a", b"final audio"), ("cover", ".png", b"image")):
+            response = client.get(url + "/" + kind + "?download=1")
+            self.assertEqual(response.data, data)
+            self.assertIn("attachment;", response.headers["Content-Disposition"])
+            self.assertIn(extension, response.headers["Content-Disposition"])
+            self.assertIn("no-store", response.headers["Cache-Control"])
+        self.assertNotIn("attachment", client.get(url + "/audio").headers.get("Content-Disposition", ""))
+
+    @patch.dict(os.environ, {"HOMILIA_STAGE_TOKEN": "private-stage", "HOMILIA_OWNER_WA_ID": "owner"})
+    def test_stage_requires_separate_token_and_scopes_all_states_to_owner(self):
+        self.preview()
+        preview_token = self.row()["preview"]
+        other = store.offer(self.conn, "other-audio", "someone-else", "phone", "media", "")
+        queued = store.offer(self.conn, "pending-audio", "owner", "phone", "media", "")
+        self.conn.commit()
+        app = Flask(__name__)
+        app.register_blueprint(channel.preview_routes(lambda: self.engine))
+        client = app.test_client()
+        base = "/homilias/stage/"
+        self.assertEqual(client.get(base + preview_token).status_code, 404)
+        self.assertEqual(client.get(base + "wrong").status_code, 404)
+        page = client.get(base + "private-stage").get_data(as_text=True)
+        self.assertIn(self.eid, page)
+        self.assertIn(queued, page)
+        self.assertNotIn(other, page)
+        detail = base + "private-stage/episode/"
+        self.assertEqual(client.get(detail + other).status_code, 404)
+        self.assertEqual(client.get(detail + queued).status_code, 200)
+        self.assertIn('data-copy="spotify-title"', client.get(detail + self.eid).get_data(as_text=True))
+        self.assertEqual(client.post(detail + self.eid).status_code, 405)
+
     def test_text_arrives_before_transcription_and_duplicate_delivery(self):
         store.register_audio(self.conn, "audio2", "owner", 1000)
         self.assertFalse(store.ready(self.conn, "audio2",

@@ -6,9 +6,31 @@ import re
 
 import requests
 import sqlalchemy as sa
-from flask import Blueprint, abort, render_template, send_file
+from flask import Blueprint, abort, render_template, request, send_file
 
 from .store import asset, episodes, source_text, transition
+
+
+STATES = {
+    "offered": "Aguardando preparo", "queued": "Na fila de preparo",
+    "waiting_text": "Aguardando texto", "preparing": "Preparando",
+    "preview": "Aguardando aprovação", "approved": "Aprovado para publicar",
+    "publishing": "Publicando", "clicked": "Confirmando publicação",
+    "published": "Publicado", "check_spotify": "Conferir no Spotify",
+    "failed": "Falha no preparo", "cancelled": "Cancelado",
+}
+PREVIEW_STATES = ("preview", "approved", "publishing", "clicked", "published", "check_spotify")
+
+
+def stage_token():
+    """Link privado independente dos tokens de prévia de cada edição."""
+    configured = os.getenv("HOMILIA_STAGE_TOKEN")
+    if configured:
+        return configured
+    secret, owner = os.getenv("WHATSAPP_APP_SECRET"), os.getenv("HOMILIA_OWNER_WA_ID")
+    if not secret or not owner:
+        return None
+    return hmac.new(secret.encode(), ("homilias-stage:" + owner).encode(), hashlib.sha256).hexdigest()
 
 
 def signed(body, signature):
@@ -69,18 +91,45 @@ def handle(conn, sender, action, msg):
 def preview_routes(get_engine):
     bp = Blueprint("homilias", __name__, template_folder="templates")
 
+    def check_stage(token):
+        expected = stage_token()
+        if not expected or not hmac.compare_digest(expected, token) or not os.getenv("HOMILIA_OWNER_WA_ID"):
+            abort(404)
+
+    @bp.get("/homilias/stage/<token>")
+    def stage(token):
+        check_stage(token)
+        with get_engine().connect() as conn:
+            rows = conn.execute(sa.select(episodes.c.id, episodes.c.title, episodes.c.state,
+                episodes.c.version, episodes.c.preview, episodes.c.spotify_id,
+                episodes.c.source_id).where(episodes.c.owner == os.environ["HOMILIA_OWNER_WA_ID"])
+                .order_by(episodes.c.title, episodes.c.id)).mappings().all()
+        return render_template("homilias_stage.html", jobs=rows, states=STATES, stage_token=token)
+
+    @bp.get("/homilias/stage/<token>/episode/<eid>")
+    def stage_episode(token, eid):
+        check_stage(token)
+        with get_engine().connect() as conn:
+            row = conn.execute(sa.select(episodes).where(episodes.c.id == eid,
+                episodes.c.owner == os.environ["HOMILIA_OWNER_WA_ID"])).mappings().first()
+            if not row:
+                abort(404)
+            return render_template("homilia.html", job=row, states=STATES, stage_token=token,
+                token=row["preview"] if row["state"] in PREVIEW_STATES else None,
+                source_text=source_text(conn, row["source_id"]))
+
     @bp.get("/homilias/p/<token>")
     @bp.get("/homilias/p/<token>/<kind>")
     def view(token, kind=None):
         with get_engine().connect() as conn:
             row = conn.execute(sa.select(episodes.c.id, episodes.c.version, episodes.c.title,
-                episodes.c.description, episodes.c.source_id).where(episodes.c.preview == token,
-                episodes.c.state.in_(["preview", "approved", "publishing", "clicked", "published",
-                                      "check_spotify"]))).mappings().first()
+                episodes.c.description, episodes.c.source_id, episodes.c.state,
+                episodes.c.spotify_id).where(episodes.c.preview == token,
+                episodes.c.state.in_(PREVIEW_STATES))).mappings().first()
             if not row:
                 abort(404)
             if kind is None:
-                return render_template("homilia.html", job=row, token=token,
+                return render_template("homilia.html", job=row, token=token, states=STATES,
                                        source_text=source_text(conn, row["source_id"]))
             if kind not in ("cover", "audio"):
                 abort(404)
@@ -89,6 +138,8 @@ def preview_routes(get_engine):
                 abort(404)
             return send_file(io.BytesIO(data),
                              mimetype={"cover": "image/png", "audio": "audio/mp4"}[kind],
+                             as_attachment=request.args.get("download") == "1",
+                             download_name=f"homilia-{row['id']}-v{row['version']}-{'capa.png' if kind == 'cover' else 'audio.m4a'}",
                              conditional=True)
 
     @bp.after_request

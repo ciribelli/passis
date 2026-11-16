@@ -145,9 +145,15 @@ def main():
     load_dotenv()
     logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=["init", "login", "run", "once", "prepare-once", "resume-draft"])
+    parser.add_argument("command", choices=["init", "login", "run", "once", "prepare-once", "resume-draft", "stage-url"])
     parser.add_argument("--id")
     args = parser.parse_args()
+    if args.command == "stage-url":
+        token = channel.stage_token()
+        if not token or not os.getenv("HOMILIA_OWNER_WA_ID"):
+            raise SystemExit("Configure HOMILIA_OWNER_WA_ID e HOMILIA_STAGE_TOKEN (ou WHATSAPP_APP_SECRET).")
+        print(os.environ["HOMILIA_PUBLIC_URL"].rstrip("/") + "/homilias/stage/" + token)
+        return
     if args.command == "login":
         from .spotify import login
         login()
