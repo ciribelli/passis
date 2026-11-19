@@ -144,6 +144,14 @@ def source_text(conn, source):
         incoming.c.source_id == source)).scalar_one_or_none()
 
 
+def episode_id_by_text(conn, text_id, owner):
+    return conn.execute(
+        sa.select(episodes.c.id)
+        .join(incoming, episodes.c.source_id == incoming.c.source_id)
+        .where(incoming.c.text_id == text_id, episodes.c.owner == owner)
+    ).scalar_one_or_none()
+
+
 def ready(conn, source, now=None):
     row = conn.execute(sa.select(incoming).where(incoming.c.source_id == source)).mappings().first()
     if not row or row["source_text"]:

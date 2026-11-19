@@ -116,7 +116,8 @@ def eh_audio_homilia(file_path, transcricao, from_number, timestamp=None):
 
 def iniciar_fluxo_homilia(phone_number_id, from_number, source_id, audio_id, timestamp, transcricao, audio_bytes=None):
     """Registra o áudio no pipeline de homilias reutilizando a transcrição já gerada."""
-    with homilia_store.get_engine().begin() as conn:
+    engine = homilia_store.get_engine()
+    with engine.begin() as conn:
         homilia_store.register_audio(conn, source_id, from_number, timestamp)
         eid = homilia_store.offer(conn, source_id, from_number, phone_number_id, audio_id, transcricao or "")
         if audio_bytes:
@@ -125,15 +126,21 @@ def iniciar_fluxo_homilia(phone_number_id, from_number, source_id, audio_id, tim
         tem_texto = bool(homilia_store.source_text(conn, source_id))
 
     if tem_texto:
-        msg = (
-            "🎙️ Homilia identificada e colocada na fila de preparo! "
-            "Assim que a prévia (capa, áudio e descrição) ficar pronta, envio o link aqui."
-        )
+        started = homilia_channel.launch_prepare(engine, eid, from_number)
+        if started:
+            msg = (
+                "🎙️ Homilia identificada! Já iniciei o preparo (áudio, capa e descrição). "
+                "Assim que a prévia ficar pronta, envio o link aqui."
+            )
+        else:
+            msg = (
+                "🎙️ Homilia identificada e colocada na fila de preparo! "
+                "Assim que a prévia (capa, áudio e descrição) ficar pronta, envio o link aqui."
+            )
     else:
         msg = (
-            "🎙️ Homilia identificada e colocada na fila de preparo! "
-            "Se ainda não enviou o texto/título litúrgico, encaminhe-o agora "
-            "(ou responda a este áudio) para orientar a edição."
+            "🎙️ Homilia identificada! Encaminhe ou responda agora com o texto/título litúrgico "
+            "— assim que eu receber, inicio o preparo automaticamente."
         )
     send_msg.send_wapp_msg(phone_number_id, from_number, msg)
     return eid

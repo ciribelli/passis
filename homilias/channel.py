@@ -114,6 +114,31 @@ def extract_spotify_id(raw):
     return match.group(1) if match else None
 
 
+def launch_prepare(engine, eid, owner):
+    """Inicia o preparo em background assim que o episódio tiver áudio e texto associados."""
+    with engine.begin() as conn:
+        row = conn.execute(
+            sa.select(episodes).where(episodes.c.id == eid, episodes.c.owner == owner).with_for_update()
+        ).mappings().first()
+        if not row or row["state"] not in PREPARABLE:
+            return False
+        if not source_text(conn, row["source_id"]):
+            return False
+        version = row["version"]
+        if not transition(conn, eid, owner, version, row["state"], "preparing", notice="panel"):
+            return False
+    try:
+        subprocess.Popen(
+            [sys.executable, "-m", "homilias.worker", "prepare-panel", "--id", eid, "--version", str(version)],
+            start_new_session=True,
+        )
+        return True
+    except OSError:
+        with engine.begin() as conn:
+            transition(conn, eid, owner, version, "preparing", "queued", notice=None)
+        return False
+
+
 def stage_token():
     """Link privado independente dos tokens de prévia de cada edição."""
     configured = os.getenv("HOMILIA_STAGE_TOKEN")
@@ -351,6 +376,7 @@ def preview_routes(get_engine):
             if kind is None:
                 return render_template("homilia.html", job=row, pub=publish_meta(row),
                     transcript=row["transcript"], token=token, states=STATES,
+                    panel_token=stage_token(),
                     source_text=source_text(conn, row["source_id"]),
                     spotify_wizard_url=SPOTIFY_WIZARD_URL,
                     editable=False, can_mark_published=False)

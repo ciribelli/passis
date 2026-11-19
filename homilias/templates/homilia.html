@@ -4,7 +4,14 @@
 <button type="button" class="copy" data-copy="{{ target }}" data-caption="{{ caption }}" aria-label="Copiar {{ label }}"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h3"/></svg><span>{{ caption }}</span></button>
 {% endmacro %}
 {% block content %}
-{% if stage_token %}<p><a href="{{ url_for('homilias.stage',token=stage_token) }}">← Todos os episódios</a></p>{% endif %}
+{% if stage_token %}
+<p><a href="{{ url_for('homilias.stage',token=stage_token) }}">← Todos os episódios</a></p>
+{% elif panel_token %}
+<p class="actions">
+  <a href="{{ url_for('homilias.stage',token=panel_token) }}">← Todos os episódios</a>
+  <a href="{{ url_for('homilias.stage_episode',token=panel_token,eid=job.id) }}">Gerenciar no painel (agendar / editar) →</a>
+</p>
+{% endif %}
 <div class="eyebrow">Nos Passos de Cristo · Episódio · v{{ job.version }}</div>
 <h1>{{ job.title or 'Episódio em preparo' }}</h1>
 
