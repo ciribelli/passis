@@ -1,5 +1,7 @@
 import tempfile
+import unicodedata
 from pathlib import Path
+import sqlalchemy as sa
 from homilias import channel as homilia_channel, store as homilia_store
 import agent
 import main
@@ -8,8 +10,133 @@ import requests
 import os
 import json
 import app
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import pytz
+
+HOMILIA_CONTEXT_KEYWORDS = (
+    "homilia",
+    "evangelho",
+    "liturgia",
+    "domingo do tempo comum",
+    "padre",
+    "nos passos de cristo",
+)
+
+HOMILIA_TRANSCRIPT_MARKERS = (
+    "meus queridos irmaos",
+    "queridos irmaos",
+    "meus irmaos",
+    "santo evangelho",
+    "liturgia de hoje",
+    "em nome do pai",
+    "tempo comum",
+    "quaresma",
+    "advento",
+    "pascoa",
+    "nos passos de cristo",
+    "palavra do senhor",
+    "gloria a vos, senhor",
+    "gloria a vos senhor",
+)
+
+HOMILIA_MIN_WORDS = 250
+HOMILIA_MIN_BYTES = int(1.5 * 1024 * 1024)
+HOMILIA_CONTEXT_WINDOW_MINUTES = 5
+
+
+def _normalizar_texto(texto):
+    if not texto:
+        return ""
+    normalized = unicodedata.normalize("NFKD", str(texto).casefold())
+    return "".join(c for c in normalized if not unicodedata.combining(c))
+
+
+def _tem_contexto_homilia_recente(from_number, timestamp=None):
+    # 1a. Texto litúrgico encaminhado previamente em homilia_incoming
+    try:
+        dt = datetime.fromtimestamp(int(timestamp), timezone.utc) if timestamp else datetime.now(timezone.utc)
+        with homilia_store.get_engine().connect() as conn:
+            pending = conn.execute(
+                sa.select(homilia_store.incoming.c.source_id).where(
+                    homilia_store.incoming.c.owner == from_number,
+                    homilia_store.incoming.c.source_id.like("text:%"),
+                    homilia_store.incoming.c.received_at >= dt - timedelta(minutes=HOMILIA_CONTEXT_WINDOW_MINUTES),
+                    homilia_store.incoming.c.received_at <= dt + timedelta(minutes=1),
+                )
+            ).first()
+            if pending:
+                return True
+    except Exception as e:
+        print(f"Aviso ao verificar homilia_incoming: {e}")
+
+    # 1b. Última mensagem de texto do usuário em Thread nos últimos minutos
+    try:
+        cutoff = datetime.utcnow() - timedelta(minutes=HOMILIA_CONTEXT_WINDOW_MINUTES)
+        recent_threads = (
+            app.Thread.query
+            .filter(app.Thread.date_created >= cutoff)
+            .order_by(app.Thread.date_created.desc())
+            .limit(5)
+            .all()
+        )
+        for thread in recent_threads:
+            try:
+                payload = json.loads(thread.content, strict=False)
+            except (json.JSONDecodeError, TypeError):
+                continue
+            if payload.get("role") == "user":
+                norm_msg = _normalizar_texto(payload.get("content", ""))
+                if any(kw in norm_msg for kw in HOMILIA_CONTEXT_KEYWORDS):
+                    return True
+                break
+    except Exception as e:
+        print(f"Aviso ao verificar Thread recente: {e}")
+
+    return False
+
+
+def eh_audio_homilia(file_path, transcricao, from_number, timestamp=None):
+    """Detecção inteligente (Opção A): retorna True se o áudio tiver perfil claro de homilia."""
+    if _tem_contexto_homilia_recente(from_number, timestamp=timestamp):
+        return True
+
+    word_count = len((transcricao or "").split())
+    try:
+        file_size = os.path.getsize(file_path) if (file_path and os.path.exists(file_path)) else 0
+    except OSError:
+        file_size = 0
+
+    if word_count >= HOMILIA_MIN_WORDS or file_size > HOMILIA_MIN_BYTES:
+        norm_transcricao = _normalizar_texto(transcricao)
+        if any(marker in norm_transcricao for marker in HOMILIA_TRANSCRIPT_MARKERS):
+            return True
+
+    return False
+
+
+def iniciar_fluxo_homilia(phone_number_id, from_number, source_id, audio_id, timestamp, transcricao, audio_bytes=None):
+    """Registra o áudio no pipeline de homilias reutilizando a transcrição já gerada."""
+    with homilia_store.get_engine().begin() as conn:
+        homilia_store.register_audio(conn, source_id, from_number, timestamp)
+        eid = homilia_store.offer(conn, source_id, from_number, phone_number_id, audio_id, transcricao or "")
+        if audio_bytes:
+            homilia_store.put_asset(conn, eid, "source", audio_bytes)
+        homilia_store.transition(conn, eid, from_number, 1, "offered", "queued")
+        tem_texto = bool(homilia_store.source_text(conn, source_id))
+
+    if tem_texto:
+        msg = (
+            "🎙️ Homilia identificada e colocada na fila de preparo! "
+            "Assim que a prévia (capa, áudio e descrição) ficar pronta, envio o link aqui."
+        )
+    else:
+        msg = (
+            "🎙️ Homilia identificada e colocada na fila de preparo! "
+            "Se ainda não enviou o texto/título litúrgico, encaminhe-o agora "
+            "(ou responda a este áudio) para orientar a edição."
+        )
+    send_msg.send_wapp_msg(phone_number_id, from_number, msg)
+    return eid
 
 def hora_e_data(timestamp, user_timezone='America/Sao_Paulo'):
     try:
@@ -115,6 +242,17 @@ def chatflow(entry, verified=False):
                 print(content)
                 coletor, link, tipo_pergunta = envia_prompt_api(content, data_atual, hora_atual, phone_number_id, from_number, wapp_id)
                 responde_usuario_salva_thread(phone_number_id, from_number, coletor)
+            elif button_id == "gerar_homilia" or button_id.startswith("gerar_homilia:"):
+                # disparar manualmente o fluxo de homilia a partir do card de transcrição
+                if not podcast_owner:
+                    send_msg.send_wapp_msg(phone_number_id, from_number, "🔒 Recurso de homilias disponível apenas para o administrador do podcast.")
+                    return
+                audio_id = button_id.split(":", 1)[1] if ":" in button_id else None
+                content = app.get_thread_content_by_wapp_id(wapp_id)
+                if not audio_id:
+                    send_msg.send_wapp_msg(phone_number_id, from_number, "❌ Não foi possível identificar o áudio original. Reenvie o áudio para gerar a homilia.")
+                    return
+                iniciar_fluxo_homilia(phone_number_id, from_number, wapp_id or message['id'], audio_id, timestamp, content or "")
             elif button_id == "save_img":
                 content = app.get_thread_content_by_wapp_id(wapp_id)
                 try:
@@ -313,20 +451,32 @@ def chatflow(entry, verified=False):
                     send_msg.send_wapp_msg(phone_number_id, from_number, "👂 _transcrevendo_ 🖋")
                     # Obter URL da mídia
                     media_url_response = send_msg.get_url_wapp_media(audio_id)
-                    # Baixar a mídia
+                    # Baixar a mídia e avaliar Detecção Inteligente (Opção A)
                     with tempfile.TemporaryDirectory() as tmp:
                         file_path = send_msg.download_media(media_url_response, str(Path(tmp) / "audio"))
                         if not file_path:
                             raise RuntimeError("Falha ao baixar áudio.")
                         transcricao = agent.audio_transcription(file_path)
-                    # Enviar a transcrição de volta ao usuário
-                    wapp_response = send_msg.send_wapp_audio_reply(phone_number_id, from_number, transcricao)
-                    # 📅 registra transcrição gerada pelo sistema em threads📅
-                    response_dict = wapp_response.json()
-                    if "messages" in response_dict and response_dict["messages"]:
-                        wapp_id = response_dict["messages"][0]["id"]
-                        input_data = json.dumps({"role": "assistant", "content": transcricao}, ensure_ascii=False)
-                        app.salvar_thread(input_data, wapp_id)
+                        is_homilia = podcast_owner and eh_audio_homilia(
+                            file_path, transcricao, from_number, timestamp=timestamp
+                        )
+                        audio_bytes = Path(file_path).read_bytes() if is_homilia else None
+                    if is_homilia:
+                        iniciar_fluxo_homilia(
+                            phone_number_id, from_number, wapp_id, audio_id,
+                            timestamp, transcricao, audio_bytes=audio_bytes
+                        )
+                    else:
+                        # Fluxo Básico: envia transcrição com botões Executar ação / Memorizar / Homilia
+                        wapp_response = send_msg.send_wapp_audio_reply(
+                            phone_number_id, from_number, transcricao, audio_id=audio_id
+                        )
+                        # 📅 registra transcrição gerada pelo sistema em threads📅
+                        response_dict = wapp_response.json()
+                        if "messages" in response_dict and response_dict["messages"]:
+                            resp_wapp_id = response_dict["messages"][0]["id"]
+                            input_data = json.dumps({"role": "assistant", "content": transcricao}, ensure_ascii=False)
+                            app.salvar_thread(input_data, resp_wapp_id)
                 elif media_type == 'image':
                     image_id = entry['changes'][0]['value']['messages'][0]['image']['id']
                     send_msg.send_wapp_msg(phone_number_id, from_number, "👁 _analisando imagem_ 🖼")
