@@ -100,8 +100,22 @@ class EhAudioHomiliaTest(unittest.TestCase):
         self.assertTrue(chathub.eh_audio_homilia(None, text, "owner"))
 
     @patch.object(chathub, "_tem_contexto_homilia_recente", return_value=True)
-    def test_recent_context_triggers_homilia(self, _):
-        self.assertTrue(chathub.eh_audio_homilia(None, "áudio curto", "owner"))
+    def test_recent_context_ignores_very_short_audio(self, _):
+        self.assertFalse(chathub.eh_audio_homilia(None, "áudio curto de quinze segundos", "owner"))
+
+    @patch.object(chathub, "_tem_contexto_homilia_recente", return_value=True)
+    def test_recent_context_triggers_homilia_for_medium_audio(self, _):
+        text = "reflexão sobre o evangelho de hoje " * 25  # 150 palavras (>= 120)
+        self.assertTrue(chathub.eh_audio_homilia(None, text, "owner"))
+
+    @patch.object(chathub, "_tem_contexto_homilia_recente", return_value=False)
+    def test_forwarded_short_audio_is_not_homilia(self, _):
+        self.assertFalse(chathub.eh_audio_homilia(None, "oi tudo bem vamos almoçar amanhã", "owner", forwarded=True))
+
+    @patch.object(chathub, "_tem_contexto_homilia_recente", return_value=False)
+    def test_forwarded_medium_audio_is_homilia(self, _):
+        text = "meus irmãos a liturgia de hoje nos convida " * 20  # 160 palavras (>= 120)
+        self.assertTrue(chathub.eh_audio_homilia(None, text, "owner", forwarded=True))
 
 
 class ChatflowAudioIntegrationTest(unittest.TestCase):

@@ -41,6 +41,8 @@ HOMILIA_TRANSCRIPT_MARKERS = (
 
 HOMILIA_MIN_WORDS = 250
 HOMILIA_MIN_BYTES = int(1.5 * 1024 * 1024)
+HOMILIA_CONTEXT_MIN_WORDS = 120
+HOMILIA_CONTEXT_MIN_BYTES = 500 * 1024
 HOMILIA_CONTEXT_WINDOW_MINUTES = 5
 
 
@@ -95,16 +97,21 @@ def _tem_contexto_homilia_recente(from_number, timestamp=None):
     return False
 
 
-def eh_audio_homilia(file_path, transcricao, from_number, timestamp=None):
+def eh_audio_homilia(file_path, transcricao, from_number, timestamp=None, forwarded=False):
     """Detecção inteligente (Opção A): retorna True se o áudio tiver perfil claro de homilia."""
-    if _tem_contexto_homilia_recente(from_number, timestamp=timestamp):
-        return True
-
     word_count = len((transcricao or "").split())
     try:
         file_size = os.path.getsize(file_path) if (file_path and os.path.exists(file_path)) else 0
     except OSError:
         file_size = 0
+
+    # Áudios curtos (ex: recados de ~15-40s) nunca são classificados automaticamente como homilia;
+    # o usuário ainda pode convertê-los manualmente pelo botão "🎙️ Homilia".
+    if word_count < HOMILIA_CONTEXT_MIN_WORDS and file_size < HOMILIA_CONTEXT_MIN_BYTES:
+        return False
+
+    if forwarded or _tem_contexto_homilia_recente(from_number, timestamp=timestamp):
+        return True
 
     if word_count >= HOMILIA_MIN_WORDS or file_size > HOMILIA_MIN_BYTES:
         norm_transcricao = _normalizar_texto(transcricao)
@@ -464,8 +471,9 @@ def chatflow(entry, verified=False):
                         if not file_path:
                             raise RuntimeError("Falha ao baixar áudio.")
                         transcricao = agent.audio_transcription(file_path)
+                        is_forwarded = bool((message.get("context") or {}).get("forwarded"))
                         is_homilia = podcast_owner and eh_audio_homilia(
-                            file_path, transcricao, from_number, timestamp=timestamp
+                            file_path, transcricao, from_number, timestamp=timestamp, forwarded=is_forwarded
                         )
                         audio_bytes = Path(file_path).read_bytes() if is_homilia else None
                     if is_homilia:
