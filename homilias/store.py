@@ -25,6 +25,9 @@ episodes = sa.Table(
     sa.Column("preview", sa.Text, unique=True),
     sa.Column("spotify_id", sa.Text),
     sa.Column("notice", sa.Text),
+    sa.Column("publish_mode", sa.Text, nullable=False, server_default="immediate"),
+    sa.Column("publish_at", sa.DateTime(timezone=True)),
+    sa.Column("publish_has_time", sa.Boolean, nullable=False, server_default=sa.false()),
 )
 assets = sa.Table(
     "homilia_assets", metadata,
@@ -45,11 +48,34 @@ incoming = sa.Table(
 )
 
 
+def ensure_publish_columns(engine):
+    """Adiciona colunas de agendamento/data retroativa de forma idempotente em bancos já existentes."""
+    with engine.begin() as conn:
+        inspector = sa.inspect(conn)
+        if not inspector.has_table("homilia_episodes"):
+            return
+        existing = {col["name"] for col in inspector.get_columns("homilia_episodes")}
+        dialect = conn.dialect.name
+        if "publish_mode" not in existing:
+            conn.execute(sa.text("ALTER TABLE homilia_episodes ADD COLUMN publish_mode TEXT NOT NULL DEFAULT 'immediate'"))
+        if "publish_at" not in existing:
+            col_type = "TIMESTAMP WITH TIME ZONE" if dialect == "postgresql" else "TIMESTAMP"
+            conn.execute(sa.text(f"ALTER TABLE homilia_episodes ADD COLUMN publish_at {col_type}"))
+        if "publish_has_time" not in existing:
+            default_false = "FALSE" if dialect == "postgresql" else "0"
+            conn.execute(sa.text(f"ALTER TABLE homilia_episodes ADD COLUMN publish_has_time BOOLEAN NOT NULL DEFAULT {default_false}"))
+
+
 @lru_cache(maxsize=1)
 def get_engine():
     """Conexão exclusiva das homilias, inicializada somente quando necessária."""
     url = os.environ["HOMILIA_DATABASE_URL"]
-    return sa.create_engine(url, pool_pre_ping=True)
+    engine = sa.create_engine(url, pool_pre_ping=True)
+    try:
+        ensure_publish_columns(engine)
+    except Exception:
+        pass
+    return engine
 
 
 def register_audio(conn, source, owner, timestamp):
@@ -132,7 +158,8 @@ def ready(conn, source, now=None):
 def offer(conn, source, owner, phone, media, transcript):
     eid = uuid.uuid4().hex
     conn.execute(insert(episodes).values(id=eid, source_id=source, owner=owner, phone=phone,
-                 media=media, transcript=transcript, state="offered", version=1)
+                 media=media, transcript=transcript, state="offered", version=1,
+                 publish_mode="immediate", publish_has_time=False)
                  .on_conflict_do_nothing(index_elements=["source_id"]))
     return conn.execute(sa.select(episodes.c.id).where(episodes.c.source_id == source)).scalar_one()
 

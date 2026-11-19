@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import hashlib
 import hmac
 import io
@@ -26,6 +27,91 @@ STATES = {
 TRASHABLE = ("offered", "queued", "waiting_text", "failed", "preview", "approved", "cancelled")
 PREPARABLE = ("offered", "queued", "failed", "waiting_text")
 PREVIEW_STATES = ("preview", "approved", "publishing", "clicked", "published", "check_spotify")
+EDITABLE_STATES = ("offered", "queued", "waiting_text", "failed", "preview", "approved", "cancelled")
+MANUAL_PUBLISH_STATES = ("preview", "approved", "check_spotify", "clicked")
+STAGE_ACTIONS = ("trash", "prepare", "transcribe", "schedule", "edit", "mark-published")
+BR_TZ = ZoneInfo("America/Sao_Paulo")
+SPOTIFY_WIZARD_URL = "https://creators.spotify.com/pod/show/04yjeHqDd36rhxnVdEz60l/episode/wizard"
+
+
+def parse_br_publish_datetime(date_str, time_str=""):
+    """Interpreta data no padrão brasileiro DD/MM/AAAA (ou ISO YYYY-MM-DD) com horário HH:MM opcional."""
+    raw_date = (date_str or "").strip()
+    if not raw_date:
+        raise ValueError("Informe a data no formato DD/MM/AAAA.")
+    parsed_date = None
+    for fmt in ("%d/%m/%Y", "%Y-%m-%d"):
+        try:
+            parsed_date = datetime.strptime(raw_date, fmt)
+            break
+        except ValueError:
+            continue
+    if not parsed_date:
+        raise ValueError("Data inválida. Use o formato DD/MM/AAAA (ex.: 18/10/2026).")
+
+    raw_time = (time_str or "").strip()
+    if raw_time:
+        try:
+            parsed_time = datetime.strptime(raw_time, "%H:%M")
+        except ValueError:
+            raise ValueError("Horário inválido. Use o formato HH:MM (ex.: 08:00) ou deixe em branco.")
+        hour, minute, has_time = parsed_time.hour, parsed_time.minute, True
+    else:
+        hour, minute, has_time = 8, 0, False
+
+    dt_br = datetime(parsed_date.year, parsed_date.month, parsed_date.day, hour, minute, tzinfo=BR_TZ)
+    return dt_br, has_time
+
+
+def publish_meta(row, now=None):
+    """Prepara metadados amigáveis de publicação (Imediata vs. Planejada/Retroativa) para os templates."""
+    mode = row.get("publish_mode") or "immediate"
+    publish_at = row.get("publish_at")
+    has_time = bool(row.get("publish_has_time"))
+    if mode == "scheduled" and publish_at:
+        if publish_at.tzinfo is None:
+            dt_br = publish_at.replace(tzinfo=timezone.utc).astimezone(BR_TZ)
+        else:
+            dt_br = publish_at.astimezone(BR_TZ)
+        current = now or datetime.now(BR_TZ)
+        is_past = dt_br.date() < current.date() if not has_time else dt_br < current
+        date_br = dt_br.strftime("%d/%m/%Y")
+        date_iso = dt_br.strftime("%Y-%m-%d")
+        time_br = dt_br.strftime("%H:%M") if has_time else ""
+        display = f"{date_br} às {time_br}" if has_time else date_br
+        return {
+            "mode": "scheduled",
+            "is_scheduled": True,
+            "is_past": is_past,
+            "has_time": has_time,
+            "date_br": date_br,
+            "date_iso": date_iso,
+            "time_br": time_br,
+            "display": display,
+            "sort_key": dt_br.isoformat(),
+        }
+    return {
+        "mode": "immediate",
+        "is_scheduled": False,
+        "is_past": False,
+        "has_time": False,
+        "date_br": "",
+        "date_iso": "",
+        "time_br": "",
+        "display": "Imediata (publicar agora)",
+        "sort_key": "",
+    }
+
+
+def extract_spotify_id(raw):
+    """Extrai o ID de 22 caracteres de um link ou identificador do Spotify."""
+    text = (raw or "").strip()
+    if not text:
+        return None
+    if re.fullmatch(r"[a-zA-Z0-9]{22}", text):
+        return text
+    match = re.search(r"/episode/([a-zA-Z0-9]{22})", text)
+    return match.group(1) if match else None
 
 
 def stage_token():
@@ -134,17 +220,21 @@ def preview_routes(get_engine):
         check_stage(token)
         with get_engine().connect() as conn:
             rows = conn.execute(sa.select(episodes.c.id, episodes.c.title, episodes.c.state,
-                episodes.c.version, episodes.c.notice, incoming.c.received_at, incoming.c.source_text)
+                episodes.c.version, episodes.c.notice, episodes.c.publish_mode,
+                episodes.c.publish_at, episodes.c.publish_has_time, episodes.c.spotify_id,
+                incoming.c.received_at, incoming.c.source_text)
                 .outerjoin(incoming, episodes.c.source_id == incoming.c.source_id)
                 .where(episodes.c.owner == os.environ["HOMILIA_OWNER_WA_ID"], episodes.c.state != "trashed")
                 .order_by(episodes.c.title, incoming.c.received_at, episodes.c.id)).mappings().all()
-        return render_template("homilias_stage.html", jobs=rows, states=STATES, stage_token=token,
-            preparable=PREPARABLE, trashable=TRASHABLE, timezone=ZoneInfo("America/Sao_Paulo"))
+        now = datetime.now(BR_TZ)
+        pub_map = {row["id"]: publish_meta(row, now=now) for row in rows}
+        return render_template("homilias_stage.html", jobs=rows, pub_map=pub_map, states=STATES,
+            stage_token=token, preparable=PREPARABLE, trashable=TRASHABLE, timezone=BR_TZ)
 
     @bp.post("/homilias/stage/<token>/episode/<eid>/<action>")
     def stage_action(token, eid, action):
         check_stage(token)
-        if action not in ("trash", "prepare", "transcribe") or not re.fullmatch(r"[0-9a-f]{32}", eid):
+        if action not in STAGE_ACTIONS or not re.fullmatch(r"[0-9a-f]{32}", eid):
             abort(404)
         version = request.form.get("version", type=int)
         expected_state = request.form.get("state")
@@ -155,6 +245,47 @@ def preview_routes(get_engine):
                 abort(404)
             if row["state"] != expected_state or row["version"] != version:
                 abort(409, "A edição mudou. Atualize o painel.")
+            if action == "schedule":
+                if expected_state not in EDITABLE_STATES:
+                    abort(409, "Esta edição não permite alterar a data de publicação agora.")
+                mode = (request.form.get("publish_mode") or "immediate").strip()
+                if mode not in ("immediate", "scheduled"):
+                    abort(400, "Modo de publicação inválido.")
+                if mode == "scheduled":
+                    try:
+                        dt_br, has_time = parse_br_publish_datetime(
+                            request.form.get("publish_date", ""),
+                            request.form.get("publish_time", ""),
+                        )
+                    except ValueError as exc:
+                        return redirect(url_for("homilias.stage_episode", token=token, eid=eid, erro=str(exc)), code=303)
+                    conn.execute(episodes.update().where(episodes.c.id == eid).values(
+                        publish_mode="scheduled", publish_at=dt_br.astimezone(timezone.utc),
+                        publish_has_time=has_time))
+                else:
+                    conn.execute(episodes.update().where(episodes.c.id == eid).values(
+                        publish_mode="immediate", publish_at=None, publish_has_time=False))
+                return redirect(url_for("homilias.stage_episode", token=token, eid=eid, salvo="publicacao"), code=303)
+            if action == "edit":
+                if expected_state not in EDITABLE_STATES:
+                    abort(409, "Esta edição não permite editar os textos agora.")
+                title = (request.form.get("title") or "").strip()
+                description = (request.form.get("description") or "").strip()
+                if not 0 < len(title) <= 150 or not 0 < len(description) <= 600:
+                    return redirect(url_for("homilias.stage_episode", token=token, eid=eid,
+                        erro="O título deve ter até 150 caracteres e a descrição até 600 caracteres."), code=303)
+                conn.execute(episodes.update().where(episodes.c.id == eid).values(
+                    title=title, description=description))
+                return redirect(url_for("homilias.stage_episode", token=token, eid=eid, salvo="texto"), code=303)
+            if action == "mark-published":
+                if expected_state not in MANUAL_PUBLISH_STATES:
+                    abort(409, "Esta edição não pode ser marcada como publicada neste estado.")
+                spotify_id = extract_spotify_id(request.form.get("spotify_ref", ""))
+                updates = {"notice": None}
+                if spotify_id:
+                    updates["spotify_id"] = spotify_id
+                transition(conn, eid, row["owner"], version, expected_state, "published", **updates)
+                return redirect(url_for("homilias.stage_episode", token=token, eid=eid, salvo="publicado"), code=303)
             if action == "transcribe":
                 if row["state"] not in PREVIEW_STATES:
                     abort(409, "A edição ainda não tem prévia.")
@@ -195,16 +326,22 @@ def preview_routes(get_engine):
                 episodes.c.owner == os.environ["HOMILIA_OWNER_WA_ID"], episodes.c.state != "trashed")).mappings().first()
             if not row:
                 abort(404)
-            return render_template("homilia.html", job=row, transcript=row["transcript"], states=STATES, stage_token=token,
+            return render_template("homilia.html", job=row, pub=publish_meta(row),
+                transcript=row["transcript"], states=STATES, stage_token=token,
                 token=row["preview"] if row["state"] in PREVIEW_STATES else None,
-                source_text=source_text(conn, row["source_id"]))
+                source_text=source_text(conn, row["source_id"]),
+                spotify_wizard_url=SPOTIFY_WIZARD_URL,
+                editable=row["state"] in EDITABLE_STATES,
+                can_mark_published=row["state"] in MANUAL_PUBLISH_STATES)
 
     @bp.get("/homilias/p/<token>")
     @bp.get("/homilias/p/<token>/<kind>")
     def view(token, kind=None):
         with get_engine().connect() as conn:
             query = sa.select(episodes.c.id, episodes.c.version, episodes.c.title,
-                episodes.c.description, episodes.c.source_id, episodes.c.state, episodes.c.spotify_id)
+                episodes.c.description, episodes.c.source_id, episodes.c.state,
+                episodes.c.spotify_id, episodes.c.publish_mode, episodes.c.publish_at,
+                episodes.c.publish_has_time)
             if kind is None:
                 query = query.add_columns(episodes.c.transcript)
             row = conn.execute(query.where(episodes.c.preview == token,
@@ -212,8 +349,11 @@ def preview_routes(get_engine):
             if not row:
                 abort(404)
             if kind is None:
-                return render_template("homilia.html", job=row, transcript=row["transcript"], token=token, states=STATES,
-                                       source_text=source_text(conn, row["source_id"]))
+                return render_template("homilia.html", job=row, pub=publish_meta(row),
+                    transcript=row["transcript"], token=token, states=STATES,
+                    source_text=source_text(conn, row["source_id"]),
+                    spotify_wizard_url=SPOTIFY_WIZARD_URL,
+                    editable=False, can_mark_published=False)
             if kind not in ("cover", "audio"):
                 abort(404)
             data = asset(conn, row["id"], kind)

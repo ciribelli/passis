@@ -1,55 +1,314 @@
 {% extends "homilias_base.html" %}
 {% block title %}{{ job.title or 'Episódio em preparo' }} · Nos Passos de Cristo{% endblock %}
 {% macro copy_button(target, label, caption='Copiar') %}
-<button type="button" class="copy" data-copy="{{ target }}" aria-label="Copiar {{ label }}"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h3"/></svg>{{ caption }}</button>
+<button type="button" class="copy" data-copy="{{ target }}" data-caption="{{ caption }}" aria-label="Copiar {{ label }}"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h3"/></svg><span>{{ caption }}</span></button>
 {% endmacro %}
 {% block content %}
 {% if stage_token %}<p><a href="{{ url_for('homilias.stage',token=stage_token) }}">← Todos os episódios</a></p>{% endif %}
 <div class="eyebrow">Nos Passos de Cristo · Episódio · v{{ job.version }}</div>
 <h1>{{ job.title or 'Episódio em preparo' }}</h1>
-<span class="badge">{{ states.get(job.state, job.state) }}</span>
-<p class="status-message">{% if job.state == 'preview' %}Confira os textos, a capa e o áudio. Para autorizar a publicação desta versão, aprove na conversa com o Passis.{% elif job.state == 'approved' %}Esta versão foi aprovada para publicação. Aprovação e publicação são etapas diferentes; aguarde a confirmação do Spotify.{% elif job.state == 'published' %}A publicação deste episódio foi confirmada.{% elif job.state in ['clicked', 'check_spotify'] %}Confira o episódio no Spotify antes de tentar publicar novamente.{% else %}Acompanhe o status acima. Os arquivos ficam disponíveis quando a prévia está pronta.{% endif %}</p>
-{% if token %}
-<section class="card" aria-labelledby="spotify-heading">
-<div class="eyebrow">Material de publicação</div><h2 id="spotify-heading">Leve estes campos para o Spotify</h2>
-<p class="muted">Copie cada texto para o campo com o mesmo nome na tela de detalhes do episódio no Spotify for Creators. Os botões copiam somente o conteúdo do campo.</p>
-<div class="field"><div class="field-head"><label for="spotify-title">Título do episódio</label>{{ copy_button('spotify-title', 'título') }}</div><textarea id="spotify-title" readonly rows="3">{{ job.title }}</textarea><p class="help">Destino: campo “Título” no Spotify.</p></div>
-<div class="field"><div class="field-head"><label for="spotify-description">Descrição do episódio</label>{{ copy_button('spotify-description', 'descrição') }}</div><textarea id="spotify-description" readonly rows="6">{{ job.description }}</textarea><p class="help">Destino: campo “Descrição” no Spotify.</p></div>
-<div class="live" id="copy-status" role="status" aria-live="polite"></div>
-</section>
-<section class="card" aria-labelledby="files-heading"><h2 id="files-heading">Baixe os arquivos para enviar ao Spotify</h2>
-<div class="assets"><div><img alt="Capa do episódio" src="{{ url_for('homilias.view',token=token,kind='cover') }}"><a class="button" href="{{ url_for('homilias.view',token=token,kind='cover',download=1) }}">Baixar capa · PNG</a><p class="help">Use como imagem deste episódio.</p></div>
-<div><h3>Áudio tratado</h3><p class="muted">Ouça para conferir a qualidade da voz antes de publicar.</p><audio controls preload="metadata" src="{{ url_for('homilias.view',token=token,kind='audio') }}"></audio><a class="button primary" href="{{ url_for('homilias.view',token=token,kind='audio',download=1) }}">Baixar áudio · M4A</a><p class="help">Envie este arquivo na etapa de upload do episódio.</p></div></div></section>
-<section class="card" aria-labelledby="transcript-heading">
-<h2 id="transcript-heading">Transcrição da homilia</h2>
-{% if transcript and transcript.strip() %}
-<div class="field-head"><label for="episode-transcript">Texto completo do áudio</label>
-{{ copy_button('episode-transcript', 'transcrição', 'Copiar transcrição') }}</div>
-<textarea id="episode-transcript" readonly rows="10">{{ transcript }}</textarea>
-<p class="live" id="transcript-status" role="status"></p>
-{% elif stage_token %}
-{% if request.args.get('transcricao') == 'solicitada' %}
-<p role="status">Transcrição solicitada. <a href="{{ url_for('homilias.stage_episode',token=stage_token,eid=job.id) }}">Atualizar para conferir</a></p>
-{% else %}<p>Esta edição ainda não tem transcrição.</p>{% endif %}
-<form method="post" action="{{ url_for('homilias.stage_action',token=stage_token,eid=job.id,action='transcribe') }}">
-<input type="hidden" name="version" value="{{ job.version }}"><input type="hidden" name="state" value="{{ job.state }}">
-<button type="submit">Gerar transcrição</button></form>
-{% else %}<p>Esta edição ainda não tem transcrição. Você pode gerá-la na página do episódio pelo painel de homilias.</p>{% endif %}
+
+<div class="meta-bar">
+  <span class="badge">{{ states.get(job.state, job.state) }}</span>
+  {% if pub and pub.is_scheduled %}
+    <span class="badge badge-scheduled">📅 Planejada · {{ pub.display }}{% if pub.is_past %} <span class="badge-tag">Retroativa</span>{% endif %}</span>
+  {% else %}
+    <span class="badge badge-immediate">⚡ Publicação imediata</span>
+  {% endif %}
+  {% if job.spotify_id and job.state == 'published' %}
+    <a class="badge" href="https://open.spotify.com/episode/{{ job.spotify_id }}" target="_blank" rel="noopener">Ouvir no Spotify ↗</a>
+  {% endif %}
+</div>
+
+{% if request.args.get('salvo') == 'publicacao' %}
+  <div class="notice notice-ok" role="status">Configuração de publicação salva com sucesso.</div>
+{% elif request.args.get('salvo') == 'texto' %}
+  <div class="notice notice-ok" role="status">Título e descrição atualizados com sucesso.</div>
+{% elif request.args.get('salvo') == 'publicado' %}
+  <div class="notice notice-ok" role="status">Episódio marcado como publicado no painel.</div>
+{% elif request.args.get('erro') %}
+  <div class="notice notice-err" role="alert">{{ request.args.get('erro') }}</div>
+{% endif %}
+
+<p class="status-message">{% if job.state == 'preview' %}Confira os textos, a data de publicação, a capa e o áudio. Para autorizar a publicação automática, aprove na conversa com o Passis, ou suba manualmente no Spotify usando os campos abaixo.{% elif job.state == 'approved' %}Esta versão foi aprovada para publicação. Aprovação e publicação são etapas diferentes; aguarde a confirmação do Spotify.{% elif job.state == 'published' %}A publicação deste episódio foi confirmada.{% elif job.state in ['clicked', 'check_spotify'] %}Confira o episódio no Spotify antes de tentar publicar novamente.{% else %}Acompanhe o status acima. Os arquivos ficam disponíveis quando a prévia está pronta.{% endif %}</p>
+
+{% if stage_token and editable and not token %}
+<section class="card" aria-labelledby="schedule-only-heading">
+  <div class="eyebrow">Planejamento</div>
+  <h2 id="schedule-only-heading">Data de publicação no Spotify</h2>
+  <div class="pub-box {% if pub and pub.is_scheduled %}is-scheduled{% endif %}">
+    <div class="pub-summary">
+      <div class="pub-title">{% if pub and pub.is_scheduled %}📅 Planejada · {{ pub.display }}{% if pub.is_past %} <span class="badge-tag">Data retroativa</span>{% endif %}{% else %}⚡ Publicação imediata (agora){% endif %}</div>
+    </div>
+    <form class="pub-form" method="post" action="{{ url_for('homilias.stage_action',token=stage_token,eid=job.id,action='schedule') }}">
+      <input type="hidden" name="version" value="{{ job.version }}"><input type="hidden" name="state" value="{{ job.state }}">
+      <div class="radio-group">
+        <label class="radio-opt"><input type="radio" name="publish_mode" value="immediate" {% if not pub or not pub.is_scheduled %}checked{% endif %} data-pub-mode> Imediata (publicar agora)</label>
+        <label class="radio-opt"><input type="radio" name="publish_mode" value="scheduled" {% if pub and pub.is_scheduled %}checked{% endif %} data-pub-mode> Planejada (data no passado ou futuro)</label>
+      </div>
+      <div class="date-row" data-pub-dates {% if not pub or not pub.is_scheduled %}hidden{% endif %}>
+        <div class="date-field">
+          <label for="publish-date-early">Data (DD/MM/AAAA)</label>
+          <input type="text" id="publish-date-early" name="publish_date" value="{{ pub.date_br if pub else '' }}" placeholder="DD/MM/AAAA" inputmode="numeric" maxlength="10" data-br-date>
+        </div>
+        <div class="date-field">
+          <label for="publish-time-early">Horário (opcional)</label>
+          <input type="text" id="publish-time-early" name="publish_time" value="{{ pub.time_br if pub else '' }}" placeholder="HH:MM (opcional)" inputmode="numeric" maxlength="5" data-br-time>
+        </div>
+      </div>
+      <button type="submit">Salvar publicação</button>
+    </form>
+  </div>
 </section>
 {% endif %}
+
+{% if token %}
+<section class="card" aria-labelledby="spotify-heading">
+  <div class="card-head">
+    <div>
+      <div class="eyebrow">Material de publicação</div>
+      <h2 id="spotify-heading">Leve estes campos para o Spotify</h2>
+    </div>
+    {% if spotify_wizard_url %}
+      <a class="button primary" href="{{ spotify_wizard_url }}" target="_blank" rel="noopener">Abrir Spotify for Creators ↗</a>
+    {% endif %}
+  </div>
+  <p class="muted">Copie cada campo para a tela de detalhes do episódio no Spotify for Creators. Os botões copiam somente o conteúdo do campo.</p>
+
+  <div class="pub-box {% if pub and pub.is_scheduled %}is-scheduled{% endif %}">
+    <div class="pub-summary">
+      <div>
+        <div class="eyebrow">Publicação no Spotify</div>
+        {% if pub and pub.is_scheduled %}
+          <div class="pub-title">📅 Planejada · {{ pub.display }} {% if pub.is_past %}<span class="badge-tag">Retroativa</span>{% endif %}</div>
+          <p class="help">No Spotify, escolha a data personalizada <strong>{{ pub.display }}</strong>{% if pub.is_past %} (data no passado para manter a ordem cronológica das homilias){% endif %}.</p>
+        {% else %}
+          <div class="pub-title">⚡ Publicação imediata</div>
+          <p class="help">No Spotify, mantenha a opção padrão <strong>“Publicar agora”</strong>.</p>
+        {% endif %}
+      </div>
+      {% if pub and pub.is_scheduled %}
+        <input type="hidden" id="spotify-publish-date" value="{{ pub.date_br }}">
+        {{ copy_button('spotify-publish-date', 'data de publicação', 'Copiar data') }}
+      {% endif %}
+    </div>
+
+    {% if stage_token and editable %}
+    <form class="pub-form" method="post" action="{{ url_for('homilias.stage_action',token=stage_token,eid=job.id,action='schedule') }}">
+      <input type="hidden" name="version" value="{{ job.version }}"><input type="hidden" name="state" value="{{ job.state }}">
+      <div class="radio-group">
+        <label class="radio-opt"><input type="radio" name="publish_mode" value="immediate" {% if not pub or not pub.is_scheduled %}checked{% endif %} data-pub-mode> Imediata (publicar agora)</label>
+        <label class="radio-opt"><input type="radio" name="publish_mode" value="scheduled" {% if pub and pub.is_scheduled %}checked{% endif %} data-pub-mode> Planejada (data no passado ou futuro)</label>
+      </div>
+      <div class="date-row" data-pub-dates {% if not pub or not pub.is_scheduled %}hidden{% endif %}>
+        <div class="date-field">
+          <label for="publish-date">Data (DD/MM/AAAA)</label>
+          <input type="text" id="publish-date" name="publish_date" value="{{ pub.date_br if pub else '' }}" placeholder="DD/MM/AAAA" inputmode="numeric" maxlength="10" data-br-date>
+        </div>
+        <div class="date-field">
+          <label for="publish-time">Horário (opcional)</label>
+          <input type="text" id="publish-time" name="publish_time" value="{{ pub.time_br if pub else '' }}" placeholder="HH:MM (opcional)" inputmode="numeric" maxlength="5" data-br-time>
+        </div>
+      </div>
+      <div class="actions">
+        <button type="submit">Salvar publicação</button>
+        <span class="help">Aceita datas no passado (ex.: 18/10/2026). Horário é opcional (padrão Brasília).</span>
+      </div>
+    </form>
+    {% endif %}
+  </div>
+
+  {% if stage_token and editable %}
+  <form method="post" action="{{ url_for('homilias.stage_action',token=stage_token,eid=job.id,action='edit') }}">
+    <input type="hidden" name="version" value="{{ job.version }}"><input type="hidden" name="state" value="{{ job.state }}">
+  {% endif %}
+
+  <div class="field">
+    <div class="field-head">
+      <div class="field-meta">
+        <label for="spotify-title">Título do episódio</label>
+        <span class="char-count" data-count-for="spotify-title" data-max="150">{{ (job.title or '')|length }} / 150</span>
+      </div>
+      {{ copy_button('spotify-title', 'título') }}
+    </div>
+    <textarea id="spotify-title" name="title" {% if not (stage_token and editable) %}readonly{% endif %} rows="3" maxlength="150">{{ job.title }}</textarea>
+    <p class="help">Destino: campo “Título” no Spotify.</p>
+  </div>
+
+  <div class="field">
+    <div class="field-head">
+      <div class="field-meta">
+        <label for="spotify-description">Descrição do episódio</label>
+        <span class="char-count" data-count-for="spotify-description" data-max="600">{{ (job.description or '')|length }} / 600</span>
+      </div>
+      {{ copy_button('spotify-description', 'descrição') }}
+    </div>
+    <textarea id="spotify-description" name="description" {% if not (stage_token and editable) %}readonly{% endif %} rows="6" maxlength="600">{{ job.description }}</textarea>
+    <p class="help">Destino: campo “Descrição” no Spotify.</p>
+  </div>
+
+  {% if stage_token and editable %}
+    <div class="actions">
+      <button type="submit">Salvar título e descrição</button>
+      <span class="help">Ajuste rápido direto no painel, sem precisar regenerar capa nem áudio.</span>
+    </div>
+  </form>
+  {% endif %}
+
+  <div class="live" id="copy-status" role="status" aria-live="polite"></div>
+</section>
+
+<section class="card" aria-labelledby="files-heading">
+  <h2 id="files-heading">Baixe os arquivos para enviar ao Spotify</h2>
+  <div class="assets">
+    <div>
+      <img alt="Capa do episódio" src="{{ url_for('homilias.view',token=token,kind='cover') }}">
+      <a class="button" href="{{ url_for('homilias.view',token=token,kind='cover',download=1) }}">Baixar capa · PNG</a>
+      <p class="help">Use como imagem deste episódio.</p>
+    </div>
+    <div>
+      <h3>Áudio tratado</h3>
+      <p class="muted">Ouça para conferir a qualidade da voz antes de publicar.</p>
+      <audio controls preload="metadata" src="{{ url_for('homilias.view',token=token,kind='audio') }}"></audio>
+      <a class="button primary" href="{{ url_for('homilias.view',token=token,kind='audio',download=1) }}">Baixar áudio · M4A</a>
+      <p class="help">Envie este arquivo na etapa de upload do episódio.</p>
+    </div>
+  </div>
+</section>
+
+<section class="card" aria-labelledby="checklist-heading">
+  <div class="eyebrow">Acompanhamento manual</div>
+  <h2 id="checklist-heading">Checklist de envio ao Spotify</h2>
+  <p class="muted">Marque as etapas conforme sobe o episódio no Spotify for Creators (salvo neste navegador).</p>
+  <div class="checklist" data-checklist="{{ job.id }}">
+    <label class="check-item"><input type="checkbox" data-step="audio"> Áudio M4A enviado</label>
+    <label class="check-item"><input type="checkbox" data-step="title"> Título colado</label>
+    <label class="check-item"><input type="checkbox" data-step="description"> Descrição colada</label>
+    <label class="check-item"><input type="checkbox" data-step="cover"> Capa PNG enviada</label>
+    <label class="check-item"><input type="checkbox" data-step="date"> Data definida ({% if pub and pub.is_scheduled %}{{ pub.display }}{% else %}Imediata{% endif %})</label>
+  </div>
+  {% if stage_token and can_mark_published %}
+  <div class="pub-form">
+    <h3>Já publicou este episódio manualmente no Spotify?</h3>
+    <p class="help">Atualize o status no painel para manter o controle do backlog em dia. O link do Spotify é opcional.</p>
+    <form class="inline-form" method="post" action="{{ url_for('homilias.stage_action',token=stage_token,eid=job.id,action='mark-published') }}">
+      <input type="hidden" name="version" value="{{ job.version }}"><input type="hidden" name="state" value="{{ job.state }}">
+      <input type="text" name="spotify_ref" placeholder="Link ou ID do episódio no Spotify (opcional)">
+      <button type="submit" class="primary">Marcar como publicado</button>
+    </form>
+  </div>
+  {% endif %}
+</section>
+
+<section class="card" aria-labelledby="transcript-heading">
+  <h2 id="transcript-heading">Transcrição da homilia</h2>
+  {% if transcript and transcript.strip() %}
+  <div class="field-head"><label for="episode-transcript">Texto completo do áudio</label>
+  {{ copy_button('episode-transcript', 'transcrição', 'Copiar transcrição') }}</div>
+  <textarea id="episode-transcript" readonly rows="10">{{ transcript }}</textarea>
+  <p class="live" id="transcript-status" role="status"></p>
+  {% elif stage_token %}
+  {% if request.args.get('transcricao') == 'solicitada' %}
+  <p role="status">Transcrição solicitada. <a href="{{ url_for('homilias.stage_episode',token=stage_token,eid=job.id) }}">Atualizar para conferir</a></p>
+  {% else %}<p>Esta edição ainda não tem transcrição.</p>{% endif %}
+  <form method="post" action="{{ url_for('homilias.stage_action',token=stage_token,eid=job.id,action='transcribe') }}">
+  <input type="hidden" name="version" value="{{ job.version }}"><input type="hidden" name="state" value="{{ job.state }}">
+  <button type="submit">Gerar transcrição</button></form>
+  {% else %}<p>Esta edição ainda não tem transcrição. Você pode gerá-la na página do episódio pelo painel de homilias.</p>{% endif %}
+</section>
+{% endif %}
+
 <section class="card reference" aria-labelledby="input-heading"><div class="eyebrow">Dados de entrada · Referência</div><h2 id="input-heading">Texto recebido</h2><p class="muted">Mensagem encaminhada para preparar esta edição. Para preencher o Spotify, use o título e a descrição em “Material de publicação”.</p><details><summary>Ver mensagem original</summary><p class="source">{{ source_text or 'Nenhum texto associado ao áudio até o momento.' }}</p></details><p class="help">Identificação interna: {{ job.id }} · versão {{ job.version }}</p></section>
 {% endblock %}
+
 {% block scripts %}
 <script>
 document.querySelectorAll('[data-copy]').forEach(button => button.addEventListener('click', async () => {
   const field = document.getElementById(button.dataset.copy);
+  if (!field) return;
   const isTranscript = field.id === 'episode-transcript';
   const status = document.getElementById(isTranscript ? 'transcript-status' : 'copy-status');
+  const labelSpan = button.querySelector('span');
+  const origCaption = button.dataset.caption || 'Copiar';
   try {
     if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(field.value);
-    else { field.focus(); field.select(); if (!document.execCommand('copy')) throw new Error('copy'); }
-    status.textContent = isTranscript ? 'Transcrição copiada.' : (field.id === 'spotify-title' ? 'Título copiado.' : 'Descrição copiada.') + ' Cole no campo correspondente do Spotify.';
-  } catch (_) { field.focus(); field.select(); status.textContent = 'Texto selecionado. Use Ctrl+C ou ⌘C para copiar.'; }
+    else { field.focus(); if (field.select) field.select(); if (!document.execCommand('copy')) throw new Error('copy'); }
+    button.classList.add('copied');
+    if (labelSpan) labelSpan.textContent = '✓ Copiado';
+    setTimeout(() => { button.classList.remove('copied'); if (labelSpan) labelSpan.textContent = origCaption; }, 2000);
+    if (status) {
+      if (isTranscript) status.textContent = 'Transcrição copiada.';
+      else if (field.id === 'spotify-title') status.textContent = 'Título copiado. Cole no campo correspondente do Spotify.';
+      else if (field.id === 'spotify-description') status.textContent = 'Descrição copiada. Cole no campo correspondente do Spotify.';
+      else status.textContent = 'Data copiada (' + field.value + ').';
+    }
+  } catch (_) {
+    if (field.select) { field.focus(); field.select(); }
+    if (status) status.textContent = 'Texto selecionado. Use Ctrl+C ou ⌘C para copiar.';
+  }
 }));
+
+// Alternar campos de data quando seleciona Imediata vs. Planejada
+document.querySelectorAll('form.pub-form').forEach(form => {
+  const radios = form.querySelectorAll('[data-pub-mode]');
+  const datesBox = form.querySelector('[data-pub-dates]');
+  const dateInput = form.querySelector('[data-br-date]');
+  function syncMode() {
+    const selected = form.querySelector('[data-pub-mode]:checked');
+    const isScheduled = selected && selected.value === 'scheduled';
+    if (datesBox) datesBox.hidden = !isScheduled;
+    if (dateInput) dateInput.required = !!isScheduled;
+  }
+  radios.forEach(r => r.addEventListener('change', syncMode));
+  syncMode();
+});
+
+// Máscara leve DD/MM/AAAA e HH:MM
+document.querySelectorAll('[data-br-date]').forEach(input => {
+  input.addEventListener('input', () => {
+    const digits = input.value.replace(/\D/g, '').slice(0, 8);
+    let out = digits;
+    if (digits.length > 4) out = digits.slice(0, 2) + '/' + digits.slice(2, 4) + '/' + digits.slice(4);
+    else if (digits.length > 2) out = digits.slice(0, 2) + '/' + digits.slice(2);
+    input.value = out;
+  });
+});
+document.querySelectorAll('[data-br-time]').forEach(input => {
+  input.addEventListener('input', () => {
+    const digits = input.value.replace(/\D/g, '').slice(0, 4);
+    input.value = digits.length > 2 ? digits.slice(0, 2) + ':' + digits.slice(2) : digits;
+  });
+});
+
+// Contadores de caracteres ao vivo
+document.querySelectorAll('[data-count-for]').forEach(counter => {
+  const field = document.getElementById(counter.dataset.countFor);
+  const max = parseInt(counter.dataset.max, 10);
+  if (!field) return;
+  function updateCount() {
+    const len = field.value.length;
+    counter.textContent = len + ' / ' + max;
+    counter.classList.toggle('warn', len > max * 0.9);
+  }
+  field.addEventListener('input', updateCount);
+  updateCount();
+});
+
+// Checklist local persistido por episódio
+document.querySelectorAll('[data-checklist]').forEach(box => {
+  const key = 'homilia-checklist:' + box.dataset.checklist;
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (_) {}
+  box.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    const step = cb.dataset.step;
+    cb.checked = !!saved[step];
+    cb.closest('.check-item').classList.toggle('done', cb.checked);
+    cb.addEventListener('change', () => {
+      saved[step] = cb.checked;
+      cb.closest('.check-item').classList.toggle('done', cb.checked);
+      try { localStorage.setItem(key, JSON.stringify(saved)); } catch (_) {}
+    });
+  });
+});
 </script>
 {% endblock %}

@@ -209,6 +209,7 @@ def main():
     engine = store.get_engine()
     if args.command == "init":
         store.metadata.create_all(engine)
+        store.ensure_publish_columns(engine)
     elif args.command == "resume-draft":
         # Apenas falhas anteriores ao clique podem retomar pelo mesmo rascunho.
         with engine.begin() as conn:

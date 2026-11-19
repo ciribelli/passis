@@ -2,53 +2,119 @@
 {% block title %}Stage de episódios · Nos Passos de Cristo{% endblock %}
 {% block content %}
 <div class="eyebrow">Nos Passos de Cristo · Painel privado</div><h1>Stage de episódios</h1>
-<p class="muted">Todos os episódios do canal, desde o recebimento até a publicação. Abra um episódio para conferir seus textos e baixar os arquivos disponíveis.</p>
+<p class="muted">Todos os episódios do canal, desde o recebimento até a publicação. Abra um episódio para conferir textos, ajustar a data de publicação (imediata ou retroativa) e baixar os arquivos.</p>
 <p class="counts">{{ jobs|length }} episódio(s) · {{ jobs|selectattr('state', 'equalto', 'preview')|list|length }} aguardando aprovação · {{ jobs|selectattr('state', 'equalto', 'approved')|list|length }} aprovado(s) · {{ jobs|selectattr('state', 'equalto', 'published')|list|length }} publicado(s)</p>
-<section class="card"><div class="filters"><input type="search" id="search" placeholder="Buscar por título ou identificação…" aria-label="Buscar episódio"><select id="state" aria-label="Filtrar por status"><option value="">Todos os status</option>{% for key, label in states.items() %}<option value="{{ key }}">{{ label }}</option>{% endfor %}</select></div>
-<div class="table-wrap"><table><thead><tr><th scope="col">Episódio</th><th scope="col">Status</th><th scope="col">Versão</th><th scope="col">Material</th></tr></thead><tbody>
-{% for job in jobs %}
-{% set label = job.title or job.source_text or 'Aguardando título' %}
-{% set received = job.received_at.astimezone(timezone).strftime('%d/%m/%Y às %H:%M') if job.received_at else '' %}
-<tr data-state="{{ job.state }}" data-search="{{ (label ~ ' ' ~ job.id)|lower }}">
-  <td>{{ label }}<br>{% if received %}<small>Recebido em {{ received }} (Brasília)</small><br>{% endif %}
-    <small class="muted">{{ job.id }}</small></td>
-  <td><span class="badge">{{ states.get(job.state, job.state) }}</span></td>
-  <td>v{{ job.version }}</td>
-  <td><a href="{{ url_for('homilias.stage_episode',token=stage_token,eid=job.id) }}">Abrir episódio →</a>
-    <div class="actions">
-    {% set resume = job.state == 'preparing' and job.notice == 'panel' %}
-    {% if (job.state in preparable or resume) and job.source_text %}
-    <form method="post" action="{{ url_for('homilias.stage_action',token=stage_token,eid=job.id,action='prepare') }}">
-      <input type="hidden" name="version" value="{{ job.version }}"><input type="hidden" name="state" value="{{ job.state }}">
-      <button type="submit">{{ 'Retomar preparo' if resume else 'Preparar' }}</button>
-    </form>
-    {% endif %}
-    {% if job.state in trashable %}
-    <details><summary>🗑 Lixeira</summary>
-      <form method="post" action="{{ url_for('homilias.stage_action',token=stage_token,eid=job.id,action='trash') }}">
-        <p>Retirar esta cópia do painel e da fila? {{ received }} · {{ job.id[:8] }}</p>
+<section class="card">
+  <div class="filters">
+    <input type="search" id="search" placeholder="Buscar por título, data ou identificação…" aria-label="Buscar episódio">
+    <select id="state" aria-label="Filtrar por status">
+      <option value="">Todos os status</option>
+      {% for key, label in states.items() %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
+    </select>
+    <select id="pub-mode" aria-label="Filtrar por tipo de publicação">
+      <option value="">Todas as publicações</option>
+      <option value="immediate">⚡ Imediata</option>
+      <option value="scheduled">📅 Planejada / Retroativa</option>
+    </select>
+    <select id="sort" aria-label="Ordenar episódios">
+      <option value="alpha">Ordem alfabética (A–Z)</option>
+      <option value="pub-asc">Data planejada (mais antiga → recente)</option>
+      <option value="pub-desc">Data planejada (mais recente → antiga)</option>
+      <option value="rec-desc">Recebimento (mais recente primeiro)</option>
+    </select>
+  </div>
+  <div class="table-wrap"><table><thead><tr><th scope="col">Episódio</th><th scope="col">Publicação</th><th scope="col">Status</th><th scope="col">Versão</th><th scope="col">Material</th></tr></thead><tbody id="jobs-body">
+  {% for job in jobs %}
+  {% set label = job.title or job.source_text or 'Aguardando título' %}
+  {% set received = job.received_at.astimezone(timezone).strftime('%d/%m/%Y às %H:%M') if job.received_at else '' %}
+  {% set received_iso = job.received_at.isoformat() if job.received_at else '' %}
+  {% set pub = pub_map[job.id] if pub_map is defined else none %}
+  <tr data-state="{{ job.state }}"
+      data-pub-mode="{{ pub.mode if pub else 'immediate' }}"
+      data-pub-sort="{{ pub.sort_key if pub else '' }}"
+      data-rec-sort="{{ received_iso }}"
+      data-alpha="{{ label|lower }}"
+      data-search="{{ (label ~ ' ' ~ job.id ~ ' ' ~ (pub.date_br if pub else ''))|lower }}">
+    <td>{{ label }}<br>{% if received %}<small>Recebido em {{ received }} (Brasília)</small><br>{% endif %}
+      <small class="muted">{{ job.id }}</small></td>
+    <td>
+      {% if pub and pub.is_scheduled %}
+        <span class="badge badge-scheduled">📅 {{ pub.display }}{% if pub.is_past %} <span class="badge-tag">Retroativa</span>{% endif %}</span>
+      {% else %}
+        <span class="badge badge-immediate">⚡ Imediata</span>
+      {% endif %}
+    </td>
+    <td><span class="badge">{{ states.get(job.state, job.state) }}</span></td>
+    <td>v{{ job.version }}</td>
+    <td><a href="{{ url_for('homilias.stage_episode',token=stage_token,eid=job.id) }}">Abrir episódio →</a>
+      <div class="actions">
+      {% set resume = job.state == 'preparing' and job.notice == 'panel' %}
+      {% if (job.state in preparable or resume) and job.source_text %}
+      <form method="post" action="{{ url_for('homilias.stage_action',token=stage_token,eid=job.id,action='prepare') }}">
         <input type="hidden" name="version" value="{{ job.version }}"><input type="hidden" name="state" value="{{ job.state }}">
-        <button type="submit">Confirmar remoção</button>
+        <button type="submit">{{ 'Retomar preparo' if resume else 'Preparar' }}</button>
       </form>
-    </details>
-    {% endif %}
-    </div>
-  </td>
-</tr>
-{% endfor %}
-</tbody></table></div><p id="empty" class="empty" {% if jobs %}hidden{% endif %}>Nenhum episódio encontrado.</p><p id="results" class="help" role="status" aria-live="polite"></p></section>
-<p class="help">Guarde este link para voltar ao painel. Ele dá acesso aos materiais de todos os episódios do canal. Os status refletem o registro do Passis; uma publicação feita manualmente no Spotify pode precisar de conferência.</p>
+      {% endif %}
+      {% if job.state in trashable %}
+      <details><summary>🗑 Lixeira</summary>
+        <form method="post" action="{{ url_for('homilias.stage_action',token=stage_token,eid=job.id,action='trash') }}">
+          <p>Retirar esta cópia do painel e da fila? {{ received }} · {{ job.id[:8] }}</p>
+          <input type="hidden" name="version" value="{{ job.version }}"><input type="hidden" name="state" value="{{ job.state }}">
+          <button type="submit">Confirmar remoção</button>
+        </form>
+      </details>
+      {% endif %}
+      </div>
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody></table></div><p id="empty" class="empty" {% if jobs %}hidden{% endif %}>Nenhum episódio encontrado.</p><p id="results" class="help" role="status" aria-live="polite"></p></section>
+<p class="help">Guarde este link para voltar ao painel. Ele dá acesso aos materiais de todos os episódios do canal. Você também pode marcar episódios publicados manualmente dentro da página de cada episódio.</p>
 {% endblock %}
 {% block scripts %}<script>
-const search = document.getElementById('search'), state = document.getElementById('state');
+const search = document.getElementById('search');
+const state = document.getElementById('state');
+const pubMode = document.getElementById('pub-mode');
+const sortSelect = document.getElementById('sort');
+const tbody = document.getElementById('jobs-body');
+
+function applySort() {
+  const rows = Array.from(tbody.querySelectorAll('tr[data-state]'));
+  const mode = sortSelect.value;
+  rows.sort((a, b) => {
+    if (mode === 'pub-asc' || mode === 'pub-desc') {
+      const ka = a.dataset.pubSort || '', kb = b.dataset.pubSort || '';
+      if (ka && !kb) return -1;
+      if (!ka && kb) return 1;
+      if (ka !== kb) return mode === 'pub-asc' ? ka.localeCompare(kb) : kb.localeCompare(ka);
+      return a.dataset.alpha.localeCompare(b.dataset.alpha, 'pt-BR');
+    }
+    if (mode === 'rec-desc') {
+      const ra = a.dataset.recSort || '', rb = b.dataset.recSort || '';
+      if (ra !== rb) return rb.localeCompare(ra);
+      return a.dataset.alpha.localeCompare(b.dataset.alpha, 'pt-BR');
+    }
+    return a.dataset.alpha.localeCompare(b.dataset.alpha, 'pt-BR');
+  });
+  rows.forEach(r => tbody.appendChild(r));
+}
+
 function filter() {
   let count = 0;
+  const q = search.value.trim().toLocaleLowerCase('pt-BR');
   document.querySelectorAll('tr[data-state]').forEach(row => {
-    row.hidden = !(row.dataset.search.includes(search.value.trim().toLocaleLowerCase('pt-BR')) && (!state.value || row.dataset.state === state.value));
+    const matchText = row.dataset.search.includes(q);
+    const matchState = !state.value || row.dataset.state === state.value;
+    const matchPub = !pubMode.value || row.dataset.pubMode === pubMode.value;
+    row.hidden = !(matchText && matchState && matchPub);
     if (!row.hidden) count++;
   });
   document.getElementById('empty').hidden = count !== 0;
   document.getElementById('results').textContent = count + ' episódio(s) exibido(s).';
 }
-search.addEventListener('input', filter); state.addEventListener('change', filter);
+
+search.addEventListener('input', filter);
+state.addEventListener('change', filter);
+pubMode.addEventListener('change', filter);
+sortSelect.addEventListener('change', () => { applySort(); filter(); });
 </script>{% endblock %}
