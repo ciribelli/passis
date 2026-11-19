@@ -1,12 +1,82 @@
 {% extends "homilias_base.html" %}
 {% block title %}Stage de episódios · Nos Passos de Cristo{% endblock %}
 {% block content %}
-<div class="eyebrow">Nos Passos de Cristo · Painel privado</div><h1>Stage de episódios</h1>
-<p class="muted">Todos os episódios do canal, desde o recebimento até a publicação. Abra um episódio para conferir textos, ajustar a data de publicação (imediata ou retroativa) e baixar os arquivos.</p>
-<p class="counts">{{ jobs|length }} episódio(s) · {{ jobs|selectattr('state', 'equalto', 'preview')|list|length }} aguardando aprovação · {{ jobs|selectattr('state', 'equalto', 'approved')|list|length }} aprovado(s) · {{ jobs|selectattr('state', 'equalto', 'published')|list|length }} publicado(s)</p>
+<style>
+.stage-header{margin-bottom:20px}
+.stage-counts{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:.92rem;color:var(--muted);margin:8px 0 20px}
+.stage-counts strong{color:var(--ink);font-weight:650}
+.filters{display:grid;grid-template-columns:2fr 1fr 1fr 1.2fr;gap:10px;margin-bottom:18px}
+.filters input[type="search"]{width:100%}
+.filters select{width:100%;cursor:pointer}
+
+/* Lista e Cards */
+.jobs-list{display:flex;flex-direction:column;gap:14px}
+.episode-card{display:grid;grid-template-columns:92px 1fr auto;gap:18px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 1px 3px rgba(52,53,29,.04);transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease}
+.episode-card:hover{border-color:#c8bfab;box-shadow:0 6px 16px rgba(52,53,29,.07);transform:translateY(-1px)}
+
+/* Thumbnail */
+.card-thumb-link{width:92px;height:92px;flex-shrink:0;border-radius:10px;overflow:hidden;background:#f3efe5;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;text-decoration:none;position:relative;transition:opacity .15s,transform .15s}
+.card-thumb-link:hover{opacity:.92;transform:scale(1.02)}
+.card-thumb-img{width:100%;height:100%;object-fit:cover;display:block}
+.card-thumb-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%;height:100%;background:linear-gradient(145deg,#f4f1e8,#eae4d4);color:var(--olive);opacity:.85;text-align:center;padding:6px}
+.card-thumb-placeholder svg{width:28px;height:28px}
+.card-thumb-placeholder span{font-size:.68rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+
+/* Informações */
+.card-body{min-width:0;display:flex;flex-direction:column;gap:8px}
+.card-title-row{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.card-title{font-family:Georgia,serif;font-size:1.16rem;font-weight:650;line-height:1.3;color:var(--ink);text-decoration:none;transition:color .15s}
+.card-title:hover{color:var(--olive);text-decoration:underline}
+.card-version{font-size:.78rem;font-weight:600;color:var(--muted);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:1px 6px}
+.card-badges{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.badge-state-preview{background:#fdf2d9;color:#7a500e;border:1px solid #ebd3a2}
+.badge-state-approved{background:#e7f3dc;color:#355c1b;border:1px solid #c5e1af}
+.badge-state-published{background:#e6f4ea;color:#1e6338;border:1px solid #bce2c7}
+.badge-state-preparing{background:#edf2f7;color:#2d4a6b;border:1px solid #cbd5e1}
+.badge-spotify{background:#eef8ed;color:#1a7c36;border:1px solid #c2e5be;text-decoration:none;transition:filter .15s}
+.badge-spotify:hover{filter:brightness(.92)}
+.card-meta{display:flex;flex-wrap:wrap;gap:12px;font-size:.82rem;color:var(--muted)}
+.card-meta span{display:inline-flex;align-items:center;gap:4px}
+.card-id{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.78rem;background:rgba(52,53,29,.05);padding:1px 5px;border-radius:4px}
+
+/* Ações */
+.card-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.card-btn-open{white-space:nowrap;font-weight:600;padding:10px 18px}
+.btn-trash{display:inline-flex;align-items:center;gap:6px;background:transparent;border:1px solid var(--line);color:#824b45;border-radius:8px;padding:9px 12px;font-size:.86rem;font-weight:500;cursor:pointer;transition:all .15s ease}
+.btn-trash svg{width:16px;height:16px}
+.btn-trash:hover{background:#fdf2f0;border-color:#e4b8b2;color:#b3261e;box-shadow:0 1px 4px rgba(179,38,30,.12)}
+
+/* Responsivo Mobile */
+@media(max-width:880px){
+  .filters{grid-template-columns:1fr 1fr}
+}
+@media(max-width:680px){
+  .filters{grid-template-columns:1fr;gap:8px}
+  .episode-card{grid-template-columns:72px 1fr;grid-template-rows:auto auto;gap:12px;padding:14px}
+  .card-thumb-link{width:72px;height:72px;border-radius:8px}
+  .card-title{font-size:1.05rem}
+  .card-body{grid-column:2}
+  .card-actions{grid-column:1 / -1;width:100%;margin-top:4px;padding-top:12px;border-top:1px solid var(--line);display:flex;justify-content:stretch;gap:8px}
+  .card-btn-open{flex:1;text-align:center;padding:12px 14px}
+  .btn-trash{padding:12px 14px}
+}
+</style>
+
+<div class="stage-header">
+  <div class="eyebrow">Nos Passos de Cristo · Painel privado</div>
+  <h1>Stage de episódios</h1>
+  <p class="muted">Todos os episódios do canal, desde o recebimento até a publicação. Abra um episódio para conferir textos, ajustar a data de publicação (imediata ou retroativa) e baixar os arquivos.</p>
+  <div class="stage-counts">
+    <span><strong>{{ jobs|length }}</strong> episódio(s)</span>
+    <span>· <strong>{{ jobs|selectattr('state', 'equalto', 'preview')|list|length }}</strong> aguardando aprovação</span>
+    <span>· <strong>{{ jobs|selectattr('state', 'equalto', 'approved')|list|length }}</strong> aprovado(s)</span>
+    <span>· <strong>{{ jobs|selectattr('state', 'equalto', 'published')|list|length }}</strong> publicado(s)</span>
+  </div>
+</div>
+
 <section class="card">
   <div class="filters">
-    <input type="search" id="search" placeholder="Buscar por título, data ou identificação…" aria-label="Buscar episódio">
+    <input type="search" id="search" placeholder="Buscar por título, data ou ID…" aria-label="Buscar episódio">
     <select id="state" aria-label="Filtrar por status">
       <option value="">Todos os status</option>
       {% for key, label in states.items() %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
@@ -17,71 +87,132 @@
       <option value="scheduled">📅 Planejada / Retroativa</option>
     </select>
     <select id="sort" aria-label="Ordenar episódios">
+      <option value="rec-desc">Recebimento (mais recente primeiro)</option>
       <option value="alpha">Ordem alfabética (A–Z)</option>
       <option value="pub-asc">Data planejada (mais antiga → recente)</option>
       <option value="pub-desc">Data planejada (mais recente → antiga)</option>
-      <option value="rec-desc">Recebimento (mais recente primeiro)</option>
     </select>
   </div>
-  <div class="table-wrap"><table><thead><tr><th scope="col">Episódio</th><th scope="col">Publicação</th><th scope="col">Status</th><th scope="col">Versão</th><th scope="col">Material</th></tr></thead><tbody id="jobs-body">
+
+  <div id="jobs-list" class="jobs-list">
   {% for job in jobs %}
   {% set label = job.title or job.source_text or 'Aguardando título' %}
   {% set received = job.received_at.astimezone(timezone).strftime('%d/%m/%Y às %H:%M') if job.received_at else '' %}
   {% set received_iso = job.received_at.isoformat() if job.received_at else '' %}
   {% set pub = pub_map[job.id] if pub_map is defined else none %}
-  <tr data-state="{{ job.state }}"
+  {% set episode_url = url_for('homilias.stage_episode', token=stage_token, eid=job.id) %}
+  <article class="episode-card"
+      data-state="{{ job.state }}"
       data-pub-mode="{{ pub.mode if pub else 'immediate' }}"
       data-pub-sort="{{ pub.sort_key if pub else '' }}"
       data-rec-sort="{{ received_iso }}"
       data-alpha="{{ label|lower }}"
       data-search="{{ (label ~ ' ' ~ job.id ~ ' ' ~ (pub.date_br if pub else ''))|lower }}">
-    <td>{{ label }}<br>{% if received %}<small>Recebido em {{ received }} (Brasília)</small><br>{% endif %}
-      <small class="muted">{{ job.id }}</small></td>
-    <td>
-      {% if pub and pub.is_scheduled %}
-        <span class="badge badge-scheduled">📅 {{ pub.display }}{% if pub.is_past %} <span class="badge-tag">Retroativa</span>{% endif %}</span>
+
+    <!-- Thumbnail da Capa -->
+    <a href="{{ episode_url }}" class="card-thumb-link" aria-label="Abrir episódio {{ label }}">
+      {% if job.has_cover %}
+        <img class="card-thumb-img"
+             src="{{ url_for('homilias.stage_asset', token=stage_token, eid=job.id, kind='cover') }}"
+             alt="Capa de {{ label }}"
+             loading="lazy">
       {% else %}
-        <span class="badge badge-immediate">⚡ Imediata</span>
+        <div class="card-thumb-placeholder">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18V5l12-2v13"></path>
+            <circle cx="6" cy="18" r="3"></circle>
+            <circle cx="18" cy="16" r="3"></circle>
+          </svg>
+          <span>Sem capa</span>
+        </div>
       {% endif %}
-    </td>
-    <td><span class="badge">{{ states.get(job.state, job.state) }}</span></td>
-    <td>v{{ job.version }}</td>
-    <td><a href="{{ url_for('homilias.stage_episode',token=stage_token,eid=job.id) }}">Abrir episódio →</a>
-      <div class="actions">
+    </a>
+
+    <!-- Corpo com Título, Badges e Metadados -->
+    <div class="card-body">
+      <div class="card-title-row">
+        <a href="{{ episode_url }}" class="card-title">{{ label }}</a>
+        <span class="card-version" title="Versão da edição">v{{ job.version }}</span>
+      </div>
+
+      <div class="card-badges">
+        {% set state_class = 'badge-state-' ~ job.state %}
+        <span class="badge {{ state_class if job.state in ['preview', 'approved', 'published', 'preparing'] else '' }}">
+          {{ states.get(job.state, job.state) }}
+        </span>
+
+        {% if pub and pub.is_scheduled %}
+          <span class="badge badge-scheduled">📅 {{ pub.display }}{% if pub.is_past %} <span class="badge-tag">Retroativa</span>{% endif %}</span>
+        {% else %}
+          <span class="badge badge-immediate">⚡ Imediata</span>
+        {% endif %}
+
+        {% if job.spotify_id and job.state == 'published' %}
+          <a class="badge badge-spotify" href="https://open.spotify.com/episode/{{ job.spotify_id }}" target="_blank" rel="noopener">No Spotify ↗</a>
+        {% endif %}
+      </div>
+
+      <div class="card-meta">
+        {% if received %}<span>Recebido em {{ received }}</span>{% endif %}
+        <span>ID: <code class="card-id" title="{{ job.id }}">{{ job.id[:8] }}</code></span>
+      </div>
+    </div>
+
+    <!-- Ações e Lixeira -->
+    <div class="card-actions">
       {% set resume = job.state == 'preparing' and job.notice == 'panel' %}
       {% if (job.state in preparable or resume) and job.source_text %}
-      <form method="post" action="{{ url_for('homilias.stage_action',token=stage_token,eid=job.id,action='prepare') }}">
-        <input type="hidden" name="version" value="{{ job.version }}"><input type="hidden" name="state" value="{{ job.state }}">
-        <button type="submit">{{ 'Retomar preparo' if resume else 'Preparar' }}</button>
+      <form method="post" action="{{ url_for('homilias.stage_action', token=stage_token, eid=job.id, action='prepare') }}">
+        <input type="hidden" name="version" value="{{ job.version }}">
+        <input type="hidden" name="state" value="{{ job.state }}">
+        <button type="submit" class="button">{{ 'Retomar preparo' if resume else 'Preparar' }}</button>
       </form>
       {% endif %}
+
+      <a href="{{ episode_url }}" class="button primary card-btn-open">Abrir episódio →</a>
+
       {% if job.state in trashable %}
-      <details><summary>🗑 Lixeira</summary>
-        <form method="post" action="{{ url_for('homilias.stage_action',token=stage_token,eid=job.id,action='trash') }}">
-          <p>Retirar esta cópia do painel e da fila? {{ received }} · {{ job.id[:8] }}</p>
-          <input type="hidden" name="version" value="{{ job.version }}"><input type="hidden" name="state" value="{{ job.state }}">
-          <button type="submit">Confirmar remoção</button>
-        </form>
-      </details>
+      <form method="post"
+            action="{{ url_for('homilias.stage_action', token=stage_token, eid=job.id, action='trash') }}"
+            onsubmit="return confirm('Deseja mover este episódio para a lixeira?\n\n{{ label|replace('\'', '\\\'')|replace('\"', '\\\"') }}\n(ID: {{ job.id[:8] }})');">
+        <input type="hidden" name="version" value="{{ job.version }}">
+        <input type="hidden" name="state" value="{{ job.state }}">
+        <button type="submit" class="btn-trash" title="Mover para a lixeira" aria-label="Mover episódio para lixeira">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+          <span>Lixeira</span>
+        </button>
+      </form>
       {% endif %}
-      </div>
-    </td>
-  </tr>
+    </div>
+
+  </article>
   {% endfor %}
-  </tbody></table></div><p id="empty" class="empty" {% if jobs %}hidden{% endif %}>Nenhum episódio encontrado.</p><p id="results" class="help" role="status" aria-live="polite"></p></section>
+  </div>
+
+  <p id="empty" class="empty" {% if jobs %}hidden{% endif %}>Nenhum episódio encontrado.</p>
+  <p id="results" class="help" role="status" aria-live="polite"></p>
+</section>
+
 <p class="help">Guarde este link para voltar ao painel. Ele dá acesso aos materiais de todos os episódios do canal. Você também pode marcar episódios publicados manualmente dentro da página de cada episódio.</p>
 {% endblock %}
-{% block scripts %}<script>
+
+{% block scripts %}
+<script>
 const search = document.getElementById('search');
 const state = document.getElementById('state');
 const pubMode = document.getElementById('pub-mode');
 const sortSelect = document.getElementById('sort');
-const tbody = document.getElementById('jobs-body');
+const list = document.getElementById('jobs-list');
 
 function applySort() {
-  const rows = Array.from(tbody.querySelectorAll('tr[data-state]'));
+  const cards = Array.from(list.querySelectorAll('.episode-card[data-state]'));
   const mode = sortSelect.value;
-  rows.sort((a, b) => {
+  cards.sort((a, b) => {
     if (mode === 'pub-asc' || mode === 'pub-desc') {
       const ka = a.dataset.pubSort || '', kb = b.dataset.pubSort || '';
       if (ka && !kb) return -1;
@@ -96,18 +227,18 @@ function applySort() {
     }
     return a.dataset.alpha.localeCompare(b.dataset.alpha, 'pt-BR');
   });
-  rows.forEach(r => tbody.appendChild(r));
+  cards.forEach(c => list.appendChild(c));
 }
 
 function filter() {
   let count = 0;
   const q = search.value.trim().toLocaleLowerCase('pt-BR');
-  document.querySelectorAll('tr[data-state]').forEach(row => {
-    const matchText = row.dataset.search.includes(q);
-    const matchState = !state.value || row.dataset.state === state.value;
-    const matchPub = !pubMode.value || row.dataset.pubMode === pubMode.value;
-    row.hidden = !(matchText && matchState && matchPub);
-    if (!row.hidden) count++;
+  document.querySelectorAll('.episode-card[data-state]').forEach(card => {
+    const matchText = card.dataset.search.includes(q);
+    const matchState = !state.value || card.dataset.state === state.value;
+    const matchPub = !pubMode.value || card.dataset.pubMode === pubMode.value;
+    card.hidden = !(matchText && matchState && matchPub);
+    if (!card.hidden) count++;
   });
   document.getElementById('empty').hidden = count !== 0;
   document.getElementById('results').textContent = count + ' episódio(s) exibido(s).';
@@ -117,4 +248,8 @@ search.addEventListener('input', filter);
 state.addEventListener('change', filter);
 pubMode.addEventListener('change', filter);
 sortSelect.addEventListener('change', () => { applySort(); filter(); });
-</script>{% endblock %}
+
+// Aplica a ordenação padrão inicial (Recebimento mais recente primeiro)
+applySort();
+</script>
+{% endblock %}

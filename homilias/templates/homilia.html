@@ -165,23 +165,34 @@
   <div class="live" id="copy-status" role="status" aria-live="polite"></div>
 </section>
 
+{% set cover_url = url_for('homilias.view', token=token, kind='cover') if token else (url_for('homilias.stage_asset', token=stage_token, eid=job.id, kind='cover') if stage_token else none) %}
+{% set cover_dl = url_for('homilias.view', token=token, kind='cover', download=1) if token else (url_for('homilias.stage_asset', token=stage_token, eid=job.id, kind='cover', download=1) if stage_token else none) %}
+{% set audio_url = url_for('homilias.view', token=token, kind='audio') if token else (url_for('homilias.stage_asset', token=stage_token, eid=job.id, kind='audio') if stage_token else none) %}
+{% set audio_dl = url_for('homilias.view', token=token, kind='audio', download=1) if token else (url_for('homilias.stage_asset', token=stage_token, eid=job.id, kind='audio', download=1) if stage_token else none) %}
+
+{% if cover_url or audio_url %}
 <section class="card" aria-labelledby="files-heading">
   <h2 id="files-heading">Baixe os arquivos para enviar ao Spotify</h2>
   <div class="assets">
+    {% if cover_url %}
     <div>
-      <img alt="Capa do episódio" src="{{ url_for('homilias.view',token=token,kind='cover') }}">
-      <a class="button" href="{{ url_for('homilias.view',token=token,kind='cover',download=1) }}">Baixar capa · PNG</a>
+      <img alt="Capa do episódio" src="{{ cover_url }}">
+      <a class="button" href="{{ cover_dl }}">Baixar capa · PNG</a>
       <p class="help">Use como imagem deste episódio.</p>
     </div>
+    {% endif %}
+    {% if audio_url %}
     <div>
       <h3>Áudio tratado</h3>
       <p class="muted">Ouça para conferir a qualidade da voz antes de publicar.</p>
-      <audio controls preload="metadata" src="{{ url_for('homilias.view',token=token,kind='audio') }}"></audio>
-      <a class="button primary" href="{{ url_for('homilias.view',token=token,kind='audio',download=1) }}">Baixar áudio · M4A</a>
+      <audio controls preload="metadata" src="{{ audio_url }}"></audio>
+      <a class="button primary" href="{{ audio_dl }}">Baixar áudio · M4A</a>
       <p class="help">Envie este arquivo na etapa de upload do episódio.</p>
     </div>
+    {% endif %}
   </div>
 </section>
+{% endif %}
 
 <section class="card" aria-labelledby="checklist-heading">
   <div class="eyebrow">Acompanhamento manual</div>

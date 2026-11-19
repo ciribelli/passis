@@ -13,7 +13,7 @@ import requests
 import sqlalchemy as sa
 from flask import Blueprint, abort, redirect, render_template, request, send_file, url_for
 
-from .store import asset, episodes, incoming, source_text, transition
+from .store import asset, assets, episodes, incoming, source_text, transition
 
 
 STATES = {
@@ -243,11 +243,14 @@ def preview_routes(get_engine):
     @bp.get("/homilias/stage/<token>")
     def stage(token):
         check_stage(token)
+        has_cover_col = sa.exists().where(
+            sa.and_(assets.c.episode == episodes.c.id, assets.c.kind == "cover")
+        ).label("has_cover")
         with get_engine().connect() as conn:
             rows = conn.execute(sa.select(episodes.c.id, episodes.c.title, episodes.c.state,
                 episodes.c.version, episodes.c.notice, episodes.c.publish_mode,
                 episodes.c.publish_at, episodes.c.publish_has_time, episodes.c.spotify_id,
-                incoming.c.received_at, incoming.c.source_text)
+                incoming.c.received_at, incoming.c.source_text, has_cover_col)
                 .outerjoin(incoming, episodes.c.source_id == incoming.c.source_id)
                 .where(episodes.c.owner == os.environ["HOMILIA_OWNER_WA_ID"], episodes.c.state != "trashed")
                 .order_by(episodes.c.title, incoming.c.received_at, episodes.c.id)).mappings().all()
@@ -358,6 +361,28 @@ def preview_routes(get_engine):
                 spotify_wizard_url=SPOTIFY_WIZARD_URL,
                 editable=row["state"] in EDITABLE_STATES,
                 can_mark_published=row["state"] in MANUAL_PUBLISH_STATES)
+
+    @bp.get("/homilias/stage/<token>/episode/<eid>/<kind>")
+    def stage_asset(token, eid, kind):
+        check_stage(token)
+        if kind not in ("cover", "audio") or not re.fullmatch(r"[0-9a-f]{32}", eid):
+            abort(404)
+        with get_engine().connect() as conn:
+            row = conn.execute(sa.select(episodes.c.id, episodes.c.version).where(
+                episodes.c.id == eid,
+                episodes.c.owner == os.environ["HOMILIA_OWNER_WA_ID"],
+                episodes.c.state != "trashed"
+            )).mappings().first()
+            if not row:
+                abort(404)
+            data = asset(conn, eid, kind)
+            if not data:
+                abort(404)
+            return send_file(io.BytesIO(data),
+                             mimetype={"cover": "image/png", "audio": "audio/mp4"}[kind],
+                             as_attachment=request.args.get("download") == "1",
+                             download_name=f"homilia-{row['id']}-v{row['version']}-{'capa.png' if kind == 'cover' else 'audio.m4a'}",
+                             conditional=True)
 
     @bp.get("/homilias/p/<token>")
     @bp.get("/homilias/p/<token>/<kind>")
