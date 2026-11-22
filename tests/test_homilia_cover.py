@@ -87,38 +87,40 @@ class CoverPipelineUnitTests(unittest.TestCase):
         self.assertLess(grad_arr[..., 2].mean(), orig_arr[..., 2].mean() - 25)
         self.assertGreater(grad_arr[..., 0].mean(), orig_arr[..., 0].mean())
 
-    def test_auto_scrim_adapts_to_bright_vs_dark_top(self):
-        bright = Image.new("RGB", (256, 256), (235, 235, 230))
-        dark = Image.new("RGB", (256, 256), (25, 24, 18))
-        bright_scrim = cover.apply_scrim_and_vignette(bright, layout="top", scrim="auto")
-        dark_scrim = cover.apply_scrim_and_vignette(dark, layout="top", scrim="auto")
-        # Imagem clara recebe escurecimento substancial no topo; imagem já escura quase não muda.
-        bright_drop = cover.measure_band_luminance(bright, 0.0, 0.2) - cover.measure_band_luminance(bright_scrim, 0.0, 0.2)
-        dark_drop = abs(cover.measure_band_luminance(dark, 0.0, 0.2) - cover.measure_band_luminance(dark_scrim, 0.0, 0.2))
-        self.assertGreater(bright_drop, 0.30)
-        self.assertLess(dark_drop, 0.05)
+    def test_background_prompt_uses_homily_and_keeps_art_free_of_text(self):
+        scene = "Mãos partilhando o pão"
+        title = "Acolher à mesa"
+        note = "Acrescente uma legenda"
+        prompt = cover.build_background_prompt(scene, title=title, note=note, layout="top")
+        self.assertIn(scene, prompt)
+        self.assertIn(title, prompt)
+        self.assertIn(note, prompt)
+        self.assertIn("um único motivo visual", prompt)
+        self.assertIn("enquadramento fechado", prompt)
+        self.assertIn("rostos de Jesus e de outras pessoas fora do quadro", prompt)
+        self.assertIn("Não inclua títulos, legendas", prompt)
+        self.assertEqual(prompt, cover.build_background_prompt(scene, title=title, note=note, layout="bottom"))
+        self.assertIn(title, cover.build_background_prompt("", title=title))
+        with self.assertRaises(ValueError):
+            cover.build_background_prompt("")
 
-    def test_render_cover_modes_and_layouts(self):
-        raw = _make_sample_image(600, 400, (110, 95, 65))
-        for layout in ("top", "bottom", "none"):
-            cfg = cover.default_cover_config(
-                title="Participar da alegria de Deus com fidelidade",
-                subtitle="33º Domingo do Tempo Comum",
-                grade="channel",
-                scrim="auto",
-                layout=layout,
-            )
-            png = cover.render_cover(raw, cfg, size=512)
-            self.assertTrue(png.startswith(b"\x89PNG\r\n\x1a\n"))
-            with Image.open(BytesIO(png)) as out:
-                self.assertEqual(out.size, (512, 512))
-
-        # Modo 'final' não sobrepõe texto nem scrim
-        final_cfg = cover.default_cover_config(title="Ignorado", mode="final", grade="original")
-        solid = _make_sample_image(400, 400, (200, 180, 120))
-        final_png = cover.render_cover(solid, final_cfg, size=256)
-        with Image.open(BytesIO(final_png)) as out:
-            self.assertEqual(out.getpixel((128, 30)), (200, 180, 120))
+    def test_render_cover_ignores_legacy_text_and_scrim_in_all_modes(self):
+        raw = _make_sample_image(400, 400, (200, 180, 120))
+        for mode in ("composed", "final"):
+            for layout in ("top", "bottom", "none"):
+                with self.subTest(mode=mode, layout=layout):
+                    cfg = cover.default_cover_config(
+                        title="Participar da alegria de Deus",
+                        subtitle="33º Domingo do Tempo Comum",
+                        mode=mode,
+                        layout=layout,
+                        scrim="strong",
+                    )
+                    png = cover.render_cover(raw, cover.dump_cover_config(cfg), size=256)
+                    with Image.open(BytesIO(png)) as out:
+                        self.assertEqual(out.format, "PNG")
+                        self.assertEqual(out.size, (256, 256))
+                        self.assertEqual(out.getextrema(), ((200, 200), (180, 180), (120, 120)))
 
 
 class CoverStageIntegrationTests(unittest.TestCase):
@@ -185,7 +187,7 @@ class CoverStageIntegrationTests(unittest.TestCase):
         first_cover_bytes = r_cover_1.data
         self.assertTrue(first_cover_bytes.startswith(b"\x89PNG\r\n\x1a\n"))
 
-        # Passos 2 e 3: ajusta recorte, posição inferior e título estruturado sem reenviar imagem.
+        # Ajusta o recorte e a cor. Campos do formulário antigo continuam aceitos.
         r_render = client.post(
             f"{base}/cover-render",
             data={
@@ -218,7 +220,9 @@ class CoverStageIntegrationTests(unittest.TestCase):
 
         # Página do episódio renderiza o Estúdio da capa com os novos valores.
         html = client.get(base).get_data(as_text=True)
-        self.assertIn("A alegria do encontro", html)
+        self.assertNotIn("A alegria do encontro", html)
+        self.assertNotIn('name="cover_title"', html)
+        self.assertNotIn('name="scrim"', html)
         self.assertIn("Caravaggio · Domínio público", html)
         self.assertIn("crop-stage", html)
 
@@ -326,6 +330,9 @@ class CoverStageIntegrationTests(unittest.TestCase):
         self.assertEqual(updated_cfg["layout"], "bottom")
         self.assertEqual(updated_cfg["title"], "Novo título curto")
         self.assertEqual(updated_cfg["subtitle"], "34º Domingo do Tempo Comum")
+        with self.engine.connect() as conn:
+            self.assertEqual(store.asset(conn, self.eid, "cover_bg"), bg)
+            self.assertEqual(store.asset(conn, self.eid, "cover"), b"legacy-cover")
 
 
 if __name__ == "__main__":

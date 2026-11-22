@@ -355,8 +355,6 @@ def preview_routes(get_engine):
                     "zoom": 1.0,
                     "source_ref": source_ref[:240],
                 })
-                if mode == "composed" and cfg["layout"] == "none":
-                    cfg["layout"] = "top"
                 final_png = cover_mod.render_cover(prepared_bg, cfg)
                 put_asset(conn, eid, "cover_bg", prepared_bg)
                 put_asset(conn, eid, "cover", final_png)
@@ -371,7 +369,7 @@ def preview_routes(get_engine):
                 bg_bytes = asset(conn, eid, "cover_bg")
                 if not bg_bytes:
                     return redirect(url_for("homilias.stage_episode", token=token, eid=eid,
-                        erro="Este episódio ainda não tem imagem-base separada. Envie/importe uma imagem ou gere uma pintura limpa com IA no Passo 1."), code=303)
+                        erro="Este episódio ainda não tem imagem-base. Importe uma pintura sem texto ou gere uma nova na aba Origem da imagem."), code=303)
                 cfg = cover_mod.parse_cover_config(row.get("cover_config"), fallback_title=row.get("title") or "")
                 updated = cover_mod.parse_cover_config({
                     **cfg,
@@ -406,9 +404,6 @@ def preview_routes(get_engine):
                     cfg["title"] = (request.form.get("cover_title") or "").strip()[:90]
                 if "cover_subtitle" in request.form:
                     cfg["subtitle"] = (request.form.get("cover_subtitle") or "").strip()[:90]
-                cfg["mode"] = "composed"
-                if cfg["layout"] == "none":
-                    cfg["layout"] = "top"
                 conn.execute(episodes.update().where(episodes.c.id == eid).values(
                     cover_config=cover_mod.dump_cover_config(cfg)))
                 spawn_cmd = [sys.executable, "-m", "homilias.worker", "regen-cover-bg", "--id", eid]
@@ -488,8 +483,6 @@ def preview_routes(get_engine):
                 cover_hash=cover_hash, cover_bg_hash=cover_bg_hash,
                 cover_cfg=cover_cfg,
                 grade_labels=cover_mod.GRADE_LABELS,
-                scrim_labels=cover_mod.SCRIM_LABELS,
-                layout_labels=cover_mod.LAYOUT_LABELS,
                 source_labels=cover_mod.SOURCE_LABELS)
 
     @bp.get("/homilias/stage/<token>/episode/<eid>/<any(cover,cover_bg,audio):kind>")

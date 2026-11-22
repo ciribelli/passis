@@ -85,7 +85,7 @@ class TranscriptTests(unittest.TestCase):
             client.assert_called_once_with(api_key="only-homilias", timeout=180)
             self.assertEqual(image.call_args.kwargs["headers"]["Authorization"], "Bearer only-homilias")
             self.assertIn(scene, image.call_args.kwargs["json"]["prompt"])
-            self.assertIn("Do NOT include ANY text", image.call_args.kwargs["json"]["prompt"])
+            self.assertIn("Não inclua títulos, legendas", image.call_args.kwargs["json"]["prompt"])
         self.assertEqual(len(durations), 3)
         self.assertLess(max(durations), 60)
         self.assertAlmostEqual(sum(durations), 125, places=1)

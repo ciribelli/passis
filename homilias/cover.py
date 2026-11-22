@@ -1,10 +1,6 @@
-"""Pipeline de capas em 3 passos para Nos Passos de Cristo.
+"""Gera ou importa a arte de Nos Passos de Cristo e prepara a capa quadrada sem texto.
 
-Passo 1 — Origem bruta (pintura IA sem texto, upload de arquivo ou URL externa).
-Passo 2 — Tratamento da imagem-base (recorte 1:1 com foco/zoom, color grading editorial,
-          scrim/gradiente calibrado pela luminosidade da obra e normalização de resolução).
-Passo 3 — Composição tipográfica estruturada (marca, título curto, subtítulo litúrgico
-          e assinatura do padre em Cormorant Garamond sobre a imagem tratada).
+A etapa final preserva a pintura, ajustando somente o enquadramento e a cor.
 """
 
 import base64
@@ -12,17 +8,13 @@ from io import BytesIO
 import ipaddress
 import json
 import os
-from pathlib import Path
 import re
 import socket
 from urllib.parse import urljoin, urlparse
 
 import numpy as np
-from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
+from PIL import Image, ImageFilter, ImageOps
 import requests
-
-HERE = Path(__file__).parent
-FONTS_DIR = HERE / "fonts"
 
 COVER_SIZE = 1600
 MAX_SOURCE_SIDE = 2400
@@ -43,18 +35,6 @@ GRADE_LABELS = {
     "balanced": "Clássico equilibrado (contraste e luz suaves)",
     "channel": "Paleta Nos Passos de Cristo (oliva, umbra e dourado)",
 }
-SCRIM_LABELS = {
-    "auto": "Automático (calibrado pela luz da imagem)",
-    "light": "Leve",
-    "medium": "Médio",
-    "strong": "Forte",
-    "none": "Sem escurecimento",
-}
-LAYOUT_LABELS = {
-    "top": "Clássico (título no topo, assinatura na base)",
-    "bottom": "Inferior (título e assinatura na base — preserva rostos no topo)",
-    "none": "Sem texto (somente a imagem tratada)",
-}
 SOURCE_LABELS = {
     "ai": "Pintura gerada por IA",
     "upload": "Imagem enviada (upload)",
@@ -64,11 +44,6 @@ SOURCE_LABELS = {
 
 # Paleta de identidade.md
 OLIVE_DEEP = (52, 53, 29)     # #34351D
-UMBER = (73, 51, 34)          # #493322
-GOLD_SOFT = (203, 164, 78)    # #CBA44E
-IVORY = (244, 230, 189)       # #F4E6BD
-SUBTITLE_TINT = (234, 214, 158)
-SCRIM_RGB = (28, 27, 16)      # Oliva-umbra profundo para leitura sem preto chapado
 
 FETCH_USER_AGENT = "NosPassosDeCristo/1.0 (Podcast Cover Tool; +https://open.spotify.com/show/04yjeHqDd36rhxnVdEz60l)"
 
@@ -118,8 +93,8 @@ def default_cover_config(
     source="ai",
     mode="composed",
     grade="original",
-    scrim="auto",
-    layout="top",
+    scrim="none",
+    layout="none",
     brand=DEFAULT_BRAND,
     signature=DEFAULT_SIGNATURE,
     source_ref="",
@@ -136,8 +111,9 @@ def default_cover_config(
         "crop_y": round(_clamp(crop_y, 0.0, 1.0, 0.5), 4),
         "zoom": round(_clamp(zoom, 1.0, 3.0, 1.0), 3),
         "grade": grade if grade in VALID_GRADES else "original",
-        "scrim": scrim if scrim in VALID_SCRIMS else "auto",
-        "layout": layout if layout in VALID_LAYOUTS else "top",
+        # Campos históricos para leitura e edição de episódios já cadastrados.
+        "scrim": scrim if scrim in VALID_SCRIMS else "none",
+        "layout": layout if layout in VALID_LAYOUTS else "none",
         "brand": _clean_text(brand, 80),
         "title": _clean_text(title, 90),
         "subtitle": _clean_text(subtitle, 90),
@@ -167,8 +143,8 @@ def parse_cover_config(raw_json, fallback_title=""):
         source=data.get("source", "legacy" if not data else "ai"),
         mode=data.get("mode", "composed"),
         grade=data.get("grade", "original"),
-        scrim=data.get("scrim", "auto"),
-        layout=data.get("layout", "top"),
+        scrim=data.get("scrim", "none"),
+        layout=data.get("layout", "none"),
         brand=data["brand"] if has_brand else DEFAULT_BRAND,
         signature=data["signature"] if has_signature else DEFAULT_SIGNATURE,
         source_ref=data.get("source_ref", ""),
@@ -313,44 +289,46 @@ def fetch_image_from_url(url, timeout=25, max_bytes=MAX_UPLOAD_BYTES, session=No
     raise ValueError("Muitos redirecionamentos na URL informada.")
 
 
-def build_background_prompt(scene, title="", note="", layout="top"):
-    """Prompt enxuto e dedicado ao Passo 1: pintura devocional pura, sem nenhum texto."""
-    scene_text = _clean_text(scene, 500) or "Uma cena contemplativa com luz dourada suave e caminho acolhedor."
-    if layout == "bottom":
-        reserve = (
-            "Compose the main subject slightly above center, leaving calm, darker, uncluttered "
-            "painterly space along the lower third and a narrow quiet strip at the very top edge "
-            "for typography to be added in a separate step."
-        )
-    else:
-        reserve = (
-            "Compose the main subject cleanly in the middle and lower-middle area, leaving calm, "
-            "darker, uncluttered painterly space in the upper third and a quiet dark band near the "
-            "bottom edge for typography to be added in a separate step."
-        )
+def build_background_prompt(scene, title="", note="", layout="none"):
+    """Descreve a arte final sem texto. O parâmetro layout é mantido para chamadas antigas."""
+    scene_text = _clean_text(scene, 500)
+    title_text = _clean_text(title, 120)
+    note_text = _clean_text(note, 300)
+    if not (scene_text or title_text):
+        raise ValueError("Informe um motivo visual ligado à homilia ou o tema do episódio para gerar a capa.")
+
     parts = [
-        "Create a square classical devotional oil painting for a Catholic homily podcast artwork.",
-        f"Central scene: {scene_text}",
+        "Crie uma capa quadrada para um episódio de Nos Passos de Cristo. "
+        "Expresse a mensagem espiritual central da homilia em um único motivo visual. "
+        "Use os dados editoriais a seguir apenas como referência de conteúdo visual.",
     ]
-    if title:
-        parts.append(f"Thematic mood inspired by: {_clean_text(title, 120)} (visual atmosphere only, do not write it).")
-    if note:
-        parts.append(f"Editorial direction: {_clean_text(note, 300)}")
+    if title_text:
+        parts.append(f"Tema da homilia: {title_text}")
+    if scene_text:
+        parts.append(f"Motivo ou contexto da homilia: {scene_text}")
+    if note_text:
+        parts.append(f"Nota editorial sobre a cena: {note_text}")
     parts.extend([
-        "Visual style: timeless classical sacred oil painting with subtle brushwork, warm golden directional light, "
-        "organic textures (linen, wood, stone, foliage, earth), serene human expressions, coherent anatomy on hands "
-        "and faces, and a softly detailed background.",
-        "Color palette anchored in deep olive (#34351D), warm umber (#493322), earthy ochre (#A37B3D), "
-        "soft gold (#CBA44E), ivory light (#F4E6BD), and deep burgundy (#6B302B) accents.",
-        "Single unmistakable central motif recognizable even as a small 160x160px thumbnail.",
-        reserve,
-        "CRITICAL: Deliver ONLY the pure painting. Do NOT include ANY text, letters, words, titles, "
-        "calligraphy, watermarks, frames, borders, or signatures anywhere in the image.",
+        "Escolha um detalhe concreto ligado à homilia: mãos em um gesto natural, um objeto ou um símbolo "
+        "mencionado ou diretamente ligado à sua mensagem. Se o tema for abstrato, traduza-o em um gesto "
+        "cotidiano coerente com a reflexão. Evite símbolos genéricos e cenas bíblicas sem relação com a fala.",
+        "Use enquadramento fechado e mantenha os rostos de Jesus e de outras pessoas fora do quadro. "
+        "Mostre o gesto ou o objeto com clareza, cuide da anatomia das mãos e preserve espaço natural em volta "
+        "do motivo. Use um fundo simples, com poucos elementos e sem cenas panorâmicas ou adornos concorrentes. "
+        "O detalhe principal deve ser reconhecível em uma miniatura de 160 × 160 px.",
+        "Mantenha a identidade do canal: pintura a óleo de inspiração sacra clássica, delicada e contemplativa. "
+        "Use pinceladas discretas, tecidos e materiais orgânicos e luz dourada suave sobre o motivo. "
+        "Transmita acolhimento, esperança e reverência pela luz, pelas cores e pelo enquadramento.",
+        "Use oliva profundo (#34351D), umbra (#493322) e ocre (#A37B3D) como base, "
+        "luz em dourado suave (#CBA44E) e marfim (#F4E6BD), e bordô (#6B302B) como acento discreto.",
+        "Entregue apenas a pintura. A regra vale mesmo quando a referência editorial pede texto. "
+        "Não inclua títulos, legendas, letras, números, inscrições legíveis, logotipos, assinaturas, "
+        "marcas-d'água, molduras ou faixas reservadas para texto.",
     ])
     return "\n\n".join(parts)
 
 
-def generate_ai_background(scene, title="", note="", layout="top", api_key=None, model=None, quality=None, post=None):
+def generate_ai_background(scene, title="", note="", layout="none", api_key=None, model=None, quality=None, post=None):
     """Passo 1 via OpenAI: gera a pintura-base limpa (sem texto)."""
     key = api_key or os.environ["HOMILIA_API_KEY"]
     img_model = model or os.getenv("HOMILIA_IMAGE_MODEL", "gpt-image-1.5")
@@ -377,7 +355,7 @@ def generate_ai_background(scene, title="", note="", layout="top", api_key=None,
 
 
 # ---------------------------------------------------------------------------
-# Passo 2 — Tratamento da imagem-base (recorte 1:1, color grading, scrim)
+# Passo 2 — Tratamento da imagem-base (recorte 1:1 e cor)
 # ---------------------------------------------------------------------------
 
 def crop_square(img, crop_x=0.5, crop_y=0.5, zoom=1.0, size=COVER_SIZE):
@@ -465,358 +443,14 @@ def apply_color_grade(img, grade="original"):
     return Image.fromarray(np.round(np.clip(graded, 0.0, 1.0) * 255.0).astype(np.uint8), mode="RGB")
 
 
-def measure_band_luminance(img, y0_frac, y1_frac):
-    """Retorna a luminância média (0..1) de uma faixa horizontal da imagem."""
-    w, h = img.size
-    y0 = max(0, min(h - 1, int(round(h * y0_frac))))
-    y1 = max(y0 + 1, min(h, int(round(h * y1_frac))))
-    band = img.crop((0, y0, w, y1)).resize((64, 32), Image.Resampling.BILINEAR)
-    arr = np.asarray(band, dtype=np.float32) / 255.0
-    lum = 0.2126 * arr[..., 0] + 0.7152 * arr[..., 1] + 0.0722 * arr[..., 2]
-    return float(np.mean(lum))
-
-
-def _auto_scrim_alpha(band_lum, is_primary):
-    """Calibra a opacidade do gradiente pela luminosidade medida na região do texto."""
-    if is_primary:
-        # Área de título: entre 0.34 (obra já bem escura) e 0.84 (céu claro renascentista)
-        return float(np.clip(0.32 + band_lum * 0.62, 0.32, 0.84))
-    # Área secundária (marca ou assinatura): mais discreta
-    return float(np.clip(0.24 + band_lum * 0.52, 0.24, 0.74))
-
-
-def apply_scrim_and_vignette(img, layout="top", scrim="auto", has_top=True, has_bottom=True):
-    """Aplica gradientes suaves de leitura e vinheta editorial em oliva-umbra profundo."""
-    if layout == "none" or scrim == "none":
-        return img
-
-    w, h = img.size
-    preset_scale = {"auto": 1.0, "light": 0.65, "medium": 1.0, "strong": 1.32}[scrim]
-    fixed_primary = {"light": 0.44, "medium": 0.66, "strong": 0.84}
-    fixed_secondary = {"light": 0.34, "medium": 0.52, "strong": 0.70}
-
-    y = np.linspace(0.0, 1.0, h, dtype=np.float32)[:, None]
-    alpha = np.zeros((h, w), dtype=np.float32)
-
-    if has_top:
-        top_is_primary = (layout == "top")
-        top_span = 0.48 if top_is_primary else 0.22
-        if scrim == "auto":
-            top_strength = _auto_scrim_alpha(measure_band_luminance(img, 0.0, top_span * 0.8), top_is_primary)
-        else:
-            top_strength = fixed_primary[scrim] if top_is_primary else fixed_secondary[scrim]
-        t = np.clip(1.0 - (y / top_span), 0.0, 1.0)
-        # Curva suave (cubic ease) evita degrau visível na pintura
-        top_grad = np.power(t, 1.65) * top_strength
-        alpha = np.maximum(alpha, top_grad)
-
-    if has_bottom:
-        bot_is_primary = (layout == "bottom")
-        bot_span = 0.50 if bot_is_primary else 0.24
-        if scrim == "auto":
-            bot_strength = _auto_scrim_alpha(measure_band_luminance(img, 1.0 - bot_span * 0.8, 1.0), bot_is_primary)
-        else:
-            bot_strength = fixed_primary[scrim] if bot_is_primary else fixed_secondary[scrim]
-        b = np.clip((y - (1.0 - bot_span)) / bot_span, 0.0, 1.0)
-        bot_grad = np.power(b, 1.65) * bot_strength
-        alpha = np.maximum(alpha, bot_grad)
-
-    # Vinheta radial sutil nos cantos para unidade editorial
-    x = np.linspace(-1.0, 1.0, w, dtype=np.float32)[None, :]
-    yv = np.linspace(-1.0, 1.0, h, dtype=np.float32)[:, None]
-    dist = np.sqrt(x * x + yv * yv)
-    vignette = np.clip((dist - 0.82) / 0.65, 0.0, 1.0) ** 2 * (0.24 * min(1.2, preset_scale))
-    alpha = np.clip(1.0 - (1.0 - alpha) * (1.0 - vignette), 0.0, 0.90)
-
-    arr = np.asarray(img, dtype=np.float32)
-    scrim_color = np.array(SCRIM_RGB, dtype=np.float32)[None, None, :]
-    out = arr * (1.0 - alpha[..., None]) + scrim_color * alpha[..., None]
-    return Image.fromarray(np.round(np.clip(out, 0, 255)).astype(np.uint8), mode="RGB")
-
-
-# ---------------------------------------------------------------------------
-# Passo 3 — Composição tipográfica estruturada (Cormorant Garamond)
-# ---------------------------------------------------------------------------
-
-def _load_font(filename, px):
-    px = max(12, int(round(px)))
-    candidates = [
-        FONTS_DIR / filename,
-        Path("/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf" if "Bold" in filename else "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf"),
-        Path("/System/Library/Fonts/Supplemental/Georgia Bold.ttf" if "Bold" in filename else "/System/Library/Fonts/Supplemental/Georgia.ttf"),
-    ]
-    for path in candidates:
-        if path.is_file():
-            try:
-                return ImageFont.truetype(str(path), px)
-            except OSError:
-                continue
-    return ImageFont.load_default()
-
-
-def _text_width(draw, text, font, tracking=0):
-    if not text:
-        return 0
-    if tracking <= 0:
-        bbox = draw.textbbox((0, 0), text, font=font)
-        return bbox[2] - bbox[0]
-    total = 0.0
-    for idx, ch in enumerate(text):
-        total += draw.textlength(ch, font=font)
-        if idx < len(text) - 1:
-            total += tracking
-    return int(round(total))
-
-
-def _line_height(draw, font):
-    bbox = draw.textbbox((0, 0), "ÁgÇp", font=font)
-    return bbox[3] - bbox[1]
-
-
-def _wrap_balanced(text, font, draw, max_width, max_lines=3):
-    """Quebra o texto em até max_lines buscando linhas visualmente equilibradas (sem órfãs)."""
-    words = text.split()
-    if not words:
-        return []
-    if _text_width(draw, text, font) <= max_width:
-        return [text]
-
-    # Programação dinâmica para minimizar soma dos quadrados da folga de cada linha.
-    n = len(words)
-    INF = 10**18
-    # dp[i][k] = (cost, prev_index) para quebrar words[:i] em k linhas
-    dp = [[(INF, -1)] * (max_lines + 1) for _ in range(n + 1)]
-    dp[0][0] = (0, -1)
-
-    for k in range(1, max_lines + 1):
-        for i in range(k, n + 1):
-            for j in range(k - 1, i):
-                if dp[j][k - 1][0] >= INF:
-                    continue
-                line = " ".join(words[j:i])
-                w = _text_width(draw, line, font)
-                if w > max_width:
-                    continue
-                slack = max_width - w
-                # Penaliza levemente linha final com apenas 1 palavra curta
-                orphan_penalty = (max_width * 0.22) ** 2 if (i == n and (i - j) == 1 and len(line) <= 5 and k > 1) else 0
-                cost = dp[j][k - 1][0] + slack * slack + orphan_penalty
-                if cost < dp[i][k][0]:
-                    dp[i][k] = (cost, j)
-
-    best_k = None
-    best_cost = INF
-    for k in range(1, max_lines + 1):
-        if dp[n][k][0] < best_cost:
-            best_cost = dp[n][k][0]
-            best_k = k
-
-    if best_k is None:
-        return None
-
-    lines = []
-    idx = n
-    for k in range(best_k, 0, -1):
-        prev = dp[idx][k][1]
-        lines.append(" ".join(words[prev:idx]))
-        idx = prev
-    lines.reverse()
-    return lines
-
-
-def _fit_wrapped(text, font_file, max_width, size_start, size_min, draw, max_lines=3):
-    """Ajusta automaticamente o corpo da fonte para caber em até max_lines com equilíbrio."""
-    step = max(2, int(round((size_start - size_min) / 14)))
-    for px in range(size_start, size_min - 1, -step):
-        font = _load_font(font_file, px)
-        lines = _wrap_balanced(text, font, draw, max_width, max_lines=max_lines)
-        if lines is not None:
-            return font, lines
-
-    # Fallback para títulos muito longos sem espaços ou extremos: quebra gulosa no menor tamanho.
-    font = _load_font(font_file, size_min)
-    words = text.split()
-    lines, current = [], ""
-    for word in words:
-        candidate = (current + " " + word).strip()
-        if current and _text_width(draw, candidate, font) > max_width:
-            lines.append(current)
-            current = word
-        else:
-            current = candidate
-    if current:
-        lines.append(current)
-    if len(lines) > max_lines:
-        lines = lines[:max_lines]
-        lines[-1] = lines[-1].rstrip(" .,;:-") + "…"
-    return font, lines
-
-
-def _draw_centered_text(draw, text, center_x, y, font, fill, tracking=0):
-    if not text:
-        return
-    width = _text_width(draw, text, font, tracking=tracking)
-    x = center_x - width / 2.0
-    if tracking <= 0:
-        draw.text((x, y), text, font=font, fill=fill)
-        return
-    cursor = x
-    for ch in text:
-        draw.text((cursor, y), ch, font=font, fill=fill)
-        cursor += draw.textlength(ch, font=font) + tracking
-
-
-def _draw_gold_rule(draw, center_x, y, width, thickness=2, alpha=215):
-    half = width / 2.0
-    color = (*GOLD_SOFT, alpha)
-    # Filete fino com pequeno losango central clássico
-    diamond = max(3, int(round(thickness * 2.2)))
-    gap = diamond + max(6, int(round(thickness * 3)))
-    draw.line([(center_x - half, y), (center_x - gap, y)], fill=color, width=thickness)
-    draw.line([(center_x + gap, y), (center_x + half, y)], fill=color, width=thickness)
-    draw.polygon(
-        [
-            (center_x, y - diamond),
-            (center_x + diamond, y),
-            (center_x, y + diamond),
-            (center_x - diamond, y),
-        ],
-        fill=color,
-    )
-
-
 def render_cover(raw_bytes, config, size=COVER_SIZE):
-    """Executa Passo 2 (tratamento) + Passo 3 (tipografia estruturada) e devolve PNG final."""
+    """Exporta o PNG quadrado ajustando apenas o recorte e a cor da pintura."""
     cfg = parse_cover_config(config)
     with Image.open(BytesIO(raw_bytes)) as opened:
         img = ImageOps.exif_transpose(opened).convert("RGB")
 
-    # Passo 2: recorte 1:1 + tratamento de cor
     prepared = crop_square(img, crop_x=cfg["crop_x"], crop_y=cfg["crop_y"], zoom=cfg["zoom"], size=size)
     prepared = apply_color_grade(prepared, grade=cfg["grade"])
-
-    # Modo "capa pronta" ou layout "sem texto": devolve sem sobrepor tipografia
-    if cfg["mode"] == "final" or cfg["layout"] == "none":
-        out = BytesIO()
-        prepared.save(out, format="PNG", optimize=True)
-        return out.getvalue()
-
-    brand = cfg["brand"]
-    title = cfg["title"]
-    subtitle = cfg["subtitle"]
-    signature = cfg["signature"]
-    layout = cfg["layout"]
-
-    has_top = bool(brand or (layout == "top" and (title or subtitle)))
-    has_bottom = bool(signature or (layout == "bottom" and (title or subtitle)))
-    prepared = apply_scrim_and_vignette(prepared, layout=layout, scrim=cfg["scrim"], has_top=has_top, has_bottom=has_bottom)
-
-    # Passo 3: tipografia estruturada com sombra suave integrada
-    base_rgba = prepared.convert("RGBA")
-    shadow_layer = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    text_layer = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    shadow_draw = ImageDraw.Draw(shadow_layer)
-    text_draw = ImageDraw.Draw(text_layer)
-
-    margin_x = int(round(size * 0.085))
-    margin_y = int(round(size * 0.062))
-    max_w = size - 2 * margin_x
-    cx = size / 2.0
-
-    brand_font = _load_font("CormorantGaramond-Medium.ttf", size * 0.028)
-    brand_tracking = max(2, int(round(size * 0.0032)))
-    sig_font = _load_font("CormorantGaramond-Medium.ttf", size * 0.032)
-    sig_tracking = max(1, int(round(size * 0.0014)))
-
-    title_font, title_lines = (
-        _fit_wrapped(title, "CormorantGaramond-Bold.ttf", max_w, int(size * 0.072), int(size * 0.044), text_draw, max_lines=3)
-        if title else (None, [])
-    )
-    sub_font, sub_lines = (
-        _fit_wrapped(subtitle, "CormorantGaramond-MediumItalic.ttf", int(max_w * 0.92), int(size * 0.036), int(size * 0.025), text_draw, max_lines=2)
-        if subtitle else (None, [])
-    )
-
-    shadow_color = (16, 14, 8, 175)
-    shadow_offset = max(2, int(round(size * 0.0025)))
-    rule_w = int(round(size * 0.16))
-    rule_t = max(2, int(round(size * 0.0016)))
-
-    def draw_text_both(txt, y_pos, fnt, fill, tracking=0):
-        _draw_centered_text(shadow_draw, txt, cx, y_pos + shadow_offset, fnt, shadow_color, tracking=tracking)
-        _draw_centered_text(text_draw, txt, cx, y_pos, fnt, fill, tracking=tracking)
-
-    # 1. Marca discreta no topo (em ambos os layouts)
-    cursor_top = margin_y
-    if brand:
-        draw_text_both(brand, cursor_top, brand_font, (*IVORY, 232), tracking=brand_tracking)
-        cursor_top += _line_height(text_draw, brand_font) + int(round(size * 0.024))
-        _draw_gold_rule(text_draw, cx, cursor_top, rule_w, thickness=rule_t, alpha=205)
-        cursor_top += int(round(size * 0.022))
-
-    if layout == "top":
-        # Título e subtítulo no terço superior
-        if title_lines:
-            lh = int(round(_line_height(text_draw, title_font) * 1.12))
-            for line in title_lines:
-                draw_text_both(line, cursor_top, title_font, (*IVORY, 255))
-                cursor_top += lh
-        if sub_lines:
-            cursor_top += int(round(size * 0.014))
-            lh = int(round(_line_height(text_draw, sub_font) * 1.20))
-            for line in sub_lines:
-                draw_text_both(line, cursor_top, sub_font, (*SUBTITLE_TINT, 242))
-                cursor_top += lh
-
-        # Assinatura do padre na base
-        if signature:
-            sig_h = _line_height(text_draw, sig_font)
-            sig_y = size - margin_y - sig_h
-            rule_y = sig_y - int(round(size * 0.018))
-            _draw_gold_rule(text_draw, cx, rule_y, int(rule_w * 0.85), thickness=rule_t, alpha=190)
-            draw_text_both(signature, sig_y, sig_font, (*IVORY, 242), tracking=sig_tracking)
-    else:
-        # layout == "bottom": agrupa título, subtítulo e assinatura na faixa inferior
-        blocks = []
-        total_h = 0
-        if title_lines:
-            lh = int(round(_line_height(text_draw, title_font) * 1.12))
-            blocks.append(("title", title_lines, title_font, lh, (*IVORY, 255), 0))
-            total_h += lh * len(title_lines)
-        if sub_lines:
-            gap = int(round(size * 0.014)) if blocks else 0
-            lh = int(round(_line_height(text_draw, sub_font) * 1.20))
-            blocks.append(("gap", gap))
-            blocks.append(("sub", sub_lines, sub_font, lh, (*SUBTITLE_TINT, 242), 0))
-            total_h += gap + lh * len(sub_lines)
-        if signature:
-            rule_gap = int(round(size * 0.026)) if blocks else 0
-            sig_h = _line_height(text_draw, sig_font)
-            if blocks:
-                blocks.append(("rule", rule_gap))
-                total_h += rule_gap * 2
-            blocks.append(("sig", [signature], sig_font, sig_h, (*IVORY, 242), sig_tracking))
-            total_h += sig_h
-
-        y_cursor = size - margin_y - total_h
-        for item in blocks:
-            kind = item[0]
-            if kind == "gap":
-                y_cursor += item[1]
-            elif kind == "rule":
-                y_cursor += item[1]
-                _draw_gold_rule(text_draw, cx, y_cursor, int(rule_w * 0.9), thickness=rule_t, alpha=195)
-                y_cursor += item[1]
-            else:
-                _, lines, fnt, lh, fill, trk = item
-                for line in lines:
-                    draw_text_both(line, y_cursor, fnt, fill, tracking=trk)
-                    y_cursor += lh
-
-    blurred_shadow = shadow_layer.filter(ImageFilter.GaussianBlur(radius=max(3.0, size * 0.0055)))
-    composed = Image.alpha_composite(base_rgba, blurred_shadow)
-    composed = Image.alpha_composite(composed, text_layer).convert("RGB")
-
     out = BytesIO()
-    composed.save(out, format="PNG", optimize=True)
+    prepared.save(out, format="PNG", optimize=True)
     return out.getvalue()

@@ -32,11 +32,11 @@
 {% elif request.args.get('salvo') == 'texto' %}
   <div class="notice notice-ok" role="status">Título e descrição atualizados com sucesso.</div>
 {% elif request.args.get('salvo') == 'capa' %}
-  <div class="notice notice-ok" role="status">Capa recomposta com o novo enquadramento, tratamento e texto.</div>
+  <div class="notice notice-ok" role="status">Capa atualizada com o novo enquadramento e tratamento de cor.</div>
 {% elif request.args.get('salvo') == 'capa_origem' %}
   <div class="notice notice-ok" role="status">Nova imagem de capa importada e aplicada com sucesso.</div>
 {% elif request.args.get('salvo') == 'capa_ia' %}
-  <div class="notice notice-ok" role="status">Geração de nova pintura-base com IA iniciada em segundo plano. Aguarde alguns instantes e <a href="{{ url_for('homilias.stage_episode', token=stage_token, eid=job.id) }}">atualize a página</a> para conferir.</div>
+  <div class="notice notice-ok" role="status">Geração da nova capa iniciada. Aguarde alguns instantes e <a href="{{ url_for('homilias.stage_episode', token=stage_token, eid=job.id) }}">atualize a página</a> para conferir.</div>
 {% elif request.args.get('salvo') == 'publicado' %}
   <div class="notice notice-ok" role="status">Episódio marcado como publicado no painel.</div>
 {% elif request.args.get('erro') %}
@@ -180,7 +180,6 @@
 
 {% if stage_token and editable %}
 <section class="card" id="cover-studio" aria-labelledby="cover-studio-heading">
-  <div class="eyebrow">Capa em 3 passos · Origem → Tratamento → Texto estruturado</div>
   <h2 id="cover-studio-heading">Capa do episódio</h2>
 
   <div class="cover-studio">
@@ -191,14 +190,13 @@
       {% else %}
         <div class="cover-placeholder">
           <strong>Sem capa ainda</strong>
-          <span>Envie uma imagem, importe por URL ou gere uma pintura limpa com IA ao lado.</span>
+          <span>Importe uma pintura sem texto ou gere uma nova com IA.</span>
         </div>
       {% endif %}
 
       {% if cover_cfg %}
       <div class="meta-bar" style="margin:4px 0 0">
         <span class="badge">{{ source_labels.get(cover_cfg.source, cover_cfg.source) }}</span>
-        <span class="badge">{{ 'Capa pronta (sem texto)' if cover_cfg.mode == 'final' else 'Texto estruturado' }}</span>
       </div>
       {% if cover_cfg.source_ref %}
         <p class="help">Referência: {{ cover_cfg.source_ref }}</p>
@@ -210,15 +208,14 @@
       {% set default_tab = 'compose' if has_cover_bg else 'source' %}
       <div class="studio-tabs" role="tablist" aria-label="Etapas da capa">
         <button type="button" class="studio-tab {{ 'active' if default_tab == 'source' else '' }}" data-studio-tab="source" role="tab" aria-selected="{{ 'true' if default_tab == 'source' else 'false' }}">1. Origem da imagem</button>
-        <button type="button" class="studio-tab {{ 'active' if default_tab == 'compose' else '' }}" data-studio-tab="compose" role="tab" aria-selected="{{ 'true' if default_tab == 'compose' else 'false' }}">2–3. Tratar imagem &amp; texto</button>
+        <button type="button" class="studio-tab {{ 'active' if default_tab == 'compose' else '' }}" data-studio-tab="compose" role="tab" aria-selected="{{ 'true' if default_tab == 'compose' else 'false' }}">2. Enquadramento e cor</button>
       </div>
 
-      <!-- ABA 1: Passo 1 (Origem externa ou IA limpa) -->
       <div class="studio-panel" data-studio-panel="source" {% if default_tab != 'source' %}hidden{% endif %}>
         <form class="studio-box" method="post" enctype="multipart/form-data" action="{{ url_for('homilias.stage_action', token=stage_token, eid=job.id, action='cover-source') }}">
           <input type="hidden" name="version" value="{{ job.version }}"><input type="hidden" name="state" value="{{ job.state }}">
           <h3>Trazer imagem de outra fonte</h3>
-          <p class="help">Use uma pintura renascentista de domínio público, uma arte gerada em outra IA ou uma capa pronta do Canva.</p>
+          <p class="help">Importe uma pintura sem títulos, legendas, assinaturas ou marcas-d’água. Prefira um detalhe ligado à homilia, com os rostos fora do quadro.</p>
 
           <div class="studio-grid" style="margin-top:10px">
             <div class="studio-field">
@@ -229,11 +226,6 @@
               <label for="cover-url-input">Ou colar URL direta da imagem</label>
               <input type="url" id="cover-url-input" name="cover_url" placeholder="https://upload.wikimedia.org/...">
             </div>
-          </div>
-
-          <div class="radio-group" style="margin-top:12px">
-            <label class="radio-opt"><input type="radio" name="cover_mode" value="composed" checked> Usar como imagem-base (tratar + aplicar texto estruturado)</label>
-            <label class="radio-opt"><input type="radio" name="cover_mode" value="final"> Usar como capa pronta (sem texto por cima)</label>
           </div>
 
           <div class="studio-grid">
@@ -258,38 +250,33 @@
 
         <form class="studio-box" method="post" action="{{ url_for('homilias.stage_action', token=stage_token, eid=job.id, action='cover-regen-bg') }}">
           <input type="hidden" name="version" value="{{ job.version }}"><input type="hidden" name="state" value="{{ job.state }}">
-          <h3>Gerar nova pintura-base com IA (sem texto)</h3>
-          <p class="help">A IA gera apenas a pintura limpa no estilo do canal; o texto estruturado é aplicado automaticamente por cima.</p>
+          <h3>Gerar pintura com IA</h3>
+          <p class="help">Descreva um gesto ou símbolo que expresse a mensagem da homilia. Peça um enquadramento próximo, com os rostos fora do quadro.</p>
           <div class="studio-field" style="margin-top:10px">
             <label for="cover-scene">Cena visual da pintura</label>
-            <textarea id="cover-scene" name="cover_scene" rows="3" maxlength="500" placeholder="Descreva o gesto, objeto ou cena principal ligada à homilia...">{{ cover_cfg.scene if cover_cfg else '' }}</textarea>
+            <textarea id="cover-scene" name="cover_scene" rows="3" maxlength="500" placeholder="Descreva a mensagem central e o detalhe visual que a representa…">{{ cover_cfg.scene if cover_cfg else '' }}</textarea>
           </div>
           <div class="actions" style="margin-top:12px">
-            <button type="submit">Gerar nova pintura-base com IA</button>
+            <button type="submit">Gerar capa</button>
           </div>
         </form>
       </div>
 
-      <!-- ABA 2: Passos 2 e 3 (Enquadramento, tratamento de cor/scrim e tipografia) -->
       <div class="studio-panel" data-studio-panel="compose" {% if default_tab != 'compose' %}hidden{% endif %}>
         {% if has_cover_bg and cover_cfg %}
         <form class="studio-box" method="post" action="{{ url_for('homilias.stage_action', token=stage_token, eid=job.id, action='cover-render') }}">
           <input type="hidden" name="version" value="{{ job.version }}"><input type="hidden" name="state" value="{{ job.state }}">
-          <input type="hidden" name="cover_mode" value="composed">
 
-          <h3>Passo 2 · Enquadramento e tratamento da imagem</h3>
-          <p class="help">Arraste a imagem no quadrado (ou ajuste os controles) para posicionar rostos e gestos fora das faixas de texto.</p>
+          <p class="help">Arraste a imagem ou use os controles para destacar o gesto ou símbolo principal e manter os rostos fora do quadro.</p>
 
           <div class="crop-wrap" style="margin:12px 0 16px">
-            <div class="crop-stage" id="crop-stage" data-layout="{{ cover_cfg.layout }}" title="Arraste para enquadrar">
+            <div class="crop-stage" id="crop-stage" title="Arraste para enquadrar">
               <img id="crop-img" src="{{ cover_bg_url }}" alt="Imagem-base para enquadramento">
-              <div class="crop-guide crop-guide-top" aria-hidden="true"></div>
-              <div class="crop-guide crop-guide-bottom" aria-hidden="true"></div>
             </div>
             <div class="crop-controls">
               <div class="range-row">
                 <label for="crop-zoom"><span>Zoom</span><span id="crop-zoom-val">{{ '%.2f'|format(cover_cfg.zoom) }}×</span></label>
-                <input type="range" id="crop-zoom" name="zoom" min="1" max="2.5" step="0.05" value="{{ cover_cfg.zoom }}">
+                <input type="range" id="crop-zoom" name="zoom" min="1" max="3" step="0.05" value="{{ cover_cfg.zoom }}">
               </div>
               <div class="range-row">
                 <label for="crop-x"><span>Horizontal (X)</span><span id="crop-x-val">{{ (cover_cfg.crop_x * 100)|round|int }}%</span></label>
@@ -317,68 +304,19 @@
               </select>
             </div>
             <div class="studio-field">
-              <label for="cover-scrim">Escurecimento para leitura</label>
-              <select id="cover-scrim" name="scrim">
-                {% for key, label in scrim_labels.items() %}
-                  <option value="{{ key }}" {% if cover_cfg.scrim == key %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-              </select>
-            </div>
-          </div>
-
-          <hr class="studio-divider" style="margin:16px 0">
-
-          <h3>Passo 3 · Texto estruturado na capa</h3>
-          <div class="studio-field" style="margin-bottom:10px">
-            <label for="cover-layout">Posição do texto</label>
-            <select id="cover-layout" name="layout">
-              {% for key, label in layout_labels.items() %}
-                <option value="{{ key }}" {% if cover_cfg.layout == key %}selected{% endif %}>{{ label }}</option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <div class="studio-field" style="margin-bottom:10px">
-            <div class="field-head" style="margin-bottom:0">
-              <label for="cover-title">Título curto na arte</label>
-              <span class="char-count" data-count-for="cover-title" data-max="90">{{ (cover_cfg.title or '')|length }} / 90</span>
-            </div>
-            <input type="text" id="cover-title" name="cover_title" value="{{ cover_cfg.title }}" maxlength="90" placeholder="Ex.: Participar da alegria de Deus">
-          </div>
-
-          <div class="studio-field" style="margin-bottom:10px">
-            <label for="cover-subtitle">Subtítulo / referência litúrgica (opcional)</label>
-            <input type="text" id="cover-subtitle" name="cover_subtitle" value="{{ cover_cfg.subtitle }}" maxlength="90" placeholder="Ex.: 33º Domingo do Tempo Comum">
-          </div>
-
-          <details style="margin:10px 0 14px">
-            <summary style="cursor:pointer;font-size:.88rem;color:var(--olive);font-weight:600">Personalizar marca, assinatura e referência</summary>
-            <div class="studio-grid" style="margin-top:10px">
-              <div class="studio-field">
-                <label for="cover-brand">Nome do canal (topo)</label>
-                <input type="text" id="cover-brand" name="cover_brand" value="{{ cover_cfg.brand }}" maxlength="80">
-              </div>
-              <div class="studio-field">
-                <label for="cover-signature">Assinatura (base)</label>
-                <input type="text" id="cover-signature" name="cover_signature" value="{{ cover_cfg.signature }}" maxlength="80">
-              </div>
-            </div>
-            <div class="studio-field" style="margin-top:10px">
-              <label for="source-ref-edit">Referência interna da imagem</label>
+              <label for="source-ref-edit">Crédito / referência (opcional)</label>
               <input type="text" id="source-ref-edit" name="source_ref" value="{{ cover_cfg.source_ref }}" maxlength="240" placeholder="Ex.: Caravaggio · Domínio público">
             </div>
-          </details>
+          </div>
 
           <div class="actions">
-            <button type="submit" class="primary">Aplicar e atualizar capa</button>
-            <span class="help">Recompõe na hora sem gastar API e sem perder a imagem original.</span>
+            <button type="submit" class="primary">Atualizar capa</button>
           </div>
         </form>
         {% else %}
         <div class="studio-box">
-          <h3>Imagem-base ainda não separada</h3>
-          <p class="muted">Esta capa foi gerada no formato anterior (com texto integrado na própria imagem) ou ainda não possui imagem-base.</p>
-          <p class="help">Vá para a aba <strong>1. Origem da imagem</strong> para enviar uma pintura/foto, importar por URL ou gerar uma pintura limpa com IA e liberar o enquadramento, tratamento de cor e texto estruturado.</p>
+          <h3>Imagem-base indisponível</h3>
+          <p class="help">Abra <strong>1. Origem da imagem</strong> para importar uma pintura sem texto ou gerar uma nova com IA.</p>
         </div>
         {% endif %}
       </div>
@@ -572,20 +510,15 @@ document.querySelectorAll('[data-checklist]').forEach(box => {
   const zoomOut = document.getElementById('crop-zoom-val');
   const xOut = document.getElementById('crop-x-val');
   const yOut = document.getElementById('crop-y-val');
-  const layoutSel = document.getElementById('cover-layout');
-
-  if (layoutSel && stage) {
-    layoutSel.addEventListener('change', () => { stage.dataset.layout = layoutSel.value; });
-  }
 
   if (!stage || !img || !zoomIn || !xIn || !yIn) return;
 
   function renderCrop() {
     const nw = img.naturalWidth, nh = img.naturalHeight;
     const S = stage.clientWidth || 180;
-    const zoom = Math.max(1, Math.min(2.5, parseFloat(zoomIn.value) || 1));
-    const cx = Math.max(0, Math.min(1, parseFloat(xIn.value) || 0.5));
-    const cy = Math.max(0, Math.min(1, parseFloat(yIn.value) || 0.5));
+    const zoom = Math.max(1, Math.min(3, parseFloat(zoomIn.value) || 1));
+    const cx = Math.max(0, Math.min(1, Number(xIn.value)));
+    const cy = Math.max(0, Math.min(1, Number(yIn.value)));
     if (zoomOut) zoomOut.textContent = zoom.toFixed(2) + '×';
     if (xOut) xOut.textContent = Math.round(cx * 100) + '%';
     if (yOut) yOut.textContent = Math.round(cy * 100) + '%';
@@ -614,7 +547,7 @@ document.querySelectorAll('[data-checklist]').forEach(box => {
     if (!img.naturalWidth) return;
     stage.setPointerCapture(e.pointerId);
     stage.classList.add('dragging');
-    drag = { x: e.clientX, y: e.clientY, cx: parseFloat(xIn.value) || 0.5, cy: parseFloat(yIn.value) || 0.5 };
+    drag = { x: e.clientX, y: e.clientY, cx: Number(xIn.value), cy: Number(yIn.value) };
   });
   stage.addEventListener('pointermove', e => {
     if (!drag || !img.naturalWidth) return;
