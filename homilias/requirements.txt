@@ -7,4 +7,5 @@ python-dotenv>=1,<2
 numpy>=1.25,<3
 scipy>=1.11,<2
 imageio-ffmpeg>=0.5,<1
+Pillow>=10.0,<13
 playwright>=1.48,<2

@@ -53,3 +53,4 @@ flask-cors==4.0.0
 fastmcp>=2.0
 PyPDF2==3.0.1
 imageio-ffmpeg>=0.5.1,<1
+Pillow>=10.0,<13

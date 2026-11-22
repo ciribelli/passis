@@ -28,6 +28,7 @@ episodes = sa.Table(
     sa.Column("publish_mode", sa.Text, nullable=False, server_default="immediate"),
     sa.Column("publish_at", sa.DateTime(timezone=True)),
     sa.Column("publish_has_time", sa.Boolean, nullable=False, server_default=sa.false()),
+    sa.Column("cover_config", sa.Text),
 )
 assets = sa.Table(
     "homilia_assets", metadata,
@@ -64,6 +65,8 @@ def ensure_publish_columns(engine):
         if "publish_has_time" not in existing:
             default_false = "FALSE" if dialect == "postgresql" else "0"
             conn.execute(sa.text(f"ALTER TABLE homilia_episodes ADD COLUMN publish_has_time BOOLEAN NOT NULL DEFAULT {default_false}"))
+        if "cover_config" not in existing:
+            conn.execute(sa.text("ALTER TABLE homilia_episodes ADD COLUMN cover_config TEXT"))
 
 
 @lru_cache(maxsize=1)
@@ -189,10 +192,18 @@ def asset(conn, eid, kind):
         assets.c.episode == eid, assets.c.kind == kind)).scalar_one_or_none()
 
 
-def save_preview(conn, job, audio, cover, title, description):
-    if not transition(conn, job["id"], job["owner"], job["version"], "preparing", "preview",
-                      preview=secrets.token_urlsafe(32), title=title, description=description,
-                      notice="preview"):
+def save_preview(conn, job, audio, cover, title, description, cover_bg=None, cover_config=None):
+    updates = {
+        "preview": secrets.token_urlsafe(32),
+        "title": title,
+        "description": description,
+        "notice": "preview",
+    }
+    if cover_config is not None:
+        updates["cover_config"] = cover_config
+    if not transition(conn, job["id"], job["owner"], job["version"], "preparing", "preview", **updates):
         raise RuntimeError("A edição mudou durante o preparo.")
     put_asset(conn, job["id"], "audio", audio)
     put_asset(conn, job["id"], "cover", cover)
+    if cover_bg is not None:
+        put_asset(conn, job["id"], "cover_bg", cover_bg)

@@ -188,11 +188,60 @@ def transcribe_preview(engine, eid):
             episode_transcript(engine, client, row, audio)
 
 
+def regen_cover_bg(engine, eid):
+    """Regenera somente a imagem-base (Passo 1) com IA e recompõe a capa (Passos 2 e 3)."""
+    from . import cover as cover_mod
+
+    owner = os.environ["HOMILIA_OWNER_WA_ID"]
+    with engine.begin() as lock:
+        if not lock.scalar(sa.text("SELECT pg_try_advisory_xact_lock(:key)"), {"key": int(eid[:15], 16)}):
+            return
+        row = lock.execute(
+            sa.select(jobs).where(
+                jobs.c.id == eid,
+                jobs.c.owner == owner,
+                jobs.c.state.in_(channel.EDITABLE_STATES),
+            )
+        ).mappings().one_or_none()
+        if not row:
+            return
+        cfg = cover_mod.parse_cover_config(row.get("cover_config"), fallback_title=row.get("title") or "")
+        scene = cfg["scene"] or row.get("title") or store.source_text(lock, row["source_id"]) or ""
+        bg_bytes = cover_mod.generate_ai_background(
+            scene,
+            title=cfg["title"],
+            layout=cfg["layout"],
+            api_key=os.environ["HOMILIA_API_KEY"],
+        )
+        cfg["source"] = "ai"
+        cfg["mode"] = "composed"
+        cfg["grade"] = "original"
+        cfg["crop_x"] = 0.5
+        cfg["crop_y"] = 0.5
+        cfg["zoom"] = 1.0
+        cfg["source_ref"] = ""
+        cfg["scene"] = scene
+        final_png = cover_mod.render_cover(bg_bytes, cfg)
+        store.put_asset(lock, eid, "cover_bg", bg_bytes)
+        store.put_asset(lock, eid, "cover", final_png)
+        lock.execute(
+            jobs.update().where(jobs.c.id == eid, jobs.c.owner == owner).values(
+                cover_config=cover_mod.dump_cover_config(cfg)
+            )
+        )
+
+
 def main():
     load_dotenv()
     logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=["init", "login", "run", "once", "prepare-once", "prepare-panel", "transcribe-preview", "resume-draft", "stage-url"])
+    parser.add_argument(
+        "command",
+        choices=[
+            "init", "login", "run", "once", "prepare-once", "prepare-panel",
+            "transcribe-preview", "regen-cover-bg", "resume-draft", "stage-url",
+        ],
+    )
     parser.add_argument("--id")
     parser.add_argument("--version", type=int)
     args = parser.parse_args()
@@ -222,6 +271,10 @@ def main():
         if not args.id:
             parser.error("transcribe-preview exige --id")
         transcribe_preview(engine, args.id)
+    elif args.command == "regen-cover-bg":
+        if not args.id:
+            parser.error("regen-cover-bg exige --id")
+        regen_cover_bg(engine, args.id)
     elif args.command == "prepare-panel":
         if not args.id or not args.version:
             parser.error("prepare-panel exige --id e --version")

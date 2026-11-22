@@ -55,6 +55,38 @@ textarea{display:block;width:100%;resize:vertical;line-height:1.6}
 .copy svg{width:18px;height:18px}
 .assets{display:grid;grid-template-columns:260px 1fr;gap:28px}
 .assets img{display:block;width:100%;border-radius:10px;margin-bottom:16px}
+.cover-studio{display:grid;grid-template-columns:minmax(240px,300px) 1fr;gap:28px;align-items:start}
+.cover-preview-col{display:flex;flex-direction:column;gap:12px}
+.cover-preview-img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:12px;border:1px solid var(--line);box-shadow:0 6px 18px rgba(52,53,29,.12);background:#f3efe5}
+.cover-placeholder{width:100%;aspect-ratio:1/1;border-radius:12px;border:1px dashed var(--line);background:#f5f1e6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--muted);text-align:center;padding:20px}
+.studio-tabs{display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:16px}
+.studio-tab{background:transparent;border:1px solid var(--line);color:var(--muted);padding:8px 14px;border-radius:8px;font-size:.88rem;font-weight:600;cursor:pointer}
+.studio-tab.active{background:var(--olive);border-color:var(--olive);color:#fff}
+.studio-panel{display:flex;flex-direction:column;gap:16px}
+.studio-box{border:1px solid var(--line);background:#f7f4eb;border-radius:12px;padding:16px}
+.studio-box h3{font-size:1.05rem;margin:0 0 8px}
+.studio-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.studio-field{display:flex;flex-direction:column;gap:6px}
+.studio-field label{font-size:.85rem;font-weight:650;color:var(--ink)}
+.studio-field input,.studio-field select,.studio-field textarea{width:100%;padding:9px 11px;font-size:.92rem}
+.crop-wrap{display:grid;grid-template-columns:180px 1fr;gap:16px;align-items:center}
+.crop-stage{position:relative;width:180px;height:180px;border-radius:10px;overflow:hidden;border:2px solid var(--olive);background:#262415;cursor:grab;user-select:none;touch-action:none}
+.crop-stage.dragging{cursor:grabbing}
+.crop-stage img{position:absolute;max-width:none;pointer-events:none}
+.crop-guide{position:absolute;left:0;right:0;pointer-events:none;background:rgba(28,27,16,.38);border-color:rgba(203,164,78,.55);transition:opacity .15s}
+.crop-guide-top{top:0;height:32%;border-bottom:1px dashed rgba(203,164,78,.55)}
+.crop-guide-bottom{bottom:0;height:16%;border-top:1px dashed rgba(203,164,78,.55)}
+.crop-stage[data-layout="bottom"] .crop-guide-top{height:14%}
+.crop-stage[data-layout="bottom"] .crop-guide-bottom{height:36%}
+.crop-stage[data-layout="none"] .crop-guide{opacity:0}
+.crop-controls{display:flex;flex-direction:column;gap:10px}
+.range-row{display:flex;flex-direction:column;gap:3px}
+.range-row label{display:flex;justify-content:space-between;font-size:.82rem;font-weight:600;color:var(--muted)}
+.range-row input[type="range"]{padding:0;border:0;background:transparent;accent-color:var(--olive)}
+.chip-row{display:flex;gap:6px;flex-wrap:wrap}
+.chip-btn{padding:4px 10px;font-size:.78rem;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink)}
+.chip-btn:hover{border-color:var(--olive);color:var(--olive)}
+.studio-divider{border:0;border-top:1px dashed var(--line);margin:4px 0}
 audio{width:100%;margin:16px 0}
 .checklist{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:14px 0}
 .check-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:white;cursor:pointer;font-size:.93rem}
@@ -78,6 +110,7 @@ td:last-child{min-width:140px}
 .counts{font-size:.95rem;color:var(--muted)}
 [hidden]{display:none!important}
 footer{font-size:.85rem;color:var(--muted);margin:32px 0}
+@media(max-width:760px){.cover-studio{grid-template-columns:1fr}.studio-grid{grid-template-columns:1fr}.crop-wrap{grid-template-columns:1fr}.crop-stage{margin:0 auto}}
 @media(max-width:640px){main{padding:0 16px;margin:24px auto}.card{padding:18px}.assets{grid-template-columns:1fr}.assets img{max-width:300px}.field-head{align-items:flex-start}.copy{white-space:nowrap}th,td{padding:12px 8px}}
 </style>
 </head>

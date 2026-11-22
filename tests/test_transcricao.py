@@ -1,4 +1,5 @@
 import base64
+from io import BytesIO
 import json
 import os
 from pathlib import Path
@@ -10,6 +11,7 @@ from unittest.mock import Mock, patch
 
 from flask import Flask
 import imageio_ffmpeg
+from PIL import Image
 import sqlalchemy as sa
 
 from homilias import channel, prepare, store, transcricao, worker
@@ -62,11 +64,19 @@ class TranscriptTests(unittest.TestCase):
             material = json.loads(request["messages"][1]["content"])
             self.assertEqual(material["transcricao_para_capa"], full_text)
             self.assertEqual(material["texto_encaminhado_pelo_padre"], "Um Deus que convida")
-            content = json.dumps({"title": "O convite", "description": "Acolher.", "scene": scene})
+            content = json.dumps({
+                "title": "O convite",
+                "description": "Acolher.",
+                "cover_title": "O convite à mesa",
+                "cover_subtitle": "28º Domingo do Tempo Comum",
+                "scene": scene,
+            })
             return Mock(choices=[Mock(message=Mock(content=content))])
 
         ai.chat.completions.create.side_effect = brief
-        png = b"\x89PNG\r\n\x1a\n" + b"image"
+        buf = BytesIO()
+        Image.new("RGB", (512, 512), (90, 75, 48)).save(buf, format="PNG")
+        png = buf.getvalue()
         with patch.dict(os.environ, HOMILIA_API_KEY="only-homilias"), patch.object(
                 prepare, "OpenAI", return_value=ai) as client, patch.object(
                 prepare.requests, "post") as image:
@@ -75,11 +85,19 @@ class TranscriptTests(unittest.TestCase):
             client.assert_called_once_with(api_key="only-homilias", timeout=180)
             self.assertEqual(image.call_args.kwargs["headers"]["Authorization"], "Bearer only-homilias")
             self.assertIn(scene, image.call_args.kwargs["json"]["prompt"])
+            self.assertIn("Do NOT include ANY text", image.call_args.kwargs["json"]["prompt"])
         self.assertEqual(len(durations), 3)
         self.assertLess(max(durations), 60)
         self.assertAlmostEqual(sum(durations), 125, places=1)
         row = self.job()
         self.assertEqual(row["transcript"], full_text)
+        cfg = json.loads(row["cover_config"])
+        self.assertEqual(cfg["title"], "O convite à mesa")
+        self.assertEqual(cfg["subtitle"], "28º Domingo do Tempo Comum")
+        self.assertEqual(cfg["scene"], scene)
+        with self.engine.connect() as conn:
+            self.assertTrue(store.asset(conn, self.eid, "cover_bg"))
+            self.assertTrue(store.asset(conn, self.eid, "cover").startswith(b"\x89PNG\r\n\x1a\n"))
         view = self.client().get("/homilias/p/" + row["preview"]).get_data(as_text=True)
         self.assertIn('data-copy="episode-transcript"', view)
         self.assertIn(full_text, view)

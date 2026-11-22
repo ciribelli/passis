@@ -13,7 +13,7 @@ import requests
 import sqlalchemy as sa
 from flask import Blueprint, abort, redirect, render_template, request, send_file, url_for
 
-from .store import asset, assets, episodes, incoming, source_text, transition
+from .store import asset, assets, episodes, incoming, put_asset, source_text, transition
 
 
 STATES = {
@@ -29,7 +29,10 @@ PREPARABLE = ("offered", "queued", "failed", "waiting_text")
 PREVIEW_STATES = ("preview", "approved", "publishing", "clicked", "published", "check_spotify")
 EDITABLE_STATES = ("offered", "queued", "waiting_text", "failed", "preview", "approved", "cancelled")
 MANUAL_PUBLISH_STATES = ("preview", "approved", "check_spotify", "clicked")
-STAGE_ACTIONS = ("trash", "prepare", "transcribe", "schedule", "edit", "mark-published")
+STAGE_ACTIONS = (
+    "trash", "prepare", "transcribe", "schedule", "edit", "mark-published",
+    "cover-source", "cover-render", "cover-regen-bg",
+)
 BR_TZ = ZoneInfo("America/Sao_Paulo")
 SPOTIFY_WIZARD_URL = "https://creators.spotify.com/pod/show/04yjeHqDd36rhxnVdEz60l/episode/wizard"
 
@@ -266,6 +269,32 @@ def preview_routes(get_engine):
             abort(404)
         version = request.form.get("version", type=int)
         expected_state = request.form.get("state")
+
+        # Passo 1 da capa (upload/URL): normaliza/baixa imagem fora da transação de lock do banco.
+        prepared_bg = None
+        prepared_source = None
+        if action == "cover-source":
+            if expected_state not in EDITABLE_STATES:
+                abort(409, "Esta edição não permite alterar a capa agora.")
+            from . import cover as cover_mod
+
+            uploaded = request.files.get("cover_file")
+            cover_url = (request.form.get("cover_url") or "").strip()
+            try:
+                if uploaded and uploaded.filename:
+                    prepared_bg = cover_mod.normalize_source_image(uploaded.read())
+                    prepared_source = "upload"
+                elif cover_url:
+                    prepared_bg = cover_mod.fetch_image_from_url(cover_url)
+                    prepared_source = "url"
+                else:
+                    raise ValueError("Envie um arquivo de imagem (PNG, JPG ou WebP) ou informe uma URL válida.")
+            except ValueError as exc:
+                return redirect(url_for("homilias.stage_episode", token=token, eid=eid, erro=str(exc)), code=303)
+
+        spawn_cmd = None
+        redirect_target = None
+
         with get_engine().begin() as conn:
             row = conn.execute(sa.select(episodes).where(episodes.c.id == eid,
                 episodes.c.owner == os.environ["HOMILIA_OWNER_WA_ID"]).with_for_update()).mappings().first()
@@ -305,7 +334,86 @@ def preview_routes(get_engine):
                 conn.execute(episodes.update().where(episodes.c.id == eid).values(
                     title=title, description=description))
                 return redirect(url_for("homilias.stage_episode", token=token, eid=eid, salvo="texto"), code=303)
-            if action == "mark-published":
+            if action == "cover-source":
+                from . import cover as cover_mod
+
+                cfg = cover_mod.parse_cover_config(row.get("cover_config"), fallback_title=row.get("title") or "")
+                mode = (request.form.get("cover_mode") or "composed").strip()
+                mode = mode if mode in cover_mod.VALID_MODES else "composed"
+                default_grade = "balanced" if mode == "composed" else "original"
+                grade = (request.form.get("cover_grade") or default_grade).strip()
+                source_ref = (request.form.get("source_ref") or "").strip()
+                if not source_ref and prepared_source == "url":
+                    source_ref = (request.form.get("cover_url") or "").strip()[:240]
+
+                cfg.update({
+                    "source": prepared_source,
+                    "mode": mode,
+                    "grade": grade if grade in cover_mod.VALID_GRADES else default_grade,
+                    "crop_x": 0.5,
+                    "crop_y": 0.5,
+                    "zoom": 1.0,
+                    "source_ref": source_ref[:240],
+                })
+                if mode == "composed" and cfg["layout"] == "none":
+                    cfg["layout"] = "top"
+                final_png = cover_mod.render_cover(prepared_bg, cfg)
+                put_asset(conn, eid, "cover_bg", prepared_bg)
+                put_asset(conn, eid, "cover", final_png)
+                conn.execute(episodes.update().where(episodes.c.id == eid).values(
+                    cover_config=cover_mod.dump_cover_config(cfg)))
+                return redirect(url_for("homilias.stage_episode", token=token, eid=eid, salvo="capa_origem"), code=303)
+            if action == "cover-render":
+                if expected_state not in EDITABLE_STATES:
+                    abort(409, "Esta edição não permite editar a capa agora.")
+                from . import cover as cover_mod
+
+                bg_bytes = asset(conn, eid, "cover_bg")
+                if not bg_bytes:
+                    return redirect(url_for("homilias.stage_episode", token=token, eid=eid,
+                        erro="Este episódio ainda não tem imagem-base separada. Envie/importe uma imagem ou gere uma pintura limpa com IA no Passo 1."), code=303)
+                cfg = cover_mod.parse_cover_config(row.get("cover_config"), fallback_title=row.get("title") or "")
+                updated = cover_mod.parse_cover_config({
+                    **cfg,
+                    "mode": request.form.get("cover_mode", cfg["mode"]),
+                    "crop_x": request.form.get("crop_x", cfg["crop_x"]),
+                    "crop_y": request.form.get("crop_y", cfg["crop_y"]),
+                    "zoom": request.form.get("zoom", cfg["zoom"]),
+                    "grade": request.form.get("grade", cfg["grade"]),
+                    "scrim": request.form.get("scrim", cfg["scrim"]),
+                    "layout": request.form.get("layout", cfg["layout"]),
+                    "brand": request.form.get("cover_brand", cfg["brand"]),
+                    "title": request.form.get("cover_title", cfg["title"]),
+                    "subtitle": request.form.get("cover_subtitle", cfg["subtitle"]),
+                    "signature": request.form.get("cover_signature", cfg["signature"]),
+                    "source_ref": request.form.get("source_ref", cfg["source_ref"]),
+                }, fallback_title=row.get("title") or "")
+                final_png = cover_mod.render_cover(bg_bytes, updated)
+                put_asset(conn, eid, "cover", final_png)
+                conn.execute(episodes.update().where(episodes.c.id == eid).values(
+                    cover_config=cover_mod.dump_cover_config(updated)))
+                return redirect(url_for("homilias.stage_episode", token=token, eid=eid, salvo="capa"), code=303)
+            if action == "cover-regen-bg":
+                if expected_state not in EDITABLE_STATES:
+                    abort(409, "Esta edição não permite regenerar a capa agora.")
+                from . import cover as cover_mod
+
+                cfg = cover_mod.parse_cover_config(row.get("cover_config"), fallback_title=row.get("title") or "")
+                scene = (request.form.get("cover_scene") or "").strip()
+                if scene:
+                    cfg["scene"] = scene[:500]
+                if "cover_title" in request.form:
+                    cfg["title"] = (request.form.get("cover_title") or "").strip()[:90]
+                if "cover_subtitle" in request.form:
+                    cfg["subtitle"] = (request.form.get("cover_subtitle") or "").strip()[:90]
+                cfg["mode"] = "composed"
+                if cfg["layout"] == "none":
+                    cfg["layout"] = "top"
+                conn.execute(episodes.update().where(episodes.c.id == eid).values(
+                    cover_config=cover_mod.dump_cover_config(cfg)))
+                spawn_cmd = [sys.executable, "-m", "homilias.worker", "regen-cover-bg", "--id", eid]
+                redirect_target = url_for("homilias.stage_episode", token=token, eid=eid, salvo="capa_ia")
+            elif action == "mark-published":
                 if expected_state not in MANUAL_PUBLISH_STATES:
                     abort(409, "Esta edição não pode ser marcada como publicada neste estado.")
                 spotify_id = extract_spotify_id(request.form.get("spotify_ref", ""))
@@ -314,7 +422,7 @@ def preview_routes(get_engine):
                     updates["spotify_id"] = spotify_id
                 transition(conn, eid, row["owner"], version, expected_state, "published", **updates)
                 return redirect(url_for("homilias.stage_episode", token=token, eid=eid, salvo="publicado"), code=303)
-            if action == "transcribe":
+            elif action == "transcribe":
                 if row["state"] not in PREVIEW_STATES:
                     abort(409, "A edição ainda não tem prévia.")
                 if not row["transcript"].strip():
@@ -325,7 +433,7 @@ def preview_routes(get_engine):
                         abort(503, "Não foi possível iniciar a transcrição.")
                 return redirect(url_for("homilias.stage_episode", token=token, eid=eid,
                                         transcricao="solicitada"), code=303)
-            if action == "trash":
+            elif action == "trash":
                 if expected_state not in TRASHABLE:
                     abort(409, "Esta edição não pode ser movida para a lixeira agora.")
                 transition(conn, eid, row["owner"], version, expected_state, "trashed",
@@ -344,28 +452,50 @@ def preview_routes(get_engine):
                                       "--id", eid, "--version", str(version)], start_new_session=True)
                 except OSError:
                     abort(503, "Não foi possível iniciar o preparo. Tente novamente.")
+        if spawn_cmd:
+            try:
+                subprocess.Popen(spawn_cmd, start_new_session=True)
+            except OSError:
+                abort(503, "Não foi possível iniciar a geração da imagem-base. Tente novamente.")
+            return redirect(redirect_target, code=303)
         return redirect(url_for("homilias.stage", token=token), code=303)
 
     @bp.get("/homilias/stage/<token>/episode/<eid>")
     def stage_episode(token, eid):
         check_stage(token)
+        from . import cover as cover_mod
+
         with get_engine().connect() as conn:
             row = conn.execute(sa.select(episodes).where(episodes.c.id == eid,
                 episodes.c.owner == os.environ["HOMILIA_OWNER_WA_ID"], episodes.c.state != "trashed")).mappings().first()
             if not row:
                 abort(404)
+            cover_bytes = asset(conn, eid, "cover")
+            cover_bg_bytes = asset(conn, eid, "cover_bg")
+            audio_bytes = asset(conn, eid, "audio")
+            cover_cfg = cover_mod.parse_cover_config(row.get("cover_config"), fallback_title=row.get("title") or "")
+            cover_hash = hashlib.sha1(cover_bytes).hexdigest()[:10] if cover_bytes else ""
+            cover_bg_hash = hashlib.sha1(cover_bg_bytes).hexdigest()[:10] if cover_bg_bytes else ""
             return render_template("homilia.html", job=row, pub=publish_meta(row),
                 transcript=row["transcript"], states=STATES, stage_token=token,
                 token=row["preview"] if row["state"] in PREVIEW_STATES else None,
                 source_text=source_text(conn, row["source_id"]),
                 spotify_wizard_url=SPOTIFY_WIZARD_URL,
                 editable=row["state"] in EDITABLE_STATES,
-                can_mark_published=row["state"] in MANUAL_PUBLISH_STATES)
+                can_mark_published=row["state"] in MANUAL_PUBLISH_STATES,
+                has_cover=bool(cover_bytes), has_cover_bg=bool(cover_bg_bytes),
+                has_audio=bool(audio_bytes),
+                cover_hash=cover_hash, cover_bg_hash=cover_bg_hash,
+                cover_cfg=cover_cfg,
+                grade_labels=cover_mod.GRADE_LABELS,
+                scrim_labels=cover_mod.SCRIM_LABELS,
+                layout_labels=cover_mod.LAYOUT_LABELS,
+                source_labels=cover_mod.SOURCE_LABELS)
 
-    @bp.get("/homilias/stage/<token>/episode/<eid>/<kind>")
+    @bp.get("/homilias/stage/<token>/episode/<eid>/<any(cover,cover_bg,audio):kind>")
     def stage_asset(token, eid, kind):
         check_stage(token)
-        if kind not in ("cover", "audio") or not re.fullmatch(r"[0-9a-f]{32}", eid):
+        if not re.fullmatch(r"[0-9a-f]{32}", eid):
             abort(404)
         with get_engine().connect() as conn:
             row = conn.execute(sa.select(episodes.c.id, episodes.c.version).where(
@@ -378,10 +508,21 @@ def preview_routes(get_engine):
             data = asset(conn, eid, kind)
             if not data:
                 abort(404)
+            if kind == "cover_bg":
+                from . import cover as cover_mod
+                mime = cover_mod.detect_image_mimetype(data)
+                ext = "jpg" if mime == "image/jpeg" else ("webp" if mime == "image/webp" else "png")
+                dl_name = f"homilia-{row['id']}-v{row['version']}-base.{ext}"
+            elif kind == "cover":
+                mime = "image/png"
+                dl_name = f"homilia-{row['id']}-v{row['version']}-capa.png"
+            else:
+                mime = "audio/mp4"
+                dl_name = f"homilia-{row['id']}-v{row['version']}-audio.m4a"
             return send_file(io.BytesIO(data),
-                             mimetype={"cover": "image/png", "audio": "audio/mp4"}[kind],
+                             mimetype=mime,
                              as_attachment=request.args.get("download") == "1",
-                             download_name=f"homilia-{row['id']}-v{row['version']}-{'capa.png' if kind == 'cover' else 'audio.m4a'}",
+                             download_name=dl_name,
                              conditional=True)
 
     @bp.get("/homilias/p/<token>")
@@ -404,7 +545,9 @@ def preview_routes(get_engine):
                     panel_token=stage_token(),
                     source_text=source_text(conn, row["source_id"]),
                     spotify_wizard_url=SPOTIFY_WIZARD_URL,
-                    editable=False, can_mark_published=False)
+                    editable=False, can_mark_published=False,
+                    has_cover=True, has_cover_bg=False, has_audio=True,
+                    cover_hash="", cover_bg_hash="", cover_cfg=None)
             if kind not in ("cover", "audio"):
                 abort(404)
             data = asset(conn, row["id"], kind)
