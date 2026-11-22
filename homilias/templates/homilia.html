@@ -9,7 +9,7 @@
 {% elif panel_token %}
 <p class="actions">
   <a href="{{ url_for('homilias.stage',token=panel_token) }}">← Todos os episódios</a>
-  <a href="{{ url_for('homilias.stage_episode',token=panel_token,eid=job.id) }}">Gerenciar no painel (agendar / editar) →</a>
+  <a href="{{ url_for('homilias.stage_episode',token=panel_token,eid=job.id) }}">Gerenciar no painel (aprovar / agendar / editar) →</a>
 </p>
 {% endif %}
 <div class="eyebrow">Nos Passos de Cristo · Episódio · v{{ job.version }}</div>
@@ -37,13 +37,24 @@
   <div class="notice notice-ok" role="status">Nova imagem de capa importada e aplicada com sucesso.</div>
 {% elif request.args.get('salvo') == 'capa_ia' %}
   <div class="notice notice-ok" role="status">Geração da nova capa iniciada. Aguarde alguns instantes e <a href="{{ url_for('homilias.stage_episode', token=stage_token, eid=job.id) }}">atualize a página</a> para conferir.</div>
+{% elif request.args.get('salvo') == 'aprovado' %}
+  <div class="notice notice-ok" role="status">Episódio aprovado para publicação.</div>
 {% elif request.args.get('salvo') == 'publicado' %}
   <div class="notice notice-ok" role="status">Episódio marcado como publicado no painel.</div>
 {% elif request.args.get('erro') %}
   <div class="notice notice-err" role="alert">{{ request.args.get('erro') }}</div>
 {% endif %}
 
-<p class="status-message">{% if job.state == 'preview' %}Confira os textos, a data de publicação, a capa e o áudio. Para autorizar a publicação automática, aprove na conversa com o Passis, ou suba manualmente no Spotify usando os campos abaixo.{% elif job.state == 'approved' %}Esta versão foi aprovada para publicação. Aprovação e publicação são etapas diferentes; aguarde a confirmação do Spotify.{% elif job.state == 'published' %}A publicação deste episódio foi confirmada.{% elif job.state in ['clicked', 'check_spotify'] %}Confira o episódio no Spotify antes de tentar publicar novamente.{% else %}Acompanhe o status acima. Os arquivos ficam disponíveis quando a prévia está pronta.{% endif %}</p>
+<p class="status-message">{% if job.state == 'preview' %}{% if stage_token %}Confira os textos, a data de publicação, a capa e o áudio. Quando estiver tudo certo, clique em “Aprovar para publicar” abaixo (ou aprove pelo WhatsApp).{% else %}Confira os textos, a data de publicação, a capa e o áudio. Para autorizar a publicação automática, aprove na conversa com o Passis, ou suba manualmente no Spotify usando os campos abaixo.{% endif %}{% elif job.state == 'approved' %}Esta versão foi aprovada para publicação. Aprovação e publicação são etapas diferentes; aguarde a confirmação do Spotify.{% elif job.state == 'published' %}A publicação deste episódio foi confirmada.{% elif job.state in ['clicked', 'check_spotify'] %}Confira o episódio no Spotify antes de tentar publicar novamente.{% else %}Acompanhe o status acima. Os arquivos ficam disponíveis quando a prévia está pronta.{% endif %}</p>
+
+{% if stage_token and job.state == 'preview' %}
+<div class="actions" style="margin:16px 0 20px">
+  <form method="post" action="{{ url_for('homilias.stage_action',token=stage_token,eid=job.id,action='approve') }}">
+    <input type="hidden" name="version" value="{{ job.version }}"><input type="hidden" name="state" value="{{ job.state }}">
+    <button type="submit" class="primary">✓ Aprovar para publicar</button>
+  </form>
+</div>
+{% endif %}
 
 {% if stage_token and editable and not token %}
 <section class="card" aria-labelledby="schedule-only-heading">

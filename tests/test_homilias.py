@@ -216,6 +216,33 @@ class EpisodesTest(unittest.TestCase):
         self.assertIn('data-copy="spotify-title"', client.get(detail + self.eid).get_data(as_text=True))
         self.assertEqual(client.post(detail + self.eid).status_code, 405)
 
+    @patch.dict(os.environ, {"HOMILIA_STAGE_TOKEN": "stage", "HOMILIA_OWNER_WA_ID": "owner"})
+    def test_stage_episode_approve_transitions_preview_to_approved(self):
+        self.preview()
+        self.conn.commit()
+        app = Flask(__name__)
+        app.register_blueprint(channel.preview_routes(lambda: self.engine))
+        client = app.test_client()
+        episode_url = f"/homilias/stage/stage/episode/{self.eid}"
+        approve_url = f"{episode_url}/approve"
+
+        page_before = client.get(episode_url).get_data(as_text=True)
+        self.assertIn(approve_url, page_before)
+        self.assertIn("Aprovar para publicar", page_before)
+        self.assertEqual(client.get(approve_url).status_code, 405)
+
+        resp = client.post(approve_url, data={"state": "preview", "version": "1"})
+        self.assertEqual(resp.status_code, 303)
+        self.assertIn("salvo=aprovado", resp.headers["Location"])
+        self.assertEqual(self.row()["state"], "approved")
+        self.assertIsNone(self.row()["notice"])
+
+        # Já aprovado: botão desaparece e nova tentativa retorna 409.
+        page_after = client.get(episode_url).get_data(as_text=True)
+        self.assertNotIn(approve_url, page_after)
+        self.assertIn("Aprovado para publicar", page_after)
+        self.assertEqual(client.post(approve_url, data={"state": "approved", "version": "1"}).status_code, 409)
+
     def test_text_arrives_before_transcription_and_duplicate_delivery(self):
         store.register_audio(self.conn, "audio2", "owner", 1000)
         self.assertFalse(store.ready(self.conn, "audio2",

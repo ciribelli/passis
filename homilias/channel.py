@@ -30,7 +30,7 @@ PREVIEW_STATES = ("preview", "approved", "publishing", "clicked", "published", "
 EDITABLE_STATES = ("offered", "queued", "waiting_text", "failed", "preview", "approved", "cancelled")
 MANUAL_PUBLISH_STATES = ("preview", "approved", "check_spotify", "clicked")
 STAGE_ACTIONS = (
-    "trash", "prepare", "transcribe", "schedule", "edit", "mark-published",
+    "trash", "prepare", "approve", "transcribe", "schedule", "edit", "mark-published",
     "cover-source", "cover-render", "cover-regen-bg",
 )
 BR_TZ = ZoneInfo("America/Sao_Paulo")
@@ -408,6 +408,12 @@ def preview_routes(get_engine):
                     cover_config=cover_mod.dump_cover_config(cfg)))
                 spawn_cmd = [sys.executable, "-m", "homilias.worker", "regen-cover-bg", "--id", eid]
                 redirect_target = url_for("homilias.stage_episode", token=token, eid=eid, salvo="capa_ia")
+            elif action == "approve":
+                if expected_state != "preview":
+                    abort(409, "Esta edição não está aguardando aprovação.")
+                if not transition(conn, eid, row["owner"], version, "preview", "approved", notice=None):
+                    abort(409, "A edição mudou. Atualize o painel.")
+                return redirect(url_for("homilias.stage_episode", token=token, eid=eid, salvo="aprovado"), code=303)
             elif action == "mark-published":
                 if expected_state not in MANUAL_PUBLISH_STATES:
                     abort(409, "Esta edição não pode ser marcada como publicada neste estado.")
