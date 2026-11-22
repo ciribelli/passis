@@ -271,7 +271,9 @@ class CoverStageIntegrationTests(unittest.TestCase):
         with patch("homilias.cover.requests.post") as post:
             post.return_value.json.return_value = {"data": [{"b64_json": base64.b64encode(ai_png).decode()}]}
             worker.regen_cover_bg(self.engine, self.eid)
-            self.assertIn("Mãos partilhando o pão", post.call_args.kwargs["json"]["prompt"])
+            payload = post.call_args.kwargs["json"]
+            self.assertIn("Mãos partilhando o pão", payload["prompt"])
+            self.assertEqual(payload["quality"], "high")
 
         cfg = json.loads(self._row()["cover_config"])
         self.assertEqual(cfg["source"], "ai")

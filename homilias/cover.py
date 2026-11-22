@@ -350,16 +350,23 @@ def build_background_prompt(scene, title="", note="", layout="top"):
     return "\n\n".join(parts)
 
 
-def generate_ai_background(scene, title="", note="", layout="top", api_key=None, model=None, post=None):
+def generate_ai_background(scene, title="", note="", layout="top", api_key=None, model=None, quality=None, post=None):
     """Passo 1 via OpenAI: gera a pintura-base limpa (sem texto)."""
     key = api_key or os.environ["HOMILIA_API_KEY"]
     img_model = model or os.getenv("HOMILIA_IMAGE_MODEL", "gpt-image-1.5")
+    img_quality = quality or os.getenv("HOMILIA_IMAGE_QUALITY", "high")
     prompt = build_background_prompt(scene, title=title, note=note, layout=layout)
     requester = post or requests.post
     response = requester(
         "https://api.openai.com/v1/images/generations",
         headers={"Authorization": "Bearer " + key},
-        json={"model": img_model, "size": "1024x1024", "prompt": prompt, "output_format": "png"},
+        json={
+            "model": img_model,
+            "size": "1024x1024",
+            "quality": img_quality,
+            "prompt": prompt,
+            "output_format": "png",
+        },
         timeout=(15, 300),
     )
     response.raise_for_status()
